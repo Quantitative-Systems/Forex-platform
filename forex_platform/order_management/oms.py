@@ -263,6 +263,11 @@ class OrderManagementSystem:
     def get_open_positions(self) -> List[Position]:
         return list(self._open_positions.values())
 
+    def inject_position(self, position: Position) -> None:
+        """Inject open position directly (useful for testing, reconciliation seed, and state recovery)."""
+        clean_sym = position.symbol.upper().replace("/", "").replace("_", "").replace("-", "")
+        self._open_positions[clean_sym] = position
+
     def get_position(self, symbol: str) -> Optional[Position]:
         clean = symbol.upper().replace("/", "").replace("_", "").replace("-", "")
         return self._open_positions.get(clean)
