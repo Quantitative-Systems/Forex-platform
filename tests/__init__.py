@@ -1,0 +1,3 @@
+"""
+Forex Platform Test Suite.
+"""

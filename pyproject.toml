@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "forex-platform"
+version = "0.1.0"
+description = "Quantitative Forex Platform - Foundation and Core Engine"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+    { name = "Quantitative Systems Engineer" }
+]
+dependencies = [
+    "numpy>=2.0.0",
+    "polars>=1.0.0",
+    "scipy>=1.13.0",
+    "pydantic>=2.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+forex-platform = "forex_platform.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["forex_platform*"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-v --strict-markers"
+testpaths = [
+    "tests",
+]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
