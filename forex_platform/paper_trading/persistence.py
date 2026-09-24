@@ -33,12 +33,21 @@ class SQLitePaperLedger:
     """
 
     def __init__(self, db_path: str | Path = "data/paper_ledger.db"):
-        self.db_path = Path(db_path)
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.is_memory = str(db_path) == ":memory:"
+        if self.is_memory:
+            self.db_path = Path(":memory:")
+            self._mem_conn: Optional[sqlite3.Connection] = sqlite3.connect(":memory:", check_same_thread=False)
+            self._mem_conn.row_factory = sqlite3.Row
+        else:
+            self.db_path = Path(db_path)
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
+            self._mem_conn = None
         self._lock = threading.Lock()
         self._init_db()
 
     def _get_connection(self) -> sqlite3.Connection:
+        if self.is_memory and self._mem_conn is not None:
+            return self._mem_conn
         conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
         conn.execute("PRAGMA journal_mode=WAL;")
         conn.execute("PRAGMA synchronous=NORMAL;")

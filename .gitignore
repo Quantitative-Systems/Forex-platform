@@ -59,3 +59,12 @@ data/raw/*.parquet
 *.large.csv
 *.large.json
 *.large.parquet
+
+# SQLite databases
+*.db
+*.db-wal
+*.db-shm
+
+# Research run logs
+research/failed/*.json
+research/promoted/*.json
