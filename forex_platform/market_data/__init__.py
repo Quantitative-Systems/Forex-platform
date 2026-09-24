@@ -1,5 +1,5 @@
 """
-Causal market data pipeline and multi-timeframe alignment engine.
+Causal market data pipeline, historical ECN fetcher, and quality auditing engine.
 """
 
 from forex_platform.market_data.loader import (
@@ -14,14 +14,24 @@ from forex_platform.market_data.causal_aligner import (
     CausalLookaheadViolationError,
     Timeframe,
 )
+from forex_platform.market_data.historical_fetcher import HistoricalECNFetcher
+from forex_platform.market_data.quality import (
+    DataQualityAuditor,
+    PriceAnomaly,
+    QualityAuditReport,
+)
 
 __all__ = [
     "CausalAligner",
     "CausalLookaheadViolationError",
     "DataGap",
+    "DataQualityAuditor",
     "DuplicateTimestampError",
+    "HistoricalECNFetcher",
     "MarketDataError",
     "MarketDataLoader",
     "MonotonicityError",
+    "PriceAnomaly",
+    "QualityAuditReport",
     "Timeframe",
 ]

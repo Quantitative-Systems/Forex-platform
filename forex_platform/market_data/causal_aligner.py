@@ -33,6 +33,10 @@ class Timeframe(str, Enum):
         }
         return mapping[self]
 
+    def to_timedelta(self) -> timedelta:
+        """Alias returning timeframe duration as datetime.timedelta."""
+        return self.duration
+
     @property
     def polars_duration(self) -> str:
         mapping = {
