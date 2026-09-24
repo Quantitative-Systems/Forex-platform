@@ -7,7 +7,7 @@ or missing quotes immediately return approved=False.
 from __future__ import annotations
 
 from datetime import datetime, timezone, timedelta
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 import statistics
 from typing import Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field
@@ -18,9 +18,11 @@ from forex_platform.core.domain import (
     OrderIntent,
     OrderSide,
     OrderType,
+    Position,
     to_decimal,
 )
 from forex_platform.core.sessions import ForexSessionEngine
+from forex_platform.portfolio_engine.allocator import CurrencyExposureGovernor
 from forex_platform.risk_engine.circuit_breakers import CircuitBreakerEngine, CircuitBreakerStatus
 from forex_platform.risk_engine.kill_switches import HierarchicalKillSwitch
 
@@ -86,10 +88,14 @@ class PreTradeRiskFirewall:
         kill_switch: HierarchicalKillSwitch,
         circuit_breaker: CircuitBreakerEngine,
         allow_live_capital: bool = False,  # Strict zero live capital constraint
+        exposure_governor: Optional[CurrencyExposureGovernor] = None,
+        account_equity: Decimal = Decimal("100000.00"),
     ):
         self.kill_switch = kill_switch
         self.circuit_breaker = circuit_breaker
         self.allow_live_capital = allow_live_capital
+        self.exposure_governor = exposure_governor or CurrencyExposureGovernor()
+        self.account_equity = account_equity
 
     def evaluate_order(
         self,
@@ -100,6 +106,8 @@ class PreTradeRiskFirewall:
         broker_id: Optional[str] = None,
         strategy_id: Optional[str] = None,
         is_carry_order: bool = False,
+        open_positions: Optional[List[Position]] = None,
+        account_equity: Optional[Decimal] = None,
     ) -> RiskDecision:
         """
         Evaluate order intent through all 6 sequential tiers.
@@ -114,6 +122,8 @@ class PreTradeRiskFirewall:
                 broker_id=broker_id,
                 strategy_id=strategy_id,
                 is_carry_order=is_carry_order,
+                open_positions=open_positions,
+                account_equity=account_equity,
             )
         except Exception as e:
             # Absolute Fail-Closed invariant
@@ -134,6 +144,8 @@ class PreTradeRiskFirewall:
         broker_id: Optional[str],
         strategy_id: Optional[str],
         is_carry_order: bool,
+        open_positions: Optional[List[Position]] = None,
+        account_equity: Optional[Decimal] = None,
     ) -> RiskDecision:
         utc_now = current_time if current_time.tzinfo else current_time.replace(tzinfo=timezone.utc)
         order_time = intent.timestamp if intent.timestamp.tzinfo else intent.timestamp.replace(tzinfo=timezone.utc)
@@ -271,7 +283,7 @@ class PreTradeRiskFirewall:
             )
 
         # ---------------------------------------------------------------------
-        # TIER 4: WEEKEND CLOSURE GATE
+        # TIER 4: PORTFOLIO EXPOSURE & WEEKEND CLOSURE GATE
         # ---------------------------------------------------------------------
         if ForexSessionEngine.is_weekend(utc_now):
             return RiskDecision(
@@ -279,6 +291,35 @@ class PreTradeRiskFirewall:
                 tier_failed=4,
                 reason="Tier 4 Failure: Forex market is closed for the weekend (Friday 21:00 - Sunday 21:00 UTC).",
             )
+
+        # Portfolio Currency Net-Delta Exposure Governor Check
+        if self.exposure_governor is not None and open_positions is not None:
+            eq = account_equity if account_equity is not None else self.account_equity
+            curr_prices = {telemetry.symbol: telemetry.bid} if telemetry else None
+
+            gov_decision = self.exposure_governor.evaluate_intent(
+                intent=intent,
+                open_positions=open_positions,
+                account_equity=eq,
+                current_prices=curr_prices,
+            )
+            if not gov_decision.approved:
+                return RiskDecision(
+                    approved=False,
+                    tier_failed=4,
+                    reason=f"Tier 4 Failure: {gov_decision.reason}",
+                    sizing_multiplier=Decimal("0.0"),
+                    details={
+                        "breached_currency": gov_decision.breached_currency or "",
+                        "current_exposure_pct": str(gov_decision.current_exposure_pct or Decimal("0.0")),
+                        "projected_exposure_pct": str(gov_decision.projected_exposure_pct or Decimal("0.0")),
+                    },
+                )
+            elif gov_decision.downsized and gov_decision.allowed_lots is not None:
+                orig_u = Decimal(str(intent.lot_size.units))
+                allow_u = Decimal(str(gov_decision.allowed_lots.units))
+                ratio = (allow_u / orig_u).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                sizing_mult = min(sizing_mult, ratio)
 
         # ---------------------------------------------------------------------
         # TIER 5: ROLLOVER BLACKOUT GATE
