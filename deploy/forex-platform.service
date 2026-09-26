@@ -1,0 +1,24 @@
+[Unit]
+Description=Forex Platform control plane
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=forex
+Group=forex
+WorkingDirectory=/opt/forex-platform
+EnvironmentFile=/etc/forex-platform/forex-platform.env
+ExecStart=/opt/forex-platform/.venv/bin/forex-platform serve-production
+Restart=always
+RestartSec=10
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/forex-platform
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

@@ -68,7 +68,7 @@ class TestUnifiedCLI:
         assert exit_code == 0
         output = stdout_capture.getvalue()
         assert "DISCOVERY SWEEP:" in output
-        assert "G1-G7 QUALIFICATION GATES:" in output
+        assert "G1-G8 QUALIFICATION GATES:" in output
 
     def test_cli_forward_paper(self, monkeypatch):
         stdout_capture = StringIO()

@@ -133,6 +133,25 @@ class TestWalkForwardAndGates:
         assert dev_df["timestamp"][-1] < val_df["timestamp"][0]
         assert val_df["timestamp"][-1] < oos_df["timestamp"][0]
 
+    def test_rolling_walkforward_uses_independent_windows(self):
+        from forex_platform.research_engine.walkforward import WalkForwardEngine
+
+        start = datetime(2026, 1, 5, tzinfo=timezone.utc)
+        rows = []
+        price = 1.0850
+        for i in range(90):
+            close = price + (0.0001 if i % 3 else -0.00005)
+            rows.append({"timestamp": start + timedelta(minutes=15 * i), "open": price,
+                         "high": max(price, close) + 0.0001, "low": min(price, close) - 0.0001,
+                         "close": close, "volume": 100.0, "spread": 1.0})
+            price = close
+        strategy = MockSignalStrategy([0, 30, 60])
+        result = WalkForwardEngine.run_rolling_walkforward(
+            strategy, CurrencyPair.from_symbol("EURUSD"), pl.DataFrame(rows), window_bars=30, step_bars=30
+        )
+        assert len(result.windows) == 3
+        assert all(w.oos_result.strategy_id == strategy.strategy_id for w in result.windows)
+
     def test_g1_g7_gate_evaluation_and_negative_logger(self, tmp_path):
         evaluator = StrategyEvaluator(
             min_dev_trades=10,

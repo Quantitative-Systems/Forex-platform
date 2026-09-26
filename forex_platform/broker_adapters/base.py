@@ -23,6 +23,13 @@ from forex_platform.core.domain import (
     to_decimal,
 )
 
+try:  # Avoid a hard import cycle at module import time.
+    from forex_platform.production.security import LiveAuthorization, LiveTradingGate
+except Exception:  # pragma: no cover - production package is optional for legacy users
+    LiveAuthorization = None  # type: ignore[assignment]
+    LiveTradingGate = None  # type: ignore[assignment]
+
+
 
 class PermissionSecurityError(PermissionError):
     """
@@ -134,6 +141,15 @@ class BrokerOrderAck(BaseModel):
     status: OrderStatus
     timestamp: datetime
     message: str = "Order acknowledged"
+    filled_units: int = 0
+    fill_price: Decimal | None = None
+
+    @field_validator("fill_price", mode="before")
+    @classmethod
+    def convert_fill_price(cls, v: Any) -> Decimal | None:
+        if v is None:
+            return None
+        return to_decimal(v)
 
 
 class IBrokerAdapter(ABC):
@@ -160,14 +176,68 @@ class IBrokerAdapter(ABC):
         broker_name: str,
         rate_limiter: Optional[TokenBucketRateLimiter] = None,
         is_live: bool = False,
+        live_gate: Optional["LiveTradingGate"] = None,
+        broker_supports_live: bool = False,
+        adapter_kind: str = "unknown",
     ):
         self.account_id = account_id
         self.broker_name = broker_name
         self.rate_limiter = rate_limiter or TokenBucketRateLimiter(capacity=50, refill_rate=50.0)
         self.is_live = is_live
-        # Zero Live Capital Invariant: live capital permanently locked at $0.00
+        self.adapter_kind = adapter_kind
+        self.broker_supports_live = broker_supports_live
+        self.live_gate = live_gate
+        self._live_authorization = None
+        # Zero Live Capital Invariant: live capital starts locked at $0.00.
+        # It is only raised after LiveTradingGate authorizes a specific account.
         self.live_capital: Decimal = Decimal("0.00")
         self._is_connected: bool = False
+
+    def authorize_live(
+        self,
+        capital: Decimal | float | str,
+        *,
+        tls_active: bool,
+    ) -> "LiveAuthorization":
+        """
+        Explicitly authorize live routing for this account.
+
+        This cannot be called implicitly by strategy code: it requires a
+        configured LiveTradingGate whose settings passed validation.
+        """
+        if self.live_gate is None or LiveTradingGate is None:
+            raise PermissionSecurityError(
+                "LIVE ROUTING UNAVAILABLE: no LiveTradingGate configured. "
+                "Live capital remains locked at $0.00."
+            )
+        if not self.is_live:
+            raise PermissionSecurityError("authorize_live() called on a non-live adapter.")
+        authorization = self.live_gate.authorize(
+            account_id=self.account_id,
+            broker=self.broker_name,
+            requested_capital=capital,
+            broker_supports_live=self.broker_supports_live,
+            tls_active=tls_active,
+        )
+        self._live_authorization = authorization
+        self.live_capital = to_decimal(capital)
+        return authorization
+
+    @property
+    def live_authorized(self) -> bool:
+        return self._live_authorization is not None
+
+    def capabilities(self) -> Dict[str, Any]:
+        return {
+            "account_id": self.account_id,
+            "broker_name": self.broker_name,
+            "adapter_kind": self.adapter_kind,
+            "is_live": self.is_live,
+            "supports_live": self.broker_supports_live,
+            "live_authorized": self.live_authorized,
+            "connected": self.is_connected,
+        }
+
 
     def audit_permissions(self, permissions: List[str]) -> None:
         """
@@ -185,14 +255,26 @@ class IBrokerAdapter(ABC):
 
     def verify_live_capital_guard(self) -> None:
         """
-        Zero Live Capital Invariant enforcement:
-        Live order routing is strictly locked at $0.00 and fails closed.
+        Live capital guard.
+
+        Default state is locked at $0.00. An adapter passes only when
+        `authorize_live()` succeeded against the configured LiveTradingGate,
+        which itself requires the environment, acknowledgement, whitelist,
+        capital ceiling, TLS, demo-soak, and broker capability conditions.
         """
-        if self.is_live or self.live_capital > Decimal("0.00"):
-            raise PermissionSecurityError(
-                f"LIVE CAPITAL LOCKED: Live order routing is blocked by safety invariant. "
-                f"Live capital locked at ${self.live_capital:.2f}. Execution must fail closed."
-            )
+        if not self.is_live:
+            if self.live_capital > Decimal("0.00"):
+                raise PermissionSecurityError(
+                    "Non-live adapter unexpectedly carries live capital. Failing closed."
+                )
+            return
+        if self._live_authorization is not None:
+            return
+        raise PermissionSecurityError(
+            "LIVE CAPITAL LOCKED: Live order routing has no LiveAuthorization. "
+            f"Account={self.account_id} broker={self.broker_name}. Execution fails closed."
+        )
+
 
     @abstractmethod
     def connect(self) -> bool:

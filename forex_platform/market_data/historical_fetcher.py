@@ -7,6 +7,7 @@ converts historical feeds to high-performance Parquet datasets in data/cache/.
 from __future__ import annotations
 
 import csv
+import json
 import logging
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -15,10 +16,12 @@ import numpy as np
 import polars as pl
 
 from forex_platform.core.domain import CurrencyPair
+from forex_platform.core.instruments import FXInstrumentRegistry
 from forex_platform.core.sessions import ForexSessionEngine
 from forex_platform.market_data.causal_aligner import Timeframe
 from forex_platform.market_data.loader import MarketDataError, MarketDataLoader
 from forex_platform.market_data.quality import DataQualityAuditor, QualityAuditReport
+from forex_platform.market_data.provenance import DataProvenance
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +33,7 @@ class HistoricalECNFetcher:
     """
 
     CACHE_DIR = Path("data/cache")
-    SUPPORTED_PAIRS = ["EURUSD", "GBPUSD", "USDJPY", "EURGBP", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD"]
+    SUPPORTED_PAIRS = list(FXInstrumentRegistry.SYMBOLS)
 
     @classmethod
     def get_cache_path(
@@ -210,6 +213,9 @@ class HistoricalECNFetcher:
         symbol: str,
         timeframe: Timeframe = Timeframe.M15,
         cache_dir: Optional[Path] = None,
+        *,
+        provenance: DataProvenance = DataProvenance.UNKNOWN,
+        source: str = "cache",
     ) -> Path:
         """
         Save canonical validated DataFrame to high-performance Parquet format.
@@ -217,8 +223,33 @@ class HistoricalECNFetcher:
         target_path = cls.get_cache_path(symbol, timeframe, cache_dir)
         target_path.parent.mkdir(parents=True, exist_ok=True)
         df.write_parquet(target_path, compression="zstd")
+        metadata_path = target_path.with_suffix(target_path.suffix + ".meta.json")
+        metadata_path.write_text(json.dumps({
+            "classification": provenance.value,
+            "source": source,
+            "rows": df.height,
+        }, indent=2), encoding="utf-8")
         logger.info("Saved %d bars for %s (%s) to %s", df.height, symbol, timeframe.value, target_path)
         return target_path
+
+    @classmethod
+    def load_provenance(
+        cls,
+        symbol: str,
+        timeframe: Timeframe = Timeframe.M15,
+        cache_dir: Optional[Path] = None,
+    ) -> tuple[DataProvenance, str]:
+        """Read cache provenance; missing or malformed metadata is UNKNOWN."""
+        path = cls.get_cache_path(symbol, timeframe, cache_dir).with_suffix(
+            cls.get_cache_path(symbol, timeframe, cache_dir).suffix + ".meta.json"
+        )
+        if not path.exists():
+            return DataProvenance.UNKNOWN, "missing cache metadata"
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            return DataProvenance(payload["classification"]), str(payload.get("source", "cache"))
+        except (OSError, ValueError, KeyError, TypeError):
+            return DataProvenance.UNKNOWN, "invalid cache metadata"
 
     @classmethod
     def load_from_parquet(
@@ -346,14 +377,22 @@ class HistoricalECNFetcher:
         # 2. Source file provided
         if source_file is not None and Path(source_file).exists():
             df = cls.parse_external_csv(source_file)
-            cls.cache_to_parquet(df, symbol, timeframe, cache_dir)
+            cls.cache_to_parquet(
+                df, symbol, timeframe, cache_dir,
+                provenance=DataProvenance.REAL_VENDOR,
+                source=str(source_file),
+            )
             return df
 
         # 3. Fallback to synthetic ECN history
         if auto_generate_synthetic_if_missing:
             logger.info("Generating synthetic ECN dataset for %s (%s)...", symbol, timeframe.value)
             df = cls.generate_synthetic_ecn_history(symbol=symbol, timeframe=timeframe, num_bars=synthetic_bars)
-            cls.cache_to_parquet(df, symbol, timeframe, cache_dir)
+            cls.cache_to_parquet(
+                df, symbol, timeframe, cache_dir,
+                provenance=DataProvenance.SYNTHETIC,
+                source="synthetic generator",
+            )
             return df
 
         raise FileNotFoundError(

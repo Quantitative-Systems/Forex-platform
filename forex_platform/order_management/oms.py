@@ -160,6 +160,18 @@ class OrderManagementSystem:
         sm.transition_to(OrderLifecycleState.ACKED, timestamp, "Acknowledged by broker")
         self._orders[order_id].status = OrderStatus.SUBMITTED
 
+    def get_order(self, order_id: str) -> Optional[ExecutionOrder]:
+        """Return an order by ID, or None when unknown."""
+        return self._orders.get(order_id)
+
+    def get_open_positions(self) -> List[Position]:
+        """Return a snapshot of currently open positions."""
+        return list(self._open_positions.values())
+
+    def get_closed_positions(self) -> List[Position]:
+        """Return a snapshot of closed positions."""
+        return list(self._closed_positions)
+
     def process_fill(self, fill: Fill) -> Position:
         """
         Record fill, update order remaining units, and attribute to open position.

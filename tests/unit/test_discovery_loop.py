@@ -136,7 +136,28 @@ class TestContinuousDiscoveryLoop:
         assert result.promoted_artifact_path is not None
         assert Path(result.promoted_artifact_path).exists()
 
-    def test_run_discovery_sweep(self, tmp_path):
+    def test_pipeline_requires_real_data_by_default(self, tmp_path):
+        from forex_platform.discovery.pipeline_runner import AutomatedPipelineRunner
+
+        runner = AutomatedPipelineRunner(
+            symbols=["EURUSD"], bars=200, cache_dir=tmp_path / "cache",
+            paper_db_path=tmp_path / "paper.db", allow_live_download=False,
+        )
+        with pytest.raises(RuntimeError, match="Real historical data is required"):
+            runner.acquire_historical_data()
+
+    def test_pipeline_allows_explicit_synthetic_smoke_data(self, tmp_path):
+        from forex_platform.discovery.pipeline_runner import AutomatedPipelineRunner
+
+        runner = AutomatedPipelineRunner(
+            symbols=["EURUSD"], bars=200, cache_dir=tmp_path / "cache",
+            paper_db_path=tmp_path / "paper.db", allow_live_download=False,
+            require_real_data=False,
+        )
+        data = runner.acquire_historical_data()
+        assert data["EURUSD"].height >= 200
+        assert runner.data_provenance["EURUSD"].value == "SYNTHETIC"
+
         """Verify parameter exploration sweep handles multiple candidates."""
         df = _make_sample_df(60)
         candidates = [

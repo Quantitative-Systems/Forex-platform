@@ -146,6 +146,8 @@ class MT5BridgeAdapter(IBrokerAdapter):
             status=OrderStatus.FILLED,
             timestamp=datetime.now(timezone.utc),
             message=f"Order executed on MT5 terminal ({self.broker_name}) as {broker_symbol}",
+            filled_units=intent.lot_size.units,
+            fill_price=fill_price,
         )
 
     def cancel_order(self, order_id: str) -> bool:

@@ -106,6 +106,43 @@ class TestBrokerSecurityAndAdapters:
         with pytest.raises(PermissionSecurityError, match="LIVE CAPITAL LOCKED"):
             live_adapter.send_order(intent)
 
+    def test_secret_file_permissions_are_enforced(self, tmp_path):
+        from forex_platform.production.brokers import BrokerError, resolve_secret
+
+        secret = tmp_path / "mt5_secret"
+        secret.write_text("secret-value", encoding="utf-8")
+        secret.chmod(0o640)
+        with pytest.raises(BrokerError, match="group or others"):
+            resolve_secret({"hmac_secret_file": str(secret)}, "hmac_secret")
+        secret.chmod(0o600)
+        assert resolve_secret({"hmac_secret_file": str(secret)}, "hmac_secret") == "secret-value"
+
+    def test_broker_registry_readiness_requires_all_enabled_accounts(self, tmp_path):
+        from forex_platform.production.brokers import AccountSpec, BrokerRegistry
+        from forex_platform.production.settings import Settings
+
+        registry = BrokerRegistry(Settings(require_api_key=False), live_gate=object())
+        first = AccountSpec(account_id="first", broker="PAPER", mode="PAPER", adapter="paper", enabled=True)
+        second = AccountSpec(account_id="second", broker="PAPER", mode="PAPER", adapter="paper", enabled=True)
+        registry.register(first)
+        registry.register(second)
+        first_adapter = registry.get_adapter("first")
+        second_adapter = registry.get_adapter("second")
+        first_adapter.connect()
+        health = registry.health()
+        assert health["enabled_accounts"] == 2
+        assert health["connected_accounts"] == 1
+        assert health["all_enabled_connected"] is False
+        second_adapter.connect()
+        assert registry.health()["all_enabled_connected"] is True
+
+        from forex_platform.production.brokers import BrokerError, MT5RemoteAdapter
+
+        with pytest.raises(BrokerError, match="HTTPS"):
+            MT5RemoteAdapter("demo", "B", "http://agent")
+        with pytest.raises(BrokerError, match="agent_token"):
+            MT5RemoteAdapter("demo", "B", "https://agent")
+
     def test_mt5_bridge_order_lifecycle(self):
         """Verify simulated order placement, position query, and cancellation on MT5 bridge."""
         adapter = MT5BridgeAdapter(account_id="DEMO_MT5", broker_name="IC_MARKETS")

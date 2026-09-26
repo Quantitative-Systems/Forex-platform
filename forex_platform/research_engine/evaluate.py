@@ -1,5 +1,5 @@
 """
-G1–G7 Validation Gates and Negative Research Logger.
+G1–G8 Validation Gates and Negative Research Logger.
 Enforces institutional qualification criteria before any strategy is eligible for paper trading.
 Automatically logs failed runs to research/failed/ with full audit diagnostics.
 """
@@ -10,14 +10,18 @@ from datetime import datetime, timezone
 from decimal import Decimal
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field
 
 from forex_platform.core.domain import CurrencyPair
 from forex_platform.market_data.causal_aligner import Timeframe
 from forex_platform.research_engine.backtester import BacktestResult, EventDrivenBacktester
-from forex_platform.research_engine.walkforward import WalkForwardEngine, WalkForwardResult
+from forex_platform.research_engine.walkforward import (
+    RollingWalkForwardResult,
+    WalkForwardEngine,
+    WalkForwardResult,
+)
 from forex_platform.strategy_engine.base import BaseStrategy
 
 
@@ -33,7 +37,7 @@ class GateResult(BaseModel):
 
 
 class GateReport(BaseModel):
-    """Overall evaluation report across all G1-G7 gates."""
+    """Overall evaluation report across all G1-G8 gates."""
     model_config = ConfigDict(frozen=True)
 
     strategy_id: str
@@ -41,6 +45,7 @@ class GateReport(BaseModel):
     failed_gate: Optional[str] = None
     gate_results: Dict[str, GateResult]
     archived_failed_path: Optional[str] = None
+    promoted_path: Optional[str] = None
 
 
 class StrategyEvaluator:
@@ -53,6 +58,7 @@ class StrategyEvaluator:
     - G5: Cost Shock Stress (Expectancy remains positive under 2x spread and commissions).
     - G6: Maximum drawdown <= 15.0%.
     - G7: Sharpe ratio >= 0.50.
+    - G8: Rolling OOS robustness: >=60% positive windows and positive worst-window expectancy.
     """
 
     FAILED_RESEARCH_DIR = Path("research/failed")
@@ -81,9 +87,10 @@ class StrategyEvaluator:
         currency_pair: CurrencyPair,
         wf_result: WalkForwardResult,
         cost_shock_result: Optional[BacktestResult] = None,
+        rolling_result: Optional[RollingWalkForwardResult] = None,
     ) -> GateReport:
         """
-        Evaluate WalkForwardResult against G1-G7 gates.
+        Evaluate WalkForwardResult against G1-G8 gates.
         """
         dev = wf_result.dev_result
         val = wf_result.val_result
@@ -228,15 +235,56 @@ class StrategyEvaluator:
         if not g7_pass and failed_gate is None:
             failed_gate = "G7_SHARPE_RATIO"
 
+        # ---------------------------------------------------------------------
+        # GATE 8: ROLLING WINDOW ROBUSTNESS
+        # ---------------------------------------------------------------------
+        if rolling_result is not None:
+            windows = rolling_result.windows
+            total_oos_trades = sum(window.oos_result.total_trades for window in windows)
+            positive_windows = sum(1 for window in windows if window.oos_result.expectancy > 0)
+            positive_ratio = positive_windows / len(windows) if windows else 0.0
+            worst_expectancy = min(
+                (window.oos_result.expectancy for window in windows),
+                default=Decimal("0"),
+            )
+            g8_pass = (
+                len(windows) >= 3
+                and total_oos_trades >= self.min_oos_trades
+                and positive_ratio >= 0.60
+                and worst_expectancy > Decimal("0")
+            )
+            gate_results["G8_ROLLING_ROBUSTNESS"] = GateResult(
+                gate_name="G8_ROLLING_ROBUSTNESS",
+                passed=g8_pass,
+                observed_value=float(positive_ratio),
+                threshold_value=0.60,
+                message=(
+                    f"Positive rolling OOS windows = {positive_windows}/{len(windows)}; "
+                    f"worst OOS expectancy = {float(worst_expectancy):.2f}; "
+                    f"OOS trades = {total_oos_trades}"
+                ),
+            )
+            if not g8_pass and failed_gate is None:
+                failed_gate = "G8_ROLLING_ROBUSTNESS"
+
         # Overall verdict
         passed_all = failed_gate is None
         archived_path = None
+        promoted_path = None
 
         if not passed_all:
             archived_path = self._archive_negative_research(
                 strategy_id=strategy.strategy_id,
                 failed_gate=failed_gate or "UNKNOWN",
                 gate_results=gate_results,
+            )
+        else:
+            # Promote strategy that passes all gates
+            promoted_path = self._promote_strategy(
+                strategy_id=strategy.strategy_id,
+                gate_results=gate_results,
+                parameters=strategy.parameters,
+                oos_result=oos,
             )
 
         return GateReport(
@@ -245,7 +293,10 @@ class StrategyEvaluator:
             failed_gate=failed_gate,
             gate_results=gate_results,
             archived_failed_path=archived_path,
+            promoted_path=promoted_path,
         )
+
+    PROMOTED_RESEARCH_DIR = Path("research/promoted")
 
     def _archive_negative_research(
         self,
@@ -266,4 +317,35 @@ class StrategyEvaluator:
             "gates": {k: v.model_dump() for k, v in gate_results.items()},
         }
         target_path.write_text(json.dumps(payload, indent=2))
+        return str(target_path)
+
+    def _promote_strategy(
+        self,
+        strategy_id: str,
+        gate_results: Dict[str, GateResult],
+        parameters: Dict[str, Any],
+        oos_result: Optional[BacktestResult] = None,
+    ) -> str:
+        """Promote passing strategy to research/promoted/ with PROMOTABLE_PAPER_ONLY status."""
+        self.PROMOTED_RESEARCH_DIR.mkdir(parents=True, exist_ok=True)
+        now_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        filename = f"{strategy_id}_PROMOTED_{now_str}.json"
+        target_path = self.PROMOTED_RESEARCH_DIR / filename
+
+        payload = {
+            "strategy_id": strategy_id,
+            "status": "PROMOTABLE_PAPER_ONLY",
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "parameters": parameters,
+            "gates": {k: v.model_dump() for k, v in gate_results.items()},
+            "oos_performance": {
+                "expectancy": float(oos_result.expectancy) if oos_result else 0.0,
+                "sharpe_ratio": oos_result.sharpe_ratio if oos_result else 0.0,
+                "max_drawdown_pct": oos_result.max_drawdown_pct if oos_result else 0.0,
+                "total_trades": oos_result.total_trades if oos_result else 0,
+                "win_rate": oos_result.win_rate if oos_result else 0.0,
+                "profit_factor": oos_result.profit_factor if oos_result else 0.0,
+            } if oos_result else {},
+        }
+        target_path.write_text(json.dumps(payload, indent=2, default=str))
         return str(target_path)

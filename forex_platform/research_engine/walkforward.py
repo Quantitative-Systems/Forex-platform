@@ -6,6 +6,7 @@ with zero shuffling or cross-boundary leakage.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Tuple
 import polars as pl
 from pydantic import BaseModel, ConfigDict
@@ -24,6 +25,15 @@ class WalkForwardResult(BaseModel):
     dev_result: BacktestResult
     val_result: BacktestResult
     oos_result: BacktestResult
+
+
+class RollingWalkForwardResult(BaseModel):
+    """OOS results from multiple chronological rolling windows."""
+
+    model_config = ConfigDict(frozen=True)
+
+    strategy_id: str
+    windows: list[WalkForwardResult]
 
 
 class WalkForwardEngine:
@@ -65,6 +75,44 @@ class WalkForwardEngine:
         return dev_df, val_df, oos_df
 
     @classmethod
+    def run_rolling_walkforward(
+        cls,
+        strategy: BaseStrategy,
+        currency_pair: CurrencyPair,
+        df: pl.DataFrame,
+        *,
+        window_bars: int = 1000,
+        step_bars: int = 250,
+        timeframe: Timeframe = Timeframe.M15,
+        cost_multiplier: float = 1.0,
+    ) -> RollingWalkForwardResult:
+        """Run independent chronological DEV/VAL/OOS windows.
+
+        Each window uses a deep-copied strategy so indicator buffers, signal
+        counters, and internal state cannot leak from one partition to the next.
+        """
+        if window_bars < 30 or step_bars <= 0:
+            raise ValueError("window_bars must be >= 30 and step_bars must be positive")
+        sorted_df = df.sort("timestamp")
+        windows: list[WalkForwardResult] = []
+        start = 0
+        while start + window_bars <= sorted_df.height:
+            window = sorted_df.slice(start, window_bars)
+            dev, val, oos = cls.partition_data(window)
+            windows.append(
+                cls.run_walkforward(
+                    deepcopy(strategy), currency_pair, pl.concat([dev, val, oos], how="vertical"),
+                    timeframe=timeframe, cost_multiplier=cost_multiplier,
+                )
+            )
+            start += step_bars
+        if not windows:
+            raise ValueError(
+                f"Dataset has {sorted_df.height} bars; need at least {window_bars} for one rolling window"
+            )
+        return RollingWalkForwardResult(strategy_id=strategy.strategy_id, windows=windows)
+
+    @classmethod
     def run_walkforward(
         cls,
         strategy: BaseStrategy,
@@ -78,9 +126,9 @@ class WalkForwardEngine:
         """
         dev_df, val_df, oos_df = cls.partition_data(df)
 
-        dev_tester = EventDrivenBacktester(strategy, currency_pair, cost_multiplier=cost_multiplier)
-        val_tester = EventDrivenBacktester(strategy, currency_pair, cost_multiplier=cost_multiplier)
-        oos_tester = EventDrivenBacktester(strategy, currency_pair, cost_multiplier=cost_multiplier)
+        dev_tester = EventDrivenBacktester(deepcopy(strategy), currency_pair, cost_multiplier=cost_multiplier)
+        val_tester = EventDrivenBacktester(deepcopy(strategy), currency_pair, cost_multiplier=cost_multiplier)
+        oos_tester = EventDrivenBacktester(deepcopy(strategy), currency_pair, cost_multiplier=cost_multiplier)
 
         dev_res = dev_tester.run(dev_df, timeframe=timeframe)
         val_res = val_tester.run(val_df, timeframe=timeframe)

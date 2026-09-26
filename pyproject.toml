@@ -17,11 +17,14 @@ dependencies = [
     "polars>=1.0.0",
     "scipy>=1.13.0",
     "pydantic>=2.7.0",
+    "aiohttp>=3.9.0",
+    "tqdm>=4.66.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
 ]
 
 [project.scripts]
@@ -40,3 +43,6 @@ testpaths = [
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+markers = [
+    "asyncio: marks tests as asyncio async tests",
+]

@@ -1,5 +1,5 @@
 """
-Causal Research Engine: Backtesting, Walk-Forward, and G1–G7 Validation Gates.
+Causal Research Engine: Backtesting, Walk-Forward, and G1–G8 Validation Gates.
 """
 
 from forex_platform.research_engine.backtester import (

@@ -1,12 +1,13 @@
 """
 Continuous Discovery Loop and Automated Hypothesis Exploration.
 Sweeps candidate strategy parameters across DEV (70%), VAL (15%), and OOS (15%),
-enforces G1–G7 qualification gates, promotes winning hypotheses to
+enforces G1–G8 qualification gates, promotes winning hypotheses to
 PROMOTABLE_PAPER_ONLY, and archives failures in research/failed/.
 """
 
 from __future__ import annotations
 
+from copy import deepcopy
 import json
 import logging
 from datetime import datetime, timezone
@@ -18,6 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from forex_platform.core.domain import CurrencyPair
 from forex_platform.market_data.causal_aligner import Timeframe
+from forex_platform.market_data.provenance import DataProvenance
 from forex_platform.research_engine.backtester import EventDrivenBacktester
 from forex_platform.research_engine.evaluate import GateReport, StrategyEvaluator
 from forex_platform.research_engine.walkforward import WalkForwardEngine
@@ -46,6 +48,7 @@ class CandidateHypothesis(BaseModel):
     symbol: str
     timeframe: Timeframe = Timeframe.M15
     parameters: Dict[str, Any] = Field(default_factory=dict)
+    data_provenance: DataProvenance = DataProvenance.UNKNOWN
 
 
 class DiscoveryResult(BaseModel):
@@ -80,8 +83,14 @@ class ContinuousDiscoveryLoop:
     PROMOTED_DIR = Path("research/promoted")
     FAILED_DIR = Path("research/failed")
 
-    def __init__(self, evaluator: Optional[StrategyEvaluator] = None):
+    def __init__(
+        self,
+        evaluator: Optional[StrategyEvaluator] = None,
+        *,
+        require_real_data: bool = False,
+    ):
         self.evaluator = evaluator or StrategyEvaluator()
+        self.require_real_data = require_real_data
 
     def instantiate_strategy(self, candidate: CandidateHypothesis) -> BaseStrategy:
         """Instantiate a strategy plugin from candidate specifications."""
@@ -106,11 +115,27 @@ class ContinuousDiscoveryLoop:
         1. Instantiate strategy.
         2. Partition data and run Walk-Forward (DEV, VAL, OOS).
         3. Execute cost-shock backtest on OOS (2x spread and commission).
-        4. Apply G1–G7 qualification gates.
+        4. Apply G1–G8 qualification gates.
         5. If passed, promote to PROMOTABLE_PAPER_ONLY; if failed, archive to research/failed/.
         """
         now = datetime.now(timezone.utc)
         pair = CurrencyPair.from_symbol(candidate.symbol)
+
+        if self.require_real_data and candidate.data_provenance not in {
+            DataProvenance.REAL_VENDOR,
+            DataProvenance.BROKER_EXPORT,
+        }:
+            return DiscoveryResult(
+                candidate_id=candidate.candidate_id,
+                strategy_name=candidate.strategy_name,
+                symbol=candidate.symbol,
+                status=PromotionStatus.REJECTED_GATES,
+                error_message=(
+                    "Candidate rejected before backtesting: real vendor or broker-exported "
+                    "data is required for qualification."
+                ),
+                timestamp=now,
+            )
 
         try:
             strategy = self.instantiate_strategy(candidate)
@@ -128,15 +153,25 @@ class ContinuousDiscoveryLoop:
         try:
             # 1. Walk-Forward execution
             wf_result = WalkForwardEngine.run_walkforward(
-                strategy=strategy,
+                strategy=deepcopy(strategy),
                 currency_pair=pair,
                 df=df,
+                timeframe=candidate.timeframe,
+            )
+            window_bars = max(30, min(1000, int(df.height * 0.6)))
+            step_bars = max(15, min(500, window_bars // 2))
+            rolling_result = WalkForwardEngine.run_rolling_walkforward(
+                strategy=deepcopy(strategy),
+                currency_pair=pair,
+                df=df,
+                window_bars=window_bars,
+                step_bars=step_bars,
                 timeframe=candidate.timeframe,
             )
 
             # 2. Cost-shock test on OOS data (2.0x cost multiplier)
             _, _, oos_df = WalkForwardEngine.partition_data(df)
-            shock_tester = EventDrivenBacktester(strategy, pair, cost_multiplier=2.0)
+            shock_tester = EventDrivenBacktester(deepcopy(strategy), pair, cost_multiplier=2.0)
             cost_shock_result = shock_tester.run(oos_df, timeframe=candidate.timeframe)
 
             # 3. Qualification gates
@@ -145,6 +180,7 @@ class ContinuousDiscoveryLoop:
                 currency_pair=pair,
                 wf_result=wf_result,
                 cost_shock_result=cost_shock_result,
+                rolling_result=rolling_result,
             )
 
             # 4. Promotion decision
@@ -191,6 +227,7 @@ class ContinuousDiscoveryLoop:
             "strategy_name": candidate.strategy_name,
             "symbol": candidate.symbol,
             "timeframe": candidate.timeframe.value,
+            "data_provenance": candidate.data_provenance.value,
             "parameters": candidate.parameters,
             "status": PromotionStatus.PROMOTABLE_PAPER_ONLY.value,
             "live_capital_authorized": False,  # Strict invariant

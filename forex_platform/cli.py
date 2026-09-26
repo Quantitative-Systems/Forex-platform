@@ -4,9 +4,9 @@ Provides institutional operational tooling across 6 primary subcommands:
 - status: Real-time system state, session info, and live capital ($0.00 locked).
 - screen-sessions: 24-hour global trading session map and liquidity regimes.
 - inspect-pair: Pair specification, pip math, and dynamic spread regimes.
-- sweep: Walk-forward validation and G1–G7 qualification across Forex pairs.
+- sweep: Walk-forward validation and G1–G8 qualification across Forex pairs.
 - forward-paper: Launch real-time forward paper trading daemon with SQLite persistence.
-- discover-arb: Multi-currency triangular statistical arbitrage discovery scanner.
+- `forex-platform serve-production` starts the authenticated control plane; the default remains `PAPER`.
 """
 
 from __future__ import annotations
@@ -19,6 +19,10 @@ import sys
 from typing import List, Optional
 import numpy as np
 import polars as pl
+
+from forex_platform.production.api import serve_forever
+from forex_platform.production.runtime import TradingPlatform
+from forex_platform.production.settings import Settings
 
 from forex_platform.core.domain import (
     CurrencyPair,
@@ -63,6 +67,14 @@ from forex_platform.discovery.pipeline_runner import (
 )
 
 from forex_platform.auto_trading.controller import AutoTradingController
+
+
+def cmd_serve_production(_args: argparse.Namespace) -> int:
+    """Start the authenticated production control plane."""
+    settings = Settings.from_env()
+    platform = TradingPlatform(settings)
+    serve_forever(platform, start_platform=True)
+    return 0
 
 
 def cmd_status(_args: argparse.Namespace) -> int:
@@ -221,7 +233,7 @@ def _generate_synthetic_candles(symbol: str, count: int = 500) -> pl.DataFrame:
 
 
 def cmd_sweep(args: argparse.Namespace) -> int:
-    """Run walk-forward validation and G1-G7 qualification across candidate models."""
+    """Run walk-forward validation and G1-G8 qualification across candidate models."""
     symbol = args.symbol.upper().replace("/", "").replace("_", "").replace("-", "")
     strategy_name = args.strategy
     bars = args.bars
@@ -253,7 +265,7 @@ def cmd_sweep(args: argparse.Namespace) -> int:
     if result.gate_report:
         report = result.gate_report
         print("-" * 75)
-        print(" G1-G7 QUALIFICATION GATES:")
+        print(" G1-G8 QUALIFICATION GATES:")
         for name, g in report.gate_results.items():
             status_tag = "PASSED" if g.passed else "FAILED"
             print(f"   [{status_tag:<6}] {name:<22} | {g.message}")
@@ -401,9 +413,14 @@ def cmd_run_pipeline(args: argparse.Namespace) -> int:
         cache_dir=cache_dir,
         paper_db_path=db_path,
         allow_live_download=allow_live,
+        require_real_data=not bool(getattr(args, "allow_synthetic_data", False)),
     )
 
-    summary = runner.run()
+    try:
+        summary = runner.run()
+    except RuntimeError as exc:
+        print(f"Research pipeline halted safely: {exc}", file=sys.stderr)
+        return 2
 
     # ANSI formatting
     BOLD = "\033[1m"
@@ -430,7 +447,7 @@ def cmd_run_pipeline(args: argparse.Namespace) -> int:
     if promoted_count > 0:
         promoted_str = f"{GREEN}{promoted_count} (PROMOTABLE_PAPER_ONLY){RESET}"
     else:
-        promoted_str = f"{YELLOW}0 (Safely rejected by strict G1-G7 criteria){RESET}"
+        promoted_str = f"{YELLOW}0 (Safely rejected by strict G1-G8 criteria){RESET}"
     print(f" {BOLD}Models Promoted:{RESET}                    {promoted_str}")
 
     print("-" * 78)
@@ -439,6 +456,7 @@ def cmd_run_pipeline(args: argparse.Namespace) -> int:
     print(f" {BOLD}Paper Ledger Persistence DB:{RESET}        {str(db_path)}")
     print(f" {BOLD}Research Telemetry Directories:{RESET}     research/promoted/ | research/failed/")
     print(f" {BOLD}Pipeline Execution Time:{RESET}            {summary.execution_time_seconds:.2f} seconds")
+    print(" Provenance: synthetic data is allowed only with --allow-synthetic-data and remains non-qualifying.")
     print("=" * 78 + "\n")
 
     return 0
@@ -454,6 +472,10 @@ def build_parser() -> argparse.ArgumentParser:
         description="Forex Platform - Institutional Quantitative Trading & Research Platform CLI",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available platform commands")
+
+    serve_p = subparsers.add_parser(
+        "serve-production", help="Start the authenticated production control plane"
+    )
 
     # Command: status
     subparsers.add_parser("status", help="Show system state, session info, and live capital ($0.00 locked)")
@@ -499,6 +521,11 @@ def build_parser() -> argparse.ArgumentParser:
     run_p.add_argument("--cache-dir", type=str, default="data/cache", help="Cache directory (default: data/cache)")
     run_p.add_argument("--db-path", type=str, default="data/paper_live.db", help="SQLite DB path (default: data/paper_live.db)")
     run_p.add_argument("--allow-live-download", action="store_true", help="Opt-in live Dukascopy download (default: deterministic ECN archive)")
+    run_p.add_argument(
+        "--allow-synthetic-data",
+        action="store_true",
+        help="Allow synthetic smoke-test data; promoted artifacts remain paper-only and non-qualifying",
+    )
 
 
     # Command: run-automated-pipeline
@@ -523,7 +550,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    if args.command == "status":
+    if args.command == "serve-production":
+        return cmd_serve_production(args)
+    elif args.command == "status":
         return cmd_status(args)
     elif args.command == "screen-sessions":
         return cmd_screen_sessions(args)

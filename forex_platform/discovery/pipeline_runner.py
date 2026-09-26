@@ -1,12 +1,13 @@
 """
 Automated End-to-End Pipeline Orchestrator.
 Combines historical data acquisition, causal walk-forward calibration sweeps,
-G1-G7 institutional gating, promotion governance, and forward paper trading soak.
+G1–G8 institutional gating, promotion governance, and forward paper trading soak.
 """
 
 from __future__ import annotations
 
 import asyncio
+from copy import deepcopy
 import json
 import logging
 import time
@@ -25,6 +26,7 @@ from forex_platform.costs.spread_model import DynamicSpreadModel
 from forex_platform.market_data.causal_aligner import Timeframe
 from forex_platform.market_data.historical_downloader import HistoricalDownloader
 from forex_platform.market_data.historical_fetcher import HistoricalECNFetcher
+from forex_platform.market_data.provenance import DataProvenance, provenance_payload
 from forex_platform.market_data.quality import DataQualityAuditor
 from forex_platform.order_management.oms import OrderManagementSystem
 from forex_platform.order_management.router import SmartOrderRouter
@@ -90,11 +92,17 @@ class AutomatedPipelineRunner:
         min_val_trades: int = 30,
         min_oos_trades: int = 30,
         allow_live_download: bool = False,
+        require_real_data: bool = True,
     ):
         self.symbols = [s.strip().upper() for s in (symbols or ["EURUSD", "GBPUSD", "USDJPY"])]
         self.timeframe = timeframe
         self.bars = bars
         self.allow_live_download = allow_live_download
+        self.require_real_data = require_real_data
+        self.data_provenance: Dict[str, DataProvenance] = {}
+        self.data_sources: Dict[str, str] = {}
+        self.rolling_window_bars: int = 1000
+        self.rolling_step_bars: int = 500
         self.cache_dir = cache_dir or self.CACHE_DIR
         self.paper_db_path = paper_db_path or self.PAPER_DB_PATH
         self.evaluator = StrategyEvaluator(
@@ -129,6 +137,11 @@ class AutomatedPipelineRunner:
                     if loaded.height >= need:
                         logger.info("Cache HIT %s (%d bars)", cached_path, loaded.height)
                         df = loaded.tail(self.bars) if loaded.height > self.bars else loaded
+                        provenance, source = HistoricalECNFetcher.load_provenance(
+                            clean_sym, self.timeframe, self.cache_dir
+                        )
+                        self.data_provenance[clean_sym] = provenance
+                        self.data_sources[clean_sym] = source
                 except Exception as e:
                     logger.warning("Failed reading cached parquet %s: %s", cached_path, e)
 
@@ -141,9 +154,12 @@ class AutomatedPipelineRunner:
                         symbol=clean_sym,
                         timeframe=self.timeframe,
                         years=years_needed,
+                        allow_synthetic_fallback=False,
                     ))
                     if df_downloaded is not None and df_downloaded.height >= 200:
                         df = df_downloaded.tail(self.bars) if df_downloaded.height > self.bars else df_downloaded
+                        self.data_provenance[clean_sym] = DataProvenance.REAL_VENDOR
+                        self.data_sources[clean_sym] = "Dukascopy public historical feed"
                 except Exception as e:
                     logger.warning("Network download throttled or failed for %s: %s", clean_sym, e)
 
@@ -157,6 +173,8 @@ class AutomatedPipelineRunner:
                     timeframe=self.timeframe,
                     num_bars=self.bars,
                 )
+                self.data_provenance[clean_sym] = DataProvenance.SYNTHETIC
+                self.data_sources[clean_sym] = "deterministic synthetic ECN generator"
                 # Enforce weekend gap boundaries (drop Sat/Sun) + clean timestamps
                 try:
                     if "timestamp" in df.columns:
@@ -167,8 +185,20 @@ class AutomatedPipelineRunner:
                 auditor = DataQualityAuditor.audit(df, symbol=clean_sym, expected_interval=self.timeframe.to_timedelta())
                 logger.info("ECN Market Data Audit for %s: valid=%s midweek_drops=%d", clean_sym, auditor.is_valid, auditor.midweek_drops_count)
 
-                HistoricalECNFetcher.cache_to_parquet(df, clean_sym, self.timeframe, self.cache_dir)
+                HistoricalECNFetcher.cache_to_parquet(
+                    df, clean_sym, self.timeframe, self.cache_dir,
+                    provenance=DataProvenance.SYNTHETIC,
+                    source="deterministic synthetic ECN generator",
+                )
 
+            if self.require_real_data and self.data_provenance.get(clean_sym) not in {
+                DataProvenance.REAL_VENDOR,
+                DataProvenance.BROKER_EXPORT,
+            }:
+                raise RuntimeError(
+                    f"Real historical data is required for {clean_sym}; refusing to qualify "
+                    f"dataset classified as {self.data_provenance.get(clean_sym, DataProvenance.UNKNOWN).value}."
+                )
             data_map[clean_sym] = df.tail(self.bars) if df.height > self.bars else df
 
         return data_map
@@ -274,17 +304,33 @@ class AutomatedPipelineRunner:
         """
         Runs Walk-Forward partitioning (DEV 70%, VAL 15%, OOS 15%),
         computes cost-shocked OOS backtest (+100% comms and 2x spread),
-        and applies G1-G7 gate checks.
+        and applies G1–G8 gate checks.
         Returns: (passed_all, failed_gate, failed_artifact_path, promoted_artifact_path)
         """
         pair = CurrencyPair.from_symbol(symbol)
         strategy = self.instantiate_strategy(strategy_name, params, symbol)
+        provenance = self.data_provenance.get(symbol, DataProvenance.UNKNOWN)
+        source = self.data_sources.get(symbol, "unknown")
+        provenance_info = provenance_payload(provenance, source, df)
 
-        # 1. Chronological Walk-Forward Backtesting (Adverse-first & /lot built-in)
+        # 1. Fixed chronological DEV/VAL/OOS walk-forward.
         wf_result = WalkForwardEngine.run_walkforward(
-            strategy=strategy,
+            strategy=deepcopy(strategy),
             currency_pair=pair,
             df=df,
+            timeframe=self.timeframe,
+            cost_multiplier=1.0,
+        )
+
+        # 2. Rolling OOS windows catch regime-specific overfit.
+        window_bars = max(300, min(self.rolling_window_bars, int(df.height * 0.6)))
+        step_bars = max(150, min(self.rolling_step_bars, window_bars // 2))
+        rolling_result = WalkForwardEngine.run_rolling_walkforward(
+            strategy=deepcopy(strategy),
+            currency_pair=pair,
+            df=df,
+            window_bars=window_bars,
+            step_bars=step_bars,
             timeframe=self.timeframe,
             cost_multiplier=1.0,
         )
@@ -298,12 +344,13 @@ class AutomatedPipelineRunner:
         )
         cost_shock_result = shock_tester.run(oos_df, timeframe=self.timeframe)
 
-        # 3. G1-G7 Evaluation
+        # 3. G1–G8 Evaluation
         gate_report = self.evaluator.evaluate(
             strategy=strategy,
             currency_pair=pair,
             wf_result=wf_result,
             cost_shock_result=cost_shock_result,
+            rolling_result=rolling_result,
         )
 
         now_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -317,6 +364,7 @@ class AutomatedPipelineRunner:
                 "symbol": symbol,
                 "timeframe": self.timeframe.value,
                 "parameters": params,
+                "data_provenance": provenance_info,
                 "status": "PROMOTABLE_PAPER_ONLY",
                 "live_capital_authorized": False,
                 "timestamp_utc": datetime.now(timezone.utc).isoformat(),
@@ -337,6 +385,7 @@ class AutomatedPipelineRunner:
                 "symbol": symbol,
                 "timeframe": self.timeframe.value,
                 "parameters": params,
+                "data_provenance": provenance_info,
                 "failed_gate": failed_gate,
                 "timestamp_utc": datetime.now(timezone.utc).isoformat(),
                 "gates": {k: v.model_dump() for k, v in gate_report.gate_results.items()},
@@ -439,7 +488,7 @@ class AutomatedPipelineRunner:
         Execute the full unified pipeline autonomously:
         Step 1: Acquire data
         Step 2: Walk-forward calibration sweep
-        Step 3: G1-G7 gating & promotion/archival
+        Step 3: G1–G8 gating & promotion/archival
         Step 4: Forward paper daemon soak
         """
         start_time = time.time()
@@ -453,8 +502,8 @@ class AutomatedPipelineRunner:
         logger.info("Executing Step 1: Historical Market Data Acquisition...")
         data_map = self.acquire_historical_data()
 
-        # Step 2 & 3: Parameter Grid Sweep & G1-G7 Evaluation
-        logger.info("Executing Step 2 & 3: Walk-Forward Calibration & G1-G7 Evaluation...")
+        # Step 2 & 3: Parameter Grid Sweep & G1–G8 Evaluation
+        logger.info("Executing Step 2 & 3: Walk-Forward Calibration & G1–G8 Evaluation...")
         grid = self.build_parameter_grid()
         summary.total_configs_evaluated = len(grid) * len(self.symbols)
 
@@ -492,7 +541,7 @@ class AutomatedPipelineRunner:
             summary.paper_fills_executed = fills
             summary.paper_daemon_status = f"ONLINE (PROMOTABLE_PAPER_ONLY, {fills} fills in soak)"
         else:
-            logger.info("Executing Step 4: No models passed G1-G7 gates. Unviable models safely rejected.")
+            logger.info("Executing Step 4: No models passed G1–G8 gates. Unviable models safely rejected.")
             summary.paper_daemon_status = "SAFE_HALT (Zero models qualified, $0.00 capital safe)"
 
         summary.execution_time_seconds = time.time() - start_time

@@ -65,6 +65,12 @@ data/raw/*.parquet
 *.db-wal
 *.db-shm
 
-# Research run logs
-research/failed/*.json
-research/promoted/*.json
+# Local market data and research artifacts
+data/cache/
+data/raw/
+research/failed/
+research/pipeline/
+research/promoted/
+
+# Local secret material
+secrets/

@@ -1,0 +1,24 @@
+services:
+  control-plane:
+    build: .
+    restart: unless-stopped
+    init: true
+    read_only: true
+    env_file:
+      - .env
+    volumes:
+      - ./config:/etc/forex-platform:ro
+      - forex-data:/var/lib/forex-platform
+      - ./secrets:/run/secrets:ro
+    tmpfs:
+      - /tmp
+    ports:
+      - "127.0.0.1:8787:8787"
+    stop_grace_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  forex-data:

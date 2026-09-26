@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Forex Platform Control Plane</title>
+<style>
+  :root {
+    --bg: #0b0f14; --panel: #131a22; --panel2: #1a232e; --border: #253141;
+    --text: #e6edf3; --muted: #8b98a5; --accent: #3fb950; --danger: #f85149;
+    --warn: #d29922; --info: #58a6ff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+         background: var(--bg); color: var(--text); font-size: 14px; }
+  header { display: flex; align-items: center; gap: 16px; padding: 14px 20px;
+           border-bottom: 1px solid var(--border); background: var(--panel); position: sticky; top: 0; z-index: 5; }
+  header h1 { font-size: 16px; margin: 0; }
+  .badge { padding: 3px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); }
+  .badge.ok { color: var(--accent); border-color: var(--accent); }
+  .badge.bad { color: var(--danger); border-color: var(--danger); }
+  .badge.warn { color: var(--warn); border-color: var(--warn); }
+  .spacer { flex: 1; }
+  main { padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px; overflow: hidden; }
+  section h2 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; }
+  input, select, button, textarea { background: var(--panel2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 7px 9px; font-family: inherit; font-size: 13px; }
+  button { cursor: pointer; }
+  button:hover { border-color: var(--info); }
+  button.primary { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+  button.danger { background: #b62324; border-color: #b62324; color: #fff; }
+  button.ghost { background: transparent; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .row > * { flex: 0 0 auto; }
+  .grow { flex: 1 1 120px; min-width: 0; }
+  pre { background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: 10px;
+        overflow: auto; max-height: 260px; font-size: 12px; }
+  .kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 13px; }
+  .kv span:nth-child(odd) { color: var(--muted); }
+  .login { max-width: 440px; margin: 10vh auto; }
+  .hidden { display: none !important; }
+  .muted { color: var(--muted); }
+  .error { color: var(--danger); }
+  .ok { color: var(--accent); }
+  .toast { position: fixed; right: 18px; bottom: 18px; background: var(--panel2); border: 1px solid var(--border);
+           border-radius: 8px; padding: 10px 14px; max-width: 420px; z-index: 20; }
+</style>
+</head>
+<body>
+<div id="login-view" class="login">
+  <section>
+    <h2>Forex Platform Login</h2>
+    <p class="muted">Paste an API key to obtain a short-lived session token.</p>
+    <div class="row">
+      <input id="api-key" class="grow" type="password" placeholder="fp_..." autocomplete="off" />
+      <button class="primary" onclick="login()">Sign in</button>
+    </div>
+    <p id="login-error" class="error"></p>
+  </section>
+</div>
+
+<div id="app-view" class="hidden">
+  <header>
+    <h1>Forex Platform</h1>
+    <span id="env-badge" class="badge">env</span>
+    <span id="ready-badge" class="badge">readiness</span>
+    <span id="live-badge" class="badge">live gate</span>
+    <span class="spacer"></span>
+    <span id="role-label" class="muted"></span>
+    <button class="ghost" onclick="refreshAll()">Refresh</button>
+    <button class="ghost" onclick="logout()">Sign out</button>
+  </header>
+  <main>
+    <section>
+      <h2>Risk &amp; Capital</h2>
+      <div id="risk-panel" class="kv"></div>
+      <div class="row" style="margin-top:10px">
+        <input id="kill-reason" class="grow" placeholder="kill-switch reason" />
+        <button class="danger" onclick="killSwitch('arm')">Arm kill switch</button>
+        <button class="ghost" onclick="killSwitch('disarm')">Disarm</button>
+        <button class="danger" onclick="flattenAll()">Flatten all</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Submit Order</h2>
+      <div class="row">
+        <input id="order-symbol" class="grow" value="EURUSD" placeholder="EURUSD" />
+        <select id="order-side"><option>BUY</option><option>SELL</option></select>
+        <input id="order-lots" style="width:90px" value="0.10" placeholder="lots" />
+        <button class="primary" onclick="submitOrder()">Submit</button>
+      </div>
+      <p class="muted">Orders pass the full 6-tier firewall, daily-loss, news, and circuit-breaker checks.</p>
+      <pre id="order-result" class="hidden"></pre>
+    </section>
+
+    <section>
+      <h2>Broker Accounts</h2>
+      <table><thead><tr><th>Account</th><th>Mode</th><th>Enabled</th><th>Connected</th><th></th></tr></thead>
+      <tbody id="accounts-body"></tbody></table>
+    </section>
+
+    <section>
+      <h2>Positions</h2>
+      <pre id="positions-body">[]</pre>
+    </section>
+
+    <section>
+      <h2>Recent Orders</h2>
+      <table><thead><tr><th>Order</th><th>Symbol</th><th>Side</th><th>Units</th><th>Status</th><th>Account</th></tr></thead>
+      <tbody id="orders-body"></tbody></table>
+    </section>
+
+    <section>
+      <h2>News Blackout Status</h2>
+      <pre id="news-body">{}</pre>
+    </section>
+
+    <section>
+      <h2>Learning / Promotion</h2>
+      <pre id="learning-body">{}</pre>
+    </section>
+
+    <section>
+      <h2>Audit Trail</h2>
+      <pre id="audit-body">[]</pre>
+    </section>
+  </main>
+  <div id="toast" class="toast hidden"></div>
+</div>
+<script>
+const state = { token: sessionStorage.getItem("fp_token") || "", role: "" };
+
+function esc(value) {
+  return String(value == null ? "" : value).replace(/[&<>"']/g, (ch) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[ch]));
+}
+
+function showToast(message, isError) {
+  const el = document.getElementById("toast");
+  el.textContent = message;
+  el.className = "toast" + (isError ? " error" : " ok");
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.add("hidden"), 6000);
+}
+
+async function api(path, options) {
+  const opts = options || {};
+  const headers = Object.assign({ "Content-Type": "application/json" }, opts.headers || {});
+  if (state.token) headers["Authorization"] = "Bearer " + state.token;
+  const response = await fetch(path, Object.assign({}, opts, { headers }));
+  if (response.status === 401) { logout(); throw new Error("Session expired"); }
+  const text = await response.text();
+  let data = {};
+  try { data = text ? JSON.parse(text) : {}; } catch (e) { data = { raw: text }; }
+  if (!response.ok) throw new Error(data.error || ("HTTP " + response.status));
+  return data;
+}
+
+async function login() {
+  const input = document.getElementById("api-key");
+  const errorEl = document.getElementById("login-error");
+  errorEl.textContent = "";
+  try {
+    const response = await fetch("/api/v1/auth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ api_key: input.value.trim() }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Login failed");
+    state.token = data.access_token;
+    state.role = data.role;
+    sessionStorage.setItem("fp_token", state.token);
+    input.value = "";
+    document.getElementById("login-view").classList.add("hidden");
+    document.getElementById("app-view").classList.remove("hidden");
+    document.getElementById("role-label").textContent = "role: " + data.role;
+    refreshAll();
+  } catch (err) {
+    errorEl.textContent = err.message;
+  }
+}
+
+function logout() {
+  if (state.token) {
+    fetch("/api/v1/auth/logout", { method: "POST", headers: { "Authorization": "Bearer " + state.token } });
+  }
+  state.token = "";
+  state.role = "";
+  sessionStorage.removeItem("fp_token");
+  document.getElementById("app-view").classList.add("hidden");
+  document.getElementById("login-view").classList.remove("hidden");
+}
+
+function badge(id, text, cls) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = "badge " + (cls || "");
+}
+
+function renderAccounts(accounts) {
+  const body = document.getElementById("accounts-body");
+  body.innerHTML = "";
+  (accounts || []).forEach((account) => {
+    const tr = document.createElement("tr");
+    const enabled = account.is_enabled ? "yes" : "no";
+    const connected = account.connected ? "yes" : "no";
+    tr.innerHTML =
+      "<td>" + esc(account.display_name || account.id) + "<br><span class='muted'>" + esc(account.broker) + "</span></td>" +
+      "<td>" + esc(account.mode) + "</td><td>" + enabled + "</td><td>" + connected + "</td>";
+    const actions = document.createElement("td");
+    const toggle = document.createElement("button");
+    toggle.textContent = account.is_enabled ? "Disable" : "Enable";
+    toggle.onclick = () => accountAction(account.id, account.is_enabled ? "disable" : "enable");
+    const connect = document.createElement("button");
+    connect.textContent = "Connect";
+    connect.style.marginLeft = "6px";
+    connect.onclick = () => accountAction(account.id, "connect");
+    actions.appendChild(toggle);
+    actions.appendChild(connect);
+    tr.appendChild(actions);
+    body.appendChild(tr);
+  });
+}
+
+function renderOrders(orders) {
+  const body = document.getElementById("orders-body");
+  body.innerHTML = "";
+  (orders || []).forEach((order) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + esc(order.client_order_id) + "</td><td>" + esc(order.symbol) +
+      "</td><td>" + esc(order.side) + "</td><td>" + esc(order.units) +
+      "</td><td>" + esc(order.status) + "</td><td>" + esc(order.account_id || "-") + "</td>";
+    body.appendChild(tr);
+  });
+}
+
+async function refreshAll() {
+  try {
+    const [status, accounts, positions, orders, risk, news, learning, audit] = await Promise.all([
+      api("/api/v1/status"),
+      api("/api/v1/accounts"),
+      api("/api/v1/positions"),
+      api("/api/v1/orders?limit=20"),
+      api("/api/v1/risk"),
+      api("/api/v1/news?hours=12"),
+      api("/api/v1/learning"),
+      api("/api/v1/audit?limit=20"),
+    ]);
+
+    badge("env-badge", status.environment, "warn");
+    badge("ready-badge", status.readiness ? "ready" : "not ready", status.readiness ? "ok" : "bad");
+    badge("live-badge", status.live_trading_allowed ? "live-allowed" : "live-blocked", status.live_trading_allowed ? "ok" : "warn");
+
+    const riskPanel = document.getElementById("risk-panel");
+    const ks = risk.kill_switch_active;
+    riskPanel.innerHTML =
+      "<span>Kill switch</span><strong class='" + (ks ? "error" : "ok") + "'>" + (ks ? "ARMED: " + esc(risk.kill_switch_reason) : "DISARMED") + "</strong>" +
+      "<span>Equity</span><span>" + esc(risk.current_equity) + "</span>" +
+      "<span>Daily loss</span><span>" + esc(risk.daily_loss_realized) + " (max: " + esc(risk.max_daily_loss) + ")</span>" +
+      "<span>Circuit breaker</span><span>" + (risk.circuit_breaker.halted ? "HALTED" : (risk.circuit_breaker.safe_mode ? "SAFE MODE" : "NORMAL")) + "</span>" +
+      "<span>Open exposure</span><span>" + esc(risk.total_exposure) + "</span>" +
+      "<span>Active news blackouts</span><span>" + (news.status && news.status.active_blackouts ? news.status.active_blackouts.length : 0) + "</span>";
+
+    renderAccounts(accounts.accounts || []);
+    renderOrders(orders.orders || []);
+    document.getElementById("positions-body").textContent = JSON.stringify(positions, null, 2);
+    document.getElementById("news-body").textContent = JSON.stringify(news, null, 2);
+    document.getElementById("learning-body").textContent = JSON.stringify(learning, null, 2);
+    document.getElementById("audit-body").textContent = JSON.stringify(audit.entries || [], null, 2);
+  } catch (err) {
+    showToast("Refresh error: " + err.message, true);
+  }
+}
+
+async function accountAction(accountId, action) {
+  try {
+    if (action === "enable" || action === "disable") {
+      await api("/api/v1/accounts/" + encodeURIComponent(accountId) + "/enable", {
+        method: "POST",
+        body: JSON.stringify({ enabled: action === "enable" }),
+      });
+    } else if (action === "connect") {
+      await api("/api/v1/accounts/" + encodeURIComponent(accountId) + "/connect", { method: "POST" });
+    }
+    showToast("Account " + accountId + " updated: " + action, false);
+    refreshAll();
+  } catch (err) {
+    showToast(err.message, true);
+  }
+}
+
+async function killSwitch(action) {
+  const reason = (document.getElementById("kill-reason").value || "Dashboard operator").trim();
+  try {
+    await api("/api/v1/risk/kill-switch", {
+      method: "POST",
+      body: JSON.stringify({ action, reason, scope: "global" }),
+    });
+    showToast("Kill switch " + action + " executed", false);
+    refreshAll();
+  } catch (err) {
+    showToast(err.message, true);
+  }
+}
+
+async function flattenAll() {
+  if (!confirm("Are you sure you want to FLATTEN all open positions?")) return;
+  try {
+    const res = await api("/api/v1/risk/flatten", {
+      method: "POST",
+      body: JSON.stringify({ reason: "Dashboard operator flatten" }),
+    });
+    showToast("Flattened " + (res.closed ? res.closed.length : 0) + " positions", false);
+    refreshAll();
+  } catch (err) {
+    showToast(err.message, true);
+  }
+}
+
+async function submitOrder() {
+  const symbol = document.getElementById("order-symbol").value.trim().toUpperCase();
+  const side = document.getElementById("order-side").value;
+  const lots = parseFloat(document.getElementById("order-lots").value || "0.1");
+  const units = Math.round(lots * 100000);
+  const resultPre = document.getElementById("order-result");
+  resultPre.classList.remove("hidden");
+  resultPre.textContent = "Submitting...";
+
+  try {
+    const res = await api("/api/v1/orders", {
+      method: "POST",
+      body: JSON.stringify({
+        symbol,
+        side,
+        units,
+        strategy_id: "dashboard_manual",
+        order_type: "MARKET",
+      }),
+    });
+    resultPre.textContent = JSON.stringify(res, null, 2);
+    showToast("Order submitted: " + (res.approved ? "APPROVED" : "REJECTED (" + res.reason + ")"), !res.approved);
+    refreshAll();
+  } catch (err) {
+    resultPre.textContent = "Error: " + err.message;
+    showToast(err.message, true);
+  }
+}
+
+// Auto-login if session exists
+window.addEventListener("DOMContentLoaded", () => {
+  if (state.token) {
+    document.getElementById("login-view").classList.add("hidden");
+    document.getElementById("app-view").classList.remove("hidden");
+    refreshAll();
+  }
+});
+</script>
+</body>
+</html>

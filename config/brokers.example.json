@@ -1,0 +1,35 @@
+{
+  "accounts": [
+    {
+      "account_id": "paper_primary",
+      "broker": "PAPER",
+      "mode": "PAPER",
+      "environment": "paper",
+      "display_name": "In-process paper account",
+      "adapter": "paper",
+      "enabled": true,
+      "supports_live": false,
+      "priority": 10,
+      "requested_capital": "0.00"
+    },
+    {
+      "account_id": "mt5_demo_primary",
+      "broker": "YOUR_MT5_BROKER",
+      "mode": "DEMO",
+      "environment": "demo",
+      "display_name": "MT5 demo account",
+      "adapter": "mt5_remote",
+      "enabled": false,
+      "supports_live": false,
+      "priority": 20,
+      "requested_capital": "0.00",
+      "config": {
+        "base_url": "https://mt5-agent.example.internal",
+        "agent_token_file": "/run/secrets/mt5_agent_token",
+        "hmac_secret_file": "/run/secrets/mt5_agent_hmac_secret",
+        "verify_tls": true,
+        "ca_file": "/etc/forex-platform/mtls-agent-ca.pem"
+      }
+    }
+  ]
+}

@@ -101,7 +101,45 @@ class EventDrivenBacktester:
         self.short_swap_pips = to_decimal(short_swap_pips)
         self.cost_multiplier = Decimal(str(cost_multiplier))
 
+    @staticmethod
+    def _time_based_sharpe(
+        equity_curve: List[Tuple[datetime, Decimal]],
+        timeframe: Timeframe,
+    ) -> float:
+        """Calculate annualized Sharpe from timestamped equity returns.
+
+        This intentionally does not annualize per-trade PnL. The frequency of
+        returns must match the tested bar frequency, otherwise intraday results
+        are mathematically overstated.
+        """
+        if len(equity_curve) < 3:
+            return 0.0
+        values = [float(value) for _, value in equity_curve]
+        returns = [
+            (current / previous) - 1.0
+            for previous, current in zip(values, values[1:])
+            if previous > 0.0
+        ]
+        if len(returns) < 2:
+            return 0.0
+        mean_return = sum(returns) / len(returns)
+        variance = sum((value - mean_return) ** 2 for value in returns) / (len(returns) - 1)
+        std_return = math.sqrt(variance)
+        if std_return <= 0.0:
+            return 0.0
+        periods_per_year = {
+            Timeframe.M1: 252.0 * 24.0 * 60.0,
+            Timeframe.M5: 252.0 * 24.0 * 12.0,
+            Timeframe.M15: 252.0 * 24.0 * 4.0,
+            Timeframe.M30: 252.0 * 24.0 * 2.0,
+            Timeframe.H1: 252.0 * 24.0,
+            Timeframe.H4: 252.0 * 6.0,
+            Timeframe.D1: 252.0,
+        }[timeframe]
+        return (mean_return / std_return) * math.sqrt(periods_per_year)
+
     def run(self, df: pl.DataFrame, timeframe: Timeframe = Timeframe.M15) -> BacktestResult:
+
         """
         Execute event-driven causal simulation across chronological bar data.
         """
@@ -329,14 +367,8 @@ class EventDrivenBacktester:
             else Decimal("0.0")
         )
 
-        # Sharpe calculation
-        returns = [float(t.net_pnl) for t in trades]
-        if len(returns) > 1:
-            mean_ret = sum(returns) / len(returns)
-            std_ret = math.sqrt(sum((r - mean_ret) ** 2 for r in returns) / (len(returns) - 1))
-            sharpe = (mean_ret / std_ret * math.sqrt(252.0)) if std_ret > 0 else 0.0
-        else:
-            sharpe = 0.0
+        # Sharpe is based on the timestamped equity curve, not trade PnL.
+        sharpe = self._time_based_sharpe(equity_curve, timeframe)
 
         return BacktestResult(
             strategy_id=self.strategy.strategy_id,
