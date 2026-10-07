@@ -57,6 +57,33 @@ class MockSignalStrategy(BaseStrategy):
         return []
 
 
+class MockSellSignalStrategy(BaseStrategy):
+    def __init__(self):
+        super().__init__(
+            strategy_id="mock_sell_test_strat",
+            name="Mock Sell Test Strategy",
+            symbols=["EURUSD"],
+            timeframes=[Timeframe.M15],
+        )
+        self.signaled = False
+
+    def on_bar(self, event: BarEvent) -> list[OrderIntent]:
+        if self.signaled:
+            return []
+        self.signaled = True
+        return [
+            self.create_intent(
+                symbol="EURUSD",
+                side=OrderSide.SELL,
+                order_type=OrderType.MARKET,
+                lot_size=LotSize.from_lots(1.0),
+                timestamp=event.timestamp,
+                stop_loss=Decimal("1.08045"),
+                take_profit=Decimal("1.07900"),
+            )
+        ]
+
+
 class TestCausalBacktester:
     """Test adverse-first stop priority, next-bar-open fill, and cost deductions."""
 
@@ -107,9 +134,47 @@ class TestCausalBacktester:
         result = tester.run(df)
 
         trade = result.trades[0]
-        # Fills on bar 1 (open 1.0820 + half spread 0.00005 = 1.08205)
-        assert trade.entry_price == Decimal("1.08205")
+        # Bars are bid-quoted, so a one-pip spread puts the buy fill at ask.
+        assert trade.entry_price == Decimal("1.08210")
         assert trade.entry_time == start + timedelta(minutes=15)
+
+    def test_sell_uses_bid_entry_and_ask_side_stop(self):
+        pair = CurrencyPair.from_symbol("EURUSD")
+        start = datetime(2026, 1, 6, 10, 0, 0, tzinfo=timezone.utc)
+        records = [
+            {"timestamp": start.isoformat(), "open": 1.0800, "high": 1.0802, "low": 1.0798, "close": 1.0800,
+             "ask_open": 1.0801, "ask_high": 1.0803, "ask_low": 1.0799, "ask_close": 1.0801, "volume": 100, "spread_pips": 1.0},
+            {"timestamp": (start + timedelta(minutes=15)).isoformat(), "open": 1.0800, "high": 1.0802, "low": 1.0798, "close": 1.0800,
+             "ask_open": 1.0801, "ask_high": 1.0803, "ask_low": 1.0799, "ask_close": 1.0801, "volume": 100, "spread_pips": 1.0},
+            # Bid high stays below the stop; ask high crosses it.
+            {"timestamp": (start + timedelta(minutes=30)).isoformat(), "open": 1.0800, "high": 1.0804, "low": 1.0798, "close": 1.0801,
+             "ask_open": 1.0801, "ask_high": 1.0805, "ask_low": 1.0799, "ask_close": 1.0802, "volume": 100, "spread_pips": 1.0},
+        ]
+
+        result = EventDrivenBacktester(MockSellSignalStrategy(), pair).run(pl.DataFrame(records))
+
+        assert result.total_trades == 1
+        trade = result.trades[0]
+        assert trade.entry_price == Decimal("1.08000")  # Sell executes at bid.
+        assert trade.exit_reason == "STOP_LOSS"
+        assert trade.exit_price == Decimal("1.08045")  # Stop is evaluated on ask OHLC.
+
+    def test_open_position_is_liquidated_and_counted_at_window_end(self):
+        pair = CurrencyPair.from_symbol("EURUSD")
+        start = datetime(2026, 1, 6, 10, 0, 0, tzinfo=timezone.utc)
+        records = [
+            {"timestamp": start.isoformat(), "open": 1.0800, "high": 1.0805, "low": 1.0795, "close": 1.0800, "volume": 100, "spread": 1.0},
+            {"timestamp": (start + timedelta(minutes=15)).isoformat(), "open": 1.0801, "high": 1.0810, "low": 1.0799, "close": 1.0805, "volume": 100, "spread": 1.0},
+            {"timestamp": (start + timedelta(minutes=30)).isoformat(), "open": 1.0805, "high": 1.0815, "low": 1.0801, "close": 1.0810, "volume": 100, "spread": 1.0},
+        ]
+
+        result = EventDrivenBacktester(MockSignalStrategy([0]), pair).run(pl.DataFrame(records))
+
+        assert result.total_trades == 1
+        assert result.trades[0].exit_reason == "END_OF_DATA_LIQUIDATION"
+        assert result.trades[0].exit_price == Decimal("1.08100")
+        assert result.final_balance == result.initial_balance + result.trades[0].net_pnl
+        assert result.equity_curve[-1][1] == result.final_balance
 
 
 class TestWalkForwardAndGates:

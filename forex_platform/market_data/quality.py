@@ -91,6 +91,29 @@ class DataQualityAuditor:
                     anomaly_type="LOW_GREATER_THAN_BODY",
                     details=f"Low ({l}) > min(Open, Close) ({min(o, c)})",
                 ))
+            if "spread" in row and (row["spread"] is None or row["spread"] < 0):
+                anomalies.append(PriceAnomaly(
+                    timestamp=dt_utc,
+                    anomaly_type="INVALID_SPREAD",
+                    details=f"Spread must be a nonnegative pip value; found {row['spread']}",
+                ))
+            ask_fields = ("ask_open", "ask_high", "ask_low", "ask_close")
+            if all(field in row for field in ask_fields):
+                ask_o, ask_h, ask_l, ask_c = (row[field] for field in ask_fields)
+                bid_fields = (o, h, l, c)
+                for field, ask_value, bid_value in zip(ask_fields, (ask_o, ask_h, ask_l, ask_c), bid_fields):
+                    if ask_value is None or ask_value <= 0 or ask_value < bid_value:
+                        anomalies.append(PriceAnomaly(
+                            timestamp=dt_utc,
+                            anomaly_type="CROSSED_OR_INVALID_ASK",
+                            details=f"{field}={ask_value} is invalid or below corresponding bid OHLC={bid_value}",
+                        ))
+                if ask_h < max(ask_o, ask_c) or ask_l > min(ask_o, ask_c) or ask_h < ask_l:
+                    anomalies.append(PriceAnomaly(
+                        timestamp=dt_utc,
+                        anomaly_type="INVALID_ASK_OHLC",
+                        details=f"Ask OHLC is inconsistent: O={ask_o}, H={ask_h}, L={ask_l}, C={ask_c}",
+                    ))
 
         # 2. Gap Detection & Classification
         gaps = MarketDataLoader.detect_gaps(df, expected_interval=expected_interval)

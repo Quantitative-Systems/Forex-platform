@@ -1,118 +1,158 @@
 # Forex Platform
 
-Forex Platform is a research-first quantitative trading platform for conventional spot FX. It provides reproducible backtesting, strategy qualification, portfolio allocation, risk controls, paper trading, and an auditable broker execution path.
+Forex Platform is a Python research and risk-control toolkit for spot foreign exchange. It brings market data checks, strategy research, backtesting, portfolio controls, paper trading, and broker adapters into one auditable codebase.
 
-> **Important:** this repository is infrastructure and research software. It does not guarantee profits, prevent all losses, or constitute financial advice. The current evidence does **not** show a production-ready profitable strategy. See [`docs/RESEARCH_OUTCOMES.md`](docs/RESEARCH_OUTCOMES.md).
+> **Research status (7 October 2026): profitability is not proven.** The latest fractal campaign found no history that passed its continuity checks, so none of the requested asset/timeframe-set backtests ran. Live capital remains $0.
 
-## Current status
+## Project status
 
-| Area | Status |
+| Area | Current status |
 |---|---|
-| Tests | 203 passed, 2 warnings |
-| Spot-FX universe | 28 conventional pairs |
-| Backtesting | Causal bar-level engine with costs, swaps, next-bar fills, adverse-first stops |
-| Validation | DEV/VAL/OOS, rolling OOS, cost shock, G1–G8 gates |
-| Paper trading | Implemented |
-| MT5 execution | Authenticated remote gateway implemented; real broker setup required |
-| Live trading | Fail-closed; explicit allowlist, TLS, capital, and demo-soak requirements |
-| Profitability | Not proven; current cache is insufficient and unknown provenance |
+| Spot FX registry | 28 conventional currency pairs |
+| Fractal candidate | Implemented for research; not qualified or connected to broker execution |
+| Research assets in the latest campaign | EURUSD, GBPUSD, USDJPY, AUDUSD |
+| Requested asset/set tests | 0 of 20 run; each cell requires at least 100 trades |
+| Latest data audit | 2.08 years of M1 history per asset, rejected for weekday quote gaps |
+| Promotion | No candidate qualified |
+| Live capital | $0 |
+| Latest full test run | 236 passed, 1 skipped |
 
-## What it includes
+## What the platform does
 
-- 28-pair registry across USD, EUR, GBP, JPY, CHF, AUD, NZD, and CAD.
-- Research components for scalping, intraday, swing, carry, pairs/statistical arbitrage, and market making.
-- Causal backtester and rolling walk-forward engine.
-- Data provenance, quality audits, and `.meta.json` cache sidecars.
-- Market-regime detection, target-position allocation, currency exposure controls, and hedge-intent generation.
-- Six-tier pre-trade firewall, kill switches, circuit breakers, margin/VaR checks, OMS ledger, reconciliation, and audit logs.
-- Linux control plane with health/readiness/metrics endpoints and operator dashboard.
-- Separate Windows MT5 gateway that keeps broker credentials on the terminal host.
+- Builds causal market structure states, confirmed swings, breaks, phases, and key zones.
+- Evaluates one shared timeframe history through five overlapping HTF/MTF/LTF views.
+- Provides strategy research, chronological and rolling walk-forward evaluation, cost stress, and promotion gates.
+- Audits data provenance, OHLC consistency, spreads, weekends, and missing weekday bars.
+- Provides portfolio allocation, currency exposure controls, risk checks, paper trading, order management, reconciliation, and broker adapters.
+- Keeps research results separate from paper promotion and live-trading authorization.
 
-## Install
+The project includes strategy families for scalping, session breakouts, trend continuation, carry, relative value, pairs trading, and a market-making research scaffold. A strategy's presence in the repository is not evidence that it is profitable.
 
-Python 3.12+ is required.
+## Fractal timeframe design
+
+The candidate consumes completed M1 bars and builds the canonical ladder:
+
+`1M -> 1W -> 1D -> 4H -> 1H -> 15M -> 3M`
+
+Each closed state is shared across the set views:
+
+| Set | Higher timeframe (bias) | Middle timeframe (setup) | Lower timeframe (entry) |
+|---|---:|---:|---:|
+| SET 1 | 1M | 1W | 1D |
+| SET 2 | 1W | 1D | 4H |
+| SET 3 | 1D | 4H | 1H |
+| SET 4 | 4H | 1H | 15M |
+| SET 5 | 1H | 15M | 3M |
+
+The research candidate looks for higher-timeframe continuation and range location, a middle-timeframe pullback with zone context, then a confirmed lower-timeframe break followed by a later retest. It deduplicates overlapping views of the same structural move and applies risk, spread, session, daily-loss, and minimum net reward-to-risk filters. These are testable rules, not a proven edge.
+
+## Current research result
+
+The latest campaign downloaded 100 monthly archives covering 25 months for the four research pairs and built bid/ask M1 caches. Each pair had more than two years of data, but the audit found missing weekday quotes:
+
+| Pair | Missing weekday intervals flagged | Result |
+|---|---:|---|
+| EURUSD | 52 | Rejected |
+| GBPUSD | 57 | Rejected |
+| USDJPY | 45 | Rejected |
+| AUDUSD | 68 | Rejected |
+
+A missing interval can hide a stop or target touch. The research gate therefore rejected all four histories instead of filling long gaps and treating the result as complete. Consequently, all 20 asset/set cells are marked `NOT_RUN_INSUFFICIENT_REAL_DATA`. No strategy returns, win rate, expectancy, or drawdown can be inferred from this campaign.
+
+Read the [full research report](research/FRACTAL_RESEARCH_REPORT.md), the [machine-readable results](research/results/fractal_research.json), and the [research outcomes summary](docs/RESEARCH_OUTCOMES.md).
+
+## Quick start
+
+Python 3.12 or later is required.
 
 ```bash
-python3.12 -m venv .venv
+python -m venv .venv
+```
+
+Activate the environment:
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+Or on Linux/macOS:
+
+```bash
 source .venv/bin/activate
-pip install -e '.[dev]'
-pytest -q
 ```
 
-## Run
+Install the project and development dependencies, then run the tests:
 
 ```bash
-forex-platform status
-forex-platform inspect-pair EURUSD
-forex-platform run-pipeline --symbols EURUSD --allow-synthetic-data
+python -m pip install -e ".[dev]"
+python -m pytest
 ```
 
-The synthetic command is a smoke test only. Synthetic data is explicitly labeled and cannot qualify for promotion.
-
-Strict real-data workflow:
+Useful commands:
 
 ```bash
-forex-platform download-history --all-fx --timeframes M15 --years 5
-forex-platform run-pipeline --symbols EURUSD,GBPUSD,USDJPY --timeframe M15 --bars 10000 --allow-live-download
+python -m forex_platform.cli status
+python -m forex_platform.cli inspect-pair EURUSD
+python -m forex_platform.cli fractal-research --help
 ```
 
-Only `REAL_VENDOR` and `BROKER_EXPORT` datasets can qualify in strict mode.
+## Run the fractal research campaign
 
-## Documentation
-
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system design and data flow.
-- [`docs/STRATEGY_CATALOG.md`](docs/STRATEGY_CATALOG.md) — strategy families and limitations.
-- [`docs/RESEARCH_OUTCOMES.md`](docs/RESEARCH_OUTCOMES.md) — measured results and current blockers.
-- [`docs/OPERATIONS.md`](docs/OPERATIONS.md) — deployment, MT5 setup, secrets, and runbooks.
-- [`docs/PRODUCT_ROADMAP.md`](docs/PRODUCT_ROADMAP.md) — ordered path to a validated product.
-
-## Safety model
-
-The default execution mode is `PAPER`. Demo/live accounts must use the authenticated `mt5_remote` adapter over HTTPS with a bearer token, HMAC signing, replay protection, account binding, and TLS. Broker credentials never enter the Linux control plane.
-
-Promotion requires G1–G8:
-
-1. Minimum sample size.
-2. Positive expectancy across DEV/VAL/OOS.
-3. Positive bootstrap confidence.
-4. Acceptable walk-forward ratio.
-5. Positive expectancy under cost shock.
-6. Drawdown within limit.
-7. Positive OOS Sharpe.
-8. Rolling OOS robustness: at least 60% positive windows and positive worst-window expectancy.
-
-A promotion artifact is `PROMOTABLE_PAPER_ONLY`; it is not live authorization.
-
-## Deployment
+Run against the local data cache and regenerate the report:
 
 ```bash
-cp .env.example .env
-forex-platform serve-production
+python -m forex_platform.cli fractal-research --no-smoke
 ```
 
-Optional files:
+Download the public HistData bid/ask tick archives for the research pair set, build M1 caches, and run the strict campaign:
 
-- `Dockerfile`
-- `docker-compose.yml`
-- `deploy/forex-platform.service`
+```bash
+python -m forex_platform.cli fractal-research \
+  --download-histdata \
+  --data-start-month 2024-09 \
+  --data-end-month 2026-09 \
+  --no-smoke
+```
 
-Health endpoints:
+By default, reports are written to `research/FRACTAL_RESEARCH_REPORT.md` and `research/results/fractal_research.json`. Raw downloads and data caches remain local under `data/raw/` and `data/cache/`; these directories are excluded from Git. The current public dataset fails the continuity gate, as described above.
 
-- `/healthz` — liveness
-- `/readyz` — readiness including broker connectivity
-- `/metrics` — metrics
-- `/` — authenticated operator dashboard
+To qualify a candidate, provide complete, provenance-documented bid/ask history for all four research pairs. The campaign requires at least two years of continuous usable history and at least 100 trades in each asset/set cell before it evaluates performance gates. Passing those checks would still be a research result, not authorization for live trading.
 
-## Current conclusion
+## Research qualification gates
 
-This repository is a serious research and safety foundation, but it is **not currently a profitable live trading system**. The next required milestone is real, provenance-labeled multi-pair data, followed by a strict campaign, forward paper trading, and only then limited-live validation.
+The standard strategy qualification process applies eight checks:
 
-## Recent Research
+1. **G1 - Sample size:** at least 100 development, 30 validation, and 30 out-of-sample trades (or stricter campaign-specific limits).
+2. **G2 - Consistency:** positive expectancy in development, validation, and out-of-sample periods.
+3. **G3 - Statistical support:** bootstrap evidence that positive profit probability exceeds 95%.
+4. **G4 - Walk-forward stability:** out-of-sample expectancy is at least 50% of development expectancy.
+5. **G5 - Cost stress:** expectancy remains positive when spread and commissions are doubled.
+6. **G6 - Drawdown:** maximum drawdown does not exceed 15%.
+7. **G7 - Risk-adjusted return:** Sharpe ratio is at least 0.50.
+8. **G8 - Rolling robustness:** at least 60% of rolling out-of-sample windows are positive, and the worst window has positive expectancy.
 
-- Fractal Timeframe State Engine: Developed a universal timeframe state engine that maintains causal state for multiple timeframes (1M, 1W, 1D, 4H, 1H, 15M, 3M) to analyze fractal cross-timeframe state relationships in FX markets.
-- The engine preserves the existing HTF→MTF→LTF architecture while enabling analysis of overlapping timeframe sets and conditional hypotheses.
-- Initial inspection confirms the platform's suitability for fractal analysis; implementation and testing are underway.
+The fractal campaign adds a minimum of 100 trades in every asset/set cell, multiple-testing correction, and top-winner concentration checks. Passing any gate is not a guarantee of future returns.
+
+## Validation and operating safeguards
+
+The research framework uses chronological development, validation, and out-of-sample partitions; rolling windows; transaction-cost stress; bootstrap checks; multiple-testing correction; and G1-G8 qualification gates. Candidates that pass research gates remain paper-only until separately reviewed and forward-tested.
+
+The execution and risk components include position and currency exposure limits, spread and session filters, loss controls, kill switches, and order reconciliation. Broker support requires broker-specific configuration and certification. Do not connect credentials or allocate live capital based on the current fractal candidate.
+
+Synthetic data can be used to exercise software paths. It is explicitly labeled and cannot qualify a strategy.
+
+## Repository guide
+
+- `forex_platform/fractal_engine/` - canonical states, timeframe sets, shared views, movement identity, and research.
+- `forex_platform/strategy_engine/` - strategy candidates.
+- `forex_platform/market_data/` - downloads, provenance, normalization, and quality audits.
+- `forex_platform/research_engine/` - backtesting and evaluation.
+- `forex_platform/risk_engine/` and `forex_platform/portfolio_engine/` - risk and allocation.
+- `docs/ARCHITECTURE.md` - system components and data flow.
+- `docs/STRATEGY_CATALOG.md` - strategy descriptions and evidence requirements.
+- `docs/PRODUCT_ROADMAP.md` - next validation milestones.
+- `research/FRACTAL_RESEARCH_REPORT.md` - latest detailed fractal campaign report.
 
 ## License
 
-MIT. Review data, broker, exchange, legal, and regulatory terms before operational use.
+MIT. Check data-source terms and broker requirements before using external data or connecting an account.

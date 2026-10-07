@@ -15,6 +15,7 @@ from forex_platform.discovery.discovery_loop import (
     CandidateHypothesis,
     ContinuousDiscoveryLoop,
     PromotionStatus,
+    _block_bootstrap_null_pvalue,
 )
 from forex_platform.market_data.causal_aligner import Timeframe
 from forex_platform.research_engine.backtester import BacktestResult
@@ -22,6 +23,12 @@ from forex_platform.research_engine.evaluate import GateReport, GateResult, Stra
 from forex_platform.research_engine.walkforward import WalkForwardResult
 from forex_platform.strategy_engine.base import BaseStrategy
 from forex_platform.strategy_engine.trend_continuation import TrendContinuationStrategy
+
+
+def test_oos_block_bootstrap_pvalue_preserves_finite_resolution() -> None:
+    assert _block_bootstrap_null_pvalue([1.0] * 29, seed=1) is None
+    p_value = _block_bootstrap_null_pvalue([1.0] * 40, seed=1, replicates=100)
+    assert p_value == pytest.approx(1 / 101)
 
 
 def _make_sample_df(count: int = 200) -> pl.DataFrame:

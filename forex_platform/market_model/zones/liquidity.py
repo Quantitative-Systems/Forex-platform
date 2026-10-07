@@ -109,6 +109,8 @@ def detect_liquidity_pools(
                 )
             )
 
+    return pools
+
 def detect_liquidity_sweeps(
     bars: pl.DataFrame,
     pools: Sequence[LiquidityPool],

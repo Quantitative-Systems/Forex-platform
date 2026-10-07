@@ -72,6 +72,7 @@ class StrategyEvaluator:
         min_wfr: float = 0.50,
         bootstrap_p_val: float = 0.95,
         min_sharpe: float = 0.50,
+        persist_artifacts: bool = True,
     ):
         self.min_dev_trades = min_dev_trades
         self.min_val_trades = min_val_trades
@@ -80,6 +81,7 @@ class StrategyEvaluator:
         self.min_wfr = min_wfr
         self.bootstrap_p_val = bootstrap_p_val
         self.min_sharpe = min_sharpe
+        self.persist_artifacts = persist_artifacts
 
     def evaluate(
         self,
@@ -273,19 +275,21 @@ class StrategyEvaluator:
         promoted_path = None
 
         if not passed_all:
-            archived_path = self._archive_negative_research(
-                strategy_id=strategy.strategy_id,
-                failed_gate=failed_gate or "UNKNOWN",
-                gate_results=gate_results,
-            )
+            if self.persist_artifacts:
+                archived_path = self._archive_negative_research(
+                    strategy_id=strategy.strategy_id,
+                    failed_gate=failed_gate or "UNKNOWN",
+                    gate_results=gate_results,
+                )
         else:
-            # Promote strategy that passes all gates
-            promoted_path = self._promote_strategy(
-                strategy_id=strategy.strategy_id,
-                gate_results=gate_results,
-                parameters=strategy.parameters,
-                oos_result=oos,
-            )
+            if self.persist_artifacts:
+                # Promote strategy that passes all gates
+                promoted_path = self._promote_strategy(
+                    strategy_id=strategy.strategy_id,
+                    gate_results=gate_results,
+                    parameters=strategy.parameters,
+                    oos_result=oos,
+                )
 
         return GateReport(
             strategy_id=strategy.strategy_id,

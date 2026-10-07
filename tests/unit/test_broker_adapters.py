@@ -3,6 +3,8 @@ Unit tests for Broker Adapters: Non-Custodial Verification, Rate Limiting,
 and Symbol Normalization.
 """
 
+import os
+
 import pytest
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -106,6 +108,7 @@ class TestBrokerSecurityAndAdapters:
         with pytest.raises(PermissionSecurityError, match="LIVE CAPITAL LOCKED"):
             live_adapter.send_order(intent)
 
+    @pytest.mark.skipif(os.name != "posix", reason="chmod permission bits are not enforceable on Windows")
     def test_secret_file_permissions_are_enforced(self, tmp_path):
         from forex_platform.production.brokers import BrokerError, resolve_secret
 

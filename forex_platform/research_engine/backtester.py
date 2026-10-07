@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 import math
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 import polars as pl
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -94,6 +94,8 @@ class EventDrivenBacktester:
         long_swap_pips: Decimal | float | str = Decimal("-0.6"),
         short_swap_pips: Decimal | float | str = Decimal("0.2"),
         cost_multiplier: float = 1.0,
+        account_currency: str = "USD",
+        quote_to_account_rates: Optional[Mapping[str, Decimal | float | str]] = None,
     ):
         self.strategy = strategy
         self.pair = currency_pair
@@ -104,6 +106,51 @@ class EventDrivenBacktester:
         self.long_swap_pips = to_decimal(long_swap_pips)
         self.short_swap_pips = to_decimal(short_swap_pips)
         self.cost_multiplier = Decimal(str(cost_multiplier))
+        self.account_currency = account_currency.upper()
+        self.quote_to_account_rates = {
+            currency.upper(): to_decimal(rate)
+            for currency, rate in (quote_to_account_rates or {}).items()
+        }
+
+    def quote_to_account_rate(self, row: Mapping[str, Any], price: Decimal) -> Decimal:
+        """Resolve quote-currency conversion at this bar, failing closed if absent."""
+        quote = self.pair.quote_currency
+        if quote == self.account_currency:
+            return Decimal("1")
+        row_rate = row.get("quote_to_account_rate")
+        if row_rate is not None:
+            rate = to_decimal(row_rate)
+            if rate > 0:
+                return rate
+        configured = self.quote_to_account_rates.get(quote)
+        if configured is not None and configured > 0:
+            return configured
+        if self.pair.base_currency == self.account_currency and price > 0:
+            return Decimal("1") / price
+        raise ValueError(
+            f"Missing {quote}-to-{self.account_currency} conversion for {self.pair.symbol}; "
+            "provide quote_to_account_rates or a quote_to_account_rate column."
+        )
+
+    def _ask_price(
+        self,
+        row: Mapping[str, Any],
+        bid: Decimal,
+        field: str,
+        modeled_spread_price: Decimal,
+    ) -> Decimal:
+        """Return a cost-stressed ask quote, using supplied ask OHLC when present.
+
+        Canonical bars are bid-quoted. A dataset with no ask OHLC therefore gets
+        a synthetic ask at bid + its spread column; the spread is never split
+        around the bid. With real ask OHLC, preserve the observed quote and scale
+        its bid/ask distance for cost stress runs.
+        """
+        raw_ask = row.get(f"ask_{field}")
+        if raw_ask is None:
+            return bid + modeled_spread_price
+        ask = to_decimal(raw_ask)
+        return bid + max(Decimal("0"), ask - bid) * self.cost_multiplier
 
     @staticmethod
     def _time_based_sharpe(
@@ -159,6 +206,8 @@ class EventDrivenBacktester:
         pending_intents: List[OrderIntent] = []
         trades: List[TradeRecord] = []
         equity_curve: List[Tuple[datetime, Decimal]] = []
+        account_day = None
+        day_start_balance = balance
 
         total_rows = df.height
         trade_counter = 0
@@ -174,7 +223,15 @@ class EventDrivenBacktester:
             bar_low = to_decimal(row["low"])
             bar_close = to_decimal(row["close"])
             bar_volume = to_decimal(row["volume"])
-            bar_spread = to_decimal(row.get("spread", 1.0)) * self.cost_multiplier
+            raw_spread = row.get("spread_pips")
+            if raw_spread is None:
+                raw_spread = row.get("spread", 1.0)
+            bar_spread = to_decimal(raw_spread) * self.cost_multiplier
+            spread_price = self.pair.to_price(bar_spread)
+            ask_open = self._ask_price(row, bar_open, "open", spread_price)
+            ask_high = self._ask_price(row, bar_high, "high", spread_price)
+            ask_low = self._ask_price(row, bar_low, "low", spread_price)
+            ask_close = self._ask_price(row, bar_close, "close", spread_price)
 
             # Optional causally-aligned multi-timeframe context (struct column).
             # Used by research sweeps to pass Market Model state (e.g. HTF/MTF
@@ -197,10 +254,6 @@ class EventDrivenBacktester:
                 intent_to_fill = pending_intents.pop(0)
                 pending_intents.clear()  # Drop any secondary signals
 
-                # Compute execution price including half-spread
-                spread_price = self.pair.to_price(bar_spread)
-                half_spread = spread_price / Decimal("2")
-
                 # MARKET vs LIMIT: LIMIT orders fill only on a price TOUCH.
                 # Bars are bid-quoted, so BUY limits are checked against the
                 # ask (bid + spread); SELL limits are checked against the bid.
@@ -212,8 +265,6 @@ class EventDrivenBacktester:
                 ):
                     limit_price = intent_to_fill.limit_price
                     if intent_to_fill.side == OrderSide.BUY:
-                        ask_open = bar_open + spread_price
-                        ask_low = bar_low + spread_price
                         if ask_low <= limit_price:
                             # Gap-down through the limit fills at the
                             # favorable open; otherwise at the limit price.
@@ -228,9 +279,9 @@ class EventDrivenBacktester:
                         pending_intents.insert(0, intent_to_fill)
                 else:
                     if intent_to_fill.side == OrderSide.BUY:
-                        fill_price = bar_open + half_spread
+                        fill_price = ask_open
                     else:
-                        fill_price = bar_open - half_spread
+                        fill_price = bar_open
 
                 if fill_price is not None:
                     comm = self.commission_model.calculate_commission(
@@ -293,33 +344,33 @@ class EventDrivenBacktester:
                     if sl_hit and tp_hit:
                         # ADVERSE-FIRST: Stop loss takes priority!
                         pos_closed = True
-                        exit_price = sl  # Stop loss price
+                        exit_price = min(bar_open, sl)  # Stops slip adversely through gaps.
                         exit_reason = "STOP_LOSS_ADVERSE_COLLISION"
                     elif sl_hit:
                         pos_closed = True
-                        exit_price = sl
+                        exit_price = min(bar_open, sl)
                         exit_reason = "STOP_LOSS"
                     elif tp_hit:
                         pos_closed = True
-                        exit_price = tp
+                        exit_price = max(bar_open, tp)
                         exit_reason = "TAKE_PROFIT"
 
                 elif open_position.side == OrderSide.SELL:
-                    sl_hit = sl is not None and bar_high >= sl
-                    tp_hit = tp is not None and bar_low <= tp
+                    sl_hit = sl is not None and ask_high >= sl
+                    tp_hit = tp is not None and ask_low <= tp
 
                     if sl_hit and tp_hit:
                         # ADVERSE-FIRST: Stop loss takes priority!
                         pos_closed = True
-                        exit_price = sl
+                        exit_price = max(ask_open, sl)
                         exit_reason = "STOP_LOSS_ADVERSE_COLLISION"
                     elif sl_hit:
                         pos_closed = True
-                        exit_price = sl
+                        exit_price = max(ask_open, sl)
                         exit_reason = "STOP_LOSS"
                     elif tp_hit:
                         pos_closed = True
-                        exit_price = tp
+                        exit_price = min(ask_open, tp)
                         exit_reason = "TAKE_PROFIT"
 
                 if pos_closed:
@@ -331,8 +382,11 @@ class EventDrivenBacktester:
                     open_position.total_commission += closing_comm
 
                     # Calculate gross PnL
-                    gross_pnl = open_position.close(exit_price)
-                    net_pnl = gross_pnl - open_position.total_commission + open_position.total_swap
+                    gross_pnl_quote = open_position.close(exit_price)
+                    quote_rate = self.quote_to_account_rate(row, exit_price)
+                    gross_pnl = gross_pnl_quote * quote_rate
+                    swap_account = open_position.total_swap * quote_rate
+                    net_pnl = gross_pnl - open_position.total_commission + swap_account
                     balance += net_pnl
 
                     trades.append(
@@ -347,7 +401,7 @@ class EventDrivenBacktester:
                             exit_price=exit_price,
                             gross_pnl=gross_pnl,
                             commission=open_position.total_commission,
-                            swap=open_position.total_swap,
+                            swap=swap_account,
                             net_pnl=net_pnl,
                             exit_reason=exit_reason,
                             stop_loss=open_intent.stop_loss,
@@ -360,6 +414,20 @@ class EventDrivenBacktester:
             # -----------------------------------------------------------------
             # STEP 4: DELIVER CLOSED BAR EVENT TO STRATEGY (CAUSAL HOOK)
             # -----------------------------------------------------------------
+            if account_day != utc_ts.date():
+                account_day = utc_ts.date()
+                day_start_balance = balance
+            unrealized_before_signal = Decimal("0.0")
+            if open_position is not None:
+                liquidation_price = bar_close if open_position.side == OrderSide.BUY else ask_close
+                open_position.update_market_price(liquidation_price)
+                unrealized_before_signal = open_position.unrealized_pnl * self.quote_to_account_rate(row, liquidation_price)
+            update_account_state = getattr(self.strategy, "update_account_state", None)
+            if callable(update_account_state):
+                update_account_state(
+                    equity=balance + unrealized_before_signal,
+                    daily_realized_pnl=balance - day_start_balance,
+                )
             event = BarEvent(
                 symbol=self.pair.symbol,
                 timeframe=timeframe,
@@ -381,8 +449,9 @@ class EventDrivenBacktester:
             # Record equity curve
             unrealized = Decimal("0.0")
             if open_position is not None:
-                open_position.update_market_price(bar_close)
-                unrealized = open_position.unrealized_pnl
+                liquidation_price = bar_close if open_position.side == OrderSide.BUY else ask_close
+                open_position.update_market_price(liquidation_price)
+                unrealized = open_position.unrealized_pnl * self.quote_to_account_rate(row, liquidation_price)
 
             curr_equity = balance + unrealized
             equity_curve.append((utc_ts, curr_equity))
@@ -392,6 +461,64 @@ class EventDrivenBacktester:
             dd = (peak_balance - curr_equity) / peak_balance if peak_balance > Decimal("0") else Decimal("0")
             if dd > max_drawdown:
                 max_drawdown = dd
+
+        # A window ending with an open position must realize its liquidation
+        # value at the final executable quote; otherwise OOS windows omit both
+        # the trade and its costs from reported expectancy and final balance.
+        if open_position is not None and open_intent is not None and total_rows:
+            last_row = df.row(total_rows - 1, named=True)
+            last_bid_close = to_decimal(last_row["close"])
+            last_spread = last_row.get("spread_pips")
+            if last_spread is None:
+                last_spread = last_row.get("spread", 1.0)
+            last_modeled_spread = to_decimal(last_spread) * self.cost_multiplier
+            last_ask_close = self._ask_price(
+                last_row,
+                last_bid_close,
+                "close",
+                self.pair.to_price(last_modeled_spread),
+            )
+            liquidation_price = last_bid_close if open_position.side == OrderSide.BUY else last_ask_close
+            last_ts = last_row["timestamp"]
+            last_utc_ts = last_ts if isinstance(last_ts, datetime) else datetime.fromisoformat(str(last_ts))
+            if last_utc_ts.tzinfo is None:
+                last_utc_ts = last_utc_ts.replace(tzinfo=timezone.utc)
+            closing_comm = self.commission_model.calculate_commission(
+                LotSize.from_units(open_position.units), is_roundturn=False,
+            ) * self.cost_multiplier
+            open_position.total_commission += closing_comm
+            gross_pnl_quote = open_position.close(liquidation_price)
+            quote_rate = self.quote_to_account_rate(last_row, liquidation_price)
+            gross_pnl = gross_pnl_quote * quote_rate
+            swap_account = open_position.total_swap * quote_rate
+            net_pnl = gross_pnl - open_position.total_commission + swap_account
+            balance += net_pnl
+            trades.append(
+                TradeRecord(
+                    trade_id=f"TRD-{trade_counter:04d}",
+                    symbol=self.pair.symbol,
+                    side=open_position.side,
+                    units=open_intent.lot_size.units,
+                    entry_time=open_position.opened_at,
+                    entry_price=open_position.average_entry_price,
+                    exit_time=last_utc_ts,
+                    exit_price=liquidation_price,
+                    gross_pnl=gross_pnl,
+                    commission=open_position.total_commission,
+                    swap=swap_account,
+                    net_pnl=net_pnl,
+                    exit_reason="END_OF_DATA_LIQUIDATION",
+                    stop_loss=open_intent.stop_loss,
+                    take_profit=open_intent.take_profit,
+                )
+            )
+            if equity_curve:
+                equity_curve[-1] = (last_utc_ts, balance)
+            if balance > peak_balance:
+                peak_balance = balance
+            final_dd = (peak_balance - balance) / peak_balance if peak_balance > 0 else Decimal("0")
+            if final_dd > max_drawdown:
+                max_drawdown = final_dd
 
         # Calculate summary statistics
         total_trades = len(trades)

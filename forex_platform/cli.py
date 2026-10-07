@@ -57,6 +57,7 @@ from forex_platform.market_data.historical_downloader import (
     add_download_history_parser,
     cmd_download_history,
 )
+from forex_platform.market_data.histdata_ticks import HistDataTickDownloader
 from forex_platform.discovery.calibration import (
     add_calibrate_parser,
     cmd_calibrate,
@@ -67,6 +68,7 @@ from forex_platform.discovery.pipeline_runner import (
 )
 
 from forex_platform.auto_trading.controller import AutoTradingController
+from forex_platform.fractal_engine.research import REQUIRED_SYMBOLS, run_campaign
 
 
 def cmd_serve_production(_args: argparse.Namespace) -> int:
@@ -108,6 +110,47 @@ def cmd_status(_args: argparse.Namespace) -> int:
     print(" Circuit Breaker:          NOMINAL (0.0% Drawdown, Sizing Multiplier: 1.00x)")
     print(" Kill Switch State:        DISARMED (Global, Tenant, Broker, Pair, Strategy)")
     print("=" * 70)
+    return 0
+
+
+def cmd_fractal_research(args: argparse.Namespace) -> int:
+    """Run the provenance-gated unified timeframe-state research campaign."""
+    try:
+        if args.download_histdata:
+            now = datetime.now(timezone.utc)
+            end_year, end_num = (now.year - 1, 12) if now.month == 1 else (now.year, now.month - 1)
+            end_month = args.data_end_month or f"{end_year:04d}-{end_num:02d}"
+            if args.data_start_month:
+                start_month = args.data_start_month
+            else:
+                year_text, month_text = end_month.split("-", 1)
+                start_year, start_num = int(year_text), int(month_text)
+                start_year -= 2
+                start_month = f"{start_year:04d}-{start_num:02d}"
+            downloader = HistDataTickDownloader(
+                raw_dir=Path(args.raw_data_dir),
+                cache_dir=Path(args.cache_dir),
+            )
+            manifest = downloader.download_and_cache(args.symbols, start_month, end_month)
+            print(
+                f"HistData archives: {manifest['successful_archives']} downloaded; "
+                f"{len(manifest['failures'])} failed; source quotes remain research-only."
+            )
+        result = run_campaign(
+            cache_dir=Path(args.cache_dir),
+            report_path=Path(args.report_path),
+            results_path=Path(args.results_path),
+            symbols=args.symbols,
+            min_years=args.minimum_years,
+            run_smoke=not args.no_smoke,
+        )
+    except Exception as exc:
+        print(f"Fractal research failed: {exc}", file=sys.stderr)
+        return 1
+    print(f"Verdict: {result['overall_verdict']}")
+    print(f"Eligible symbols: {', '.join(result['eligible_symbols']) or 'none'}")
+    print(f"Report: {result['report_path']}")
+    print(f"Results: {result['results_path']}")
     return 0
 
 
@@ -494,6 +537,25 @@ def build_parser() -> argparse.ArgumentParser:
     sweep_p.add_argument("--strategy", type=str, default="TrendContinuationStrategy", help="Strategy plugin name")
     sweep_p.add_argument("--bars", type=int, default=500, help="Number of bars to sweep (default: 500)")
 
+    # Command: fractal-research
+    fractal_p = subparsers.add_parser(
+        "fractal-research",
+        help="Run the causal unified-timeframe research campaign and write its report",
+    )
+    fractal_p.add_argument("--symbols", nargs="+", default=list(REQUIRED_SYMBOLS))
+    fractal_p.add_argument("--cache-dir", type=str, default="data/cache")
+    fractal_p.add_argument("--report-path", type=str, default="research/FRACTAL_RESEARCH_REPORT.md")
+    fractal_p.add_argument("--results-path", type=str, default="research/results/fractal_research.json")
+    fractal_p.add_argument("--minimum-years", type=float, default=2.0)
+    fractal_p.add_argument("--no-smoke", action="store_true")
+    fractal_p.add_argument(
+        "--download-histdata", action="store_true",
+        help="Download public bid/ask tick history and build M1 caches before research",
+    )
+    fractal_p.add_argument("--data-start-month", type=str, default=None, help="HistData range start (YYYY-MM)")
+    fractal_p.add_argument("--data-end-month", type=str, default=None, help="HistData range end (YYYY-MM); defaults to the last complete month")
+    fractal_p.add_argument("--raw-data-dir", type=str, default="data/raw/histdata")
+
     # Command: forward-paper
     paper_p = subparsers.add_parser("forward-paper", help="Launch forward paper trading daemon with SQLite ledger")
     paper_p.add_argument("--symbol", type=str, default="EURUSD", help="Currency pair (default: EURUSD)")
@@ -560,6 +622,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_inspect_pair(args)
     elif args.command == "sweep":
         return cmd_sweep(args)
+    elif args.command == "fractal-research":
+        return cmd_fractal_research(args)
     elif args.command == "forward-paper":
         return cmd_forward_paper(args)
     elif args.command == "discover-arb":

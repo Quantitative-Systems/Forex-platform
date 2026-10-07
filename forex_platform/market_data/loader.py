@@ -55,6 +55,7 @@ class MarketDataLoader:
     """
 
     REQUIRED_COLS = ["timestamp", "open", "high", "low", "close", "volume"]
+    ASK_OHLC_COLS = ["ask_open", "ask_high", "ask_low", "ask_close"]
     CANONICAL_SCHEMA = {
         "timestamp": pl.Datetime("us", "UTC"),
         "open": pl.Float64,
@@ -77,6 +78,11 @@ class MarketDataLoader:
         "v": "volume",
         "vol": "volume",
         "sp": "spread",
+        "spread_pips": "spread",
+        "askopen": "ask_open",
+        "askhigh": "ask_high",
+        "asklow": "ask_low",
+        "askclose": "ask_close",
     }
 
     @classmethod
@@ -168,10 +174,10 @@ class MarketDataLoader:
         # Map lower-cased column names
         rename_map = {}
         for col in df.columns:
-            low = col.lower()
+            low = col.lower().strip().replace(" ", "_")
             if low in cls.COLUMN_ALIASES:
                 rename_map[col] = cls.COLUMN_ALIASES[low]
-            elif low in cls.REQUIRED_COLS or low == "spread":
+            elif low in cls.REQUIRED_COLS or low == "spread" or low in cls.ASK_OHLC_COLS:
                 rename_map[col] = low
 
         df = df.rename(rename_map)
@@ -184,6 +190,11 @@ class MarketDataLoader:
         # Add spread if absent
         if "spread" not in df.columns:
             df = df.with_columns(pl.lit(default_spread, dtype=pl.Float64).alias("spread"))
+
+        ask_columns = [column for column in cls.ASK_OHLC_COLS if column in df.columns]
+        if ask_columns and len(ask_columns) != len(cls.ASK_OHLC_COLS):
+            missing_ask = sorted(set(cls.ASK_OHLC_COLS) - set(ask_columns))
+            raise SchemaError(f"Ask-side OHLC must be supplied as a complete set; missing: {missing_ask}")
 
         # Normalize timestamp to UTC Datetime
         ts_type = df.schema["timestamp"]
@@ -203,17 +214,18 @@ class MarketDataLoader:
                 )
 
         # Cast numeric fields
-        df = df.with_columns([
+        numeric_columns = [
             pl.col("open").cast(pl.Float64),
             pl.col("high").cast(pl.Float64),
             pl.col("low").cast(pl.Float64),
             pl.col("close").cast(pl.Float64),
             pl.col("volume").cast(pl.Float64),
             pl.col("spread").cast(pl.Float64),
-        ])
+        ] + [pl.col(column).cast(pl.Float64) for column in ask_columns]
+        df = df.with_columns(numeric_columns)
 
         # Select only standard columns in canonical order
-        df = df.select(["timestamp", "open", "high", "low", "close", "volume", "spread"])
+        df = df.select(["timestamp", "open", "high", "low", "close", "volume", "spread", *ask_columns])
 
         if enforce_monotonicity:
             cls.validate_monotonicity(df)

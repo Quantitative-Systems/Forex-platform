@@ -3,6 +3,7 @@ Multi-Horizon Strategy Engine Plugins Catalog.
 """
 
 from forex_platform.strategy_engine.base import BarEvent, BaseStrategy
+from forex_platform.strategy_engine.fractal_institutional import InstitutionalFractalStrategy
 from forex_platform.strategy_engine.macro_carry import MacroCarryStrategy
 from forex_platform.strategy_engine.scalping import AsianRangeFadeScalper
 from forex_platform.strategy_engine.session_breakout import LondonSessionBreakout
@@ -15,6 +16,7 @@ __all__ = [
     "BaseStrategy",
     "LondonSessionBreakout",
     "MacroCarryStrategy",
+    "InstitutionalFractalStrategy",
     "TrendContinuationStrategy",
     "TriangularStatisticalArbitrage",
 ]

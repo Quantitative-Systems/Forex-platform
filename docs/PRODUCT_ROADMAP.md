@@ -1,77 +1,75 @@
 # Product Roadmap
 
-The order below is intentional. Do not add more strategies before closing the data and validation gaps.
+The priority is evidence quality and execution validation. Adding strategies or optimizing settings cannot substitute for reliable data and out-of-sample results.
 
-## Phase 0 — Evidence integrity
+## Current position
 
-- Acquire licensed/provenance-labeled data.
-- Build a full 28-pair manifest.
-- Reject synthetic/unknown data in strict qualification.
-- Record source, license, checksum, and quality audit.
+The fractal research candidate and five-set campaign are implemented. The latest public dataset contains about 2.08 years of bid/ask M1 history for EURUSD, GBPUSD, USDJPY, and AUDUSD, but each pair failed the weekday continuity audit. As a result, 0 of the 20 asset/set cells have been backtested. The platform has no qualified candidate and no live capital is enabled.
 
-**Exit criteria:** every qualifying dataset has real provenance and a passing quality report.
+## Phase 0 - Evidence integrity
 
-## Phase 1 — Robust intraday research
+- Acquire complete, licensed or otherwise authorized, provenance-labeled bid/ask data.
+- Prefer the same broker feed intended for execution.
+- Record source, license or permitted use, time zone, checksums, row counts, date ranges, and quality reports.
+- Preserve weekday gaps; reject histories that could conceal intrabar exits.
+- Build a full manifest for the four-pair fractal campaign before expanding to the broader 28-pair registry.
 
-- Validate London breakout, Asian mean reversion, and trend continuation across all pairs.
-- Use M5/M15/M30 data with real spreads.
-- Run fixed and rolling walk-forward windows.
-- Apply cost shock, slippage, and latency assumptions.
+**Exit criteria:** all qualifying histories pass provenance, continuity, spread, timestamp, and quote-quality checks for the minimum coverage period.
 
-**Exit criteria:** at least one strategy passes G1–G8 on multiple years and multiple pairs.
+## Phase 1 - Fractal candidate evaluation
 
-## Phase 2 — Forward paper trading
+- Run all five timeframe sets independently for EURUSD, GBPUSD, USDJPY, and AUDUSD.
+- Collect at least 100 completed trades in each of the 20 asset/set cells.
+- Keep the HTF/MTF/LTF rules and risk assumptions fixed before the final OOS evaluation.
+- Run chronological DEV/VAL/OOS splits, rolling windows, bootstrap confidence checks, FDR correction, doubled-cost stress, and top-winner removal.
+- Report every cell, including rejected and under-sampled cells.
 
-- Run the exact production execution path in paper mode.
-- Record rejects, partial fills, latency, slippage, and reconciliation events.
-- Compare paper results with research assumptions.
+**Exit criteria:** a candidate passes the predefined G1-G8 gates with positive out-of-sample and cost-stressed results across multiple assets and windows. Reaching 100 trades alone is not a pass.
 
-**Exit criteria:** forward results remain within documented tolerance of research results.
+## Phase 2 - Forward paper trading
 
-## Phase 3 — Portfolio construction
+- Run only research-qualified candidates through the paper execution path.
+- Log decisions, order rejects, partial fills, latency, spreads, slippage, and reconciliation events.
+- Compare observed paper execution with research assumptions.
+- Monitor changing performance without tuning on the forward evaluation period.
 
-- Combine only paper-qualified strategies.
-- Use regime-aware target allocation.
+**Exit criteria:** forward results remain positive and within predeclared tolerances over a sufficiently long, regime-diverse sample.
+
+## Phase 3 - Portfolio validation
+
+- Combine only forward paper-qualified strategies.
 - Enforce gross, symbol, currency, correlation, and drawdown limits.
-- Add defensive hedging during correlation and liquidity stress.
+- Stress correlated exposures and liquidity events.
+- Re-run portfolio-level OOS and forward evaluation.
 
-**Exit criteria:** portfolio-level OOS and forward results remain positive after portfolio costs.
+**Exit criteria:** net portfolio performance remains positive after costs and risk limits under OOS and forward observation.
 
-## Phase 4 — Broker certification
+## Phase 4 - Broker certification
 
-- Connect a real MT5 demo account through the authenticated gateway.
-- Verify symbols, fills, cancels, positions, account data, and reconciliation.
-- Test disconnects, restarts, duplicate requests, and partial fills.
+- Connect a broker demo account through the authenticated gateway.
+- Verify symbol mapping, order types, fills, cancels, positions, account data, and reconciliation.
+- Test disconnects, restarts, duplicate requests, rejects, and partial fills.
 
-**Exit criteria:** a broker-specific certification report passes.
+**Exit criteria:** a broker-specific certification report passes and the paper path matches the intended live order route.
 
-## Phase 5 — Limited live operation
+## Phase 5 - Limited live operation
 
-- Human-approved live environment.
-- Minimal capital and strict per-account ceiling.
-- Continuous monitoring and automatic kill switches.
-- No automatic capital increases.
+- Require explicit human approval.
+- Start with minimal capital and a strict account-level ceiling.
+- Keep continuous monitoring and automatic kill switches enabled.
+- Prohibit automatic capital increases.
 
-**Exit criteria:** operational stability and risk compliance over an agreed observation period.
+**Exit criteria:** risk and operational stability remain within the agreed limits over a reviewed observation period.
 
-## Phase 6 — Additional asset classes
+## Phase 6 - Additional asset classes
 
-Only after spot-FX execution and risk controls are proven should the platform add:
+Only after spot-FX data, execution, and risk controls are validated should the platform add indices, metals, commodities, equities, crypto, futures, or options. Each asset class needs its own contract specifications, hours, margin, financing, settlement, and risk model.
 
-- Indices
-- Metals
-- Commodities
-- Equities/ETFs
-- Crypto
-- Futures
-- Options
+## Research principles
 
-Each asset class requires its own contract specifications, hours, margin, financing, settlement, and risk model.
-
-## What this roadmap deliberately avoids
-
-- Promising guaranteed returns.
-- Treating synthetic data as evidence.
-- Automatically enabling live capital.
-- Adding strategy count as a substitute for validation.
-- Calling a research scaffold production-ready.
+- Do not promise guaranteed returns.
+- Do not treat synthetic or unknown-provenance data as performance evidence.
+- Do not lower gates to force a strategy promotion.
+- Do not treat a minimum trade count as proof of an edge.
+- Do not enable live capital automatically.
+- Do not treat strategy count as a measure of research quality.

@@ -1,0 +1,500 @@
+{
+  "generated_at_utc": "2026-10-07T12:33:48.909467+00:00",
+  "overall_verdict": "INSUFFICIENT DATA",
+  "scientific_conclusion": "No real-market fractal edge can be established from the available data. Shared architecture identity is testable; predictability and tradability are not established.",
+  "configuration": {
+    "symbols": [
+      "EURUSD",
+      "GBPUSD",
+      "USDJPY",
+      "AUDUSD"
+    ],
+    "minimum_real_data_years": 2.0,
+    "required_provenance": [
+      "REAL_VENDOR",
+      "BROKER_EXPORT"
+    ],
+    "swing_lookback_bars": 5,
+    "source_observations": "distinct source signatures; next strictly later child close",
+    "bootstrap_replicates": 500,
+    "null_test": "circular shift with plus-one finite-sample correction",
+    "multiple_testing": "Benjamini-Hochberg over tested asset-scale relationships",
+    "live_capital_usd": 0.0
+  },
+  "dataset_audit": {
+    "EURUSD": {
+      "symbol": "EURUSD",
+      "status": "INSUFFICIENT_DATA",
+      "selected_timeframe": null,
+      "datasets": [
+        {
+          "timeframe": "1m",
+          "status": "NOT_ELIGIBLE",
+          "path": "data\\cache\\EURUSD_M1.parquet",
+          "provenance": "REAL_VENDOR",
+          "source": "HistData.com ASCII bid/ask ticks, fixed EST-no-DST converted to UTC; 2911 short no-quote M1 bars carried forward causally",
+          "rows": 775273,
+          "start_utc": "2024-09-01T22:00:00+00:00",
+          "end_utc": "2026-10-01T04:59:00+00:00",
+          "coverage_years": 2.0788253859609096,
+          "quality_passed": false,
+          "midweek_gaps": 52,
+          "weekend_gaps": 107,
+          "anomalies": 0,
+          "fingerprint": {
+            "rows": 775273,
+            "first_timestamp": "2024-09-01 22:00:00+00:00",
+            "last_timestamp": "2026-10-01 04:59:00+00:00",
+            "content_hash": "8d0316eeef9530a927f19f9e317a75326bd223e634af9591293c97cb80ff529d"
+          },
+          "reasons": [
+            "quality flags: 52 midweek gaps, 0 anomalies"
+          ]
+        },
+        {
+          "timeframe": "15m",
+          "status": "NOT_ELIGIBLE",
+          "path": "data\\cache\\EURUSD_M15.parquet",
+          "provenance": "SYNTHETIC",
+          "source": "deterministic synthetic ECN generator",
+          "rows": 4000,
+          "start_utc": "2026-01-05T00:00:00+00:00",
+          "end_utc": "2026-03-03T15:45:00+00:00",
+          "coverage_years": 0.1578542094455852,
+          "quality_passed": true,
+          "midweek_gaps": 0,
+          "weekend_gaps": 8,
+          "anomalies": 0,
+          "fingerprint": {
+            "rows": 4000,
+            "first_timestamp": "2026-01-05 00:00:00+00:00",
+            "last_timestamp": "2026-03-03 15:45:00+00:00",
+            "content_hash": "d71598e1d79d370dd33af08f370665647e240c697ac5169c0bbe2e0efa32856f"
+          },
+          "reasons": [
+            "provenance is SYNTHETIC",
+            "coverage 0.16 years is below 2.00"
+          ]
+        }
+      ],
+      "reason": "no real, quality-passed source with required continuous coverage"
+    },
+    "GBPUSD": {
+      "symbol": "GBPUSD",
+      "status": "INSUFFICIENT_DATA",
+      "selected_timeframe": null,
+      "datasets": [
+        {
+          "timeframe": "1m",
+          "status": "NOT_ELIGIBLE",
+          "path": "data\\cache\\GBPUSD_M1.parquet",
+          "provenance": "REAL_VENDOR",
+          "source": "HistData.com ASCII bid/ask ticks, fixed EST-no-DST converted to UTC; 4052 short no-quote M1 bars carried forward causally",
+          "rows": 774699,
+          "start_utc": "2024-09-01T22:04:00+00:00",
+          "end_utc": "2026-10-01T04:59:00+00:00",
+          "coverage_years": 2.078817780819834,
+          "quality_passed": false,
+          "midweek_gaps": 57,
+          "weekend_gaps": 107,
+          "anomalies": 0,
+          "fingerprint": {
+            "rows": 774699,
+            "first_timestamp": "2024-09-01 22:04:00+00:00",
+            "last_timestamp": "2026-10-01 04:59:00+00:00",
+            "content_hash": "43fd8b528ac398170424b281ea78a9cb612d92e4f6d227f2c87b71ac94ee1cc9"
+          },
+          "reasons": [
+            "quality flags: 57 midweek gaps, 0 anomalies"
+          ]
+        },
+        {
+          "timeframe": "15m",
+          "status": "MISSING",
+          "path": "data\\cache\\GBPUSD_M15.parquet"
+        }
+      ],
+      "reason": "no real, quality-passed source with required continuous coverage"
+    },
+    "USDJPY": {
+      "symbol": "USDJPY",
+      "status": "INSUFFICIENT_DATA",
+      "selected_timeframe": null,
+      "datasets": [
+        {
+          "timeframe": "1m",
+          "status": "NOT_ELIGIBLE",
+          "path": "data\\cache\\USDJPY_M1.parquet",
+          "provenance": "REAL_VENDOR",
+          "source": "HistData.com ASCII bid/ask ticks, fixed EST-no-DST converted to UTC; 3358 short no-quote M1 bars carried forward causally",
+          "rows": 774569,
+          "start_utc": "2024-09-01T22:04:00+00:00",
+          "end_utc": "2026-10-01T04:59:00+00:00",
+          "coverage_years": 2.078817780819834,
+          "quality_passed": false,
+          "midweek_gaps": 45,
+          "weekend_gaps": 106,
+          "anomalies": 0,
+          "fingerprint": {
+            "rows": 774569,
+            "first_timestamp": "2024-09-01 22:04:00+00:00",
+            "last_timestamp": "2026-10-01 04:59:00+00:00",
+            "content_hash": "91fc30e3198f6d92c83620ab71952632b29fd4104b388901de26fc40063bd410"
+          },
+          "reasons": [
+            "quality flags: 45 midweek gaps, 0 anomalies"
+          ]
+        },
+        {
+          "timeframe": "15m",
+          "status": "MISSING",
+          "path": "data\\cache\\USDJPY_M15.parquet"
+        }
+      ],
+      "reason": "no real, quality-passed source with required continuous coverage"
+    },
+    "AUDUSD": {
+      "symbol": "AUDUSD",
+      "status": "INSUFFICIENT_DATA",
+      "selected_timeframe": null,
+      "datasets": [
+        {
+          "timeframe": "1m",
+          "status": "NOT_ELIGIBLE",
+          "path": "data\\cache\\AUDUSD_M1.parquet",
+          "provenance": "REAL_VENDOR",
+          "source": "HistData.com ASCII bid/ask ticks, fixed EST-no-DST converted to UTC; 4112 short no-quote M1 bars carried forward causally",
+          "rows": 774083,
+          "start_utc": "2024-09-01T22:00:00+00:00",
+          "end_utc": "2026-10-01T04:59:00+00:00",
+          "coverage_years": 2.0788253859609096,
+          "quality_passed": false,
+          "midweek_gaps": 68,
+          "weekend_gaps": 107,
+          "anomalies": 0,
+          "fingerprint": {
+            "rows": 774083,
+            "first_timestamp": "2024-09-01 22:00:00+00:00",
+            "last_timestamp": "2026-10-01 04:59:00+00:00",
+            "content_hash": "7f3d5422195f1a6273fe7b1a1767a3f208a7d107b850622e9e88f7c28f1b7ccb"
+          },
+          "reasons": [
+            "quality flags: 68 midweek gaps, 0 anomalies"
+          ]
+        },
+        {
+          "timeframe": "15m",
+          "status": "MISSING",
+          "path": "data\\cache\\AUDUSD_M15.parquet"
+        }
+      ],
+      "reason": "no real, quality-passed source with required continuous coverage"
+    }
+  },
+  "eligible_symbols": [],
+  "set_trade_matrix": {
+    "minimum_trades_per_asset_set_cell": 100,
+    "cells_tested": 0,
+    "family_size": 20,
+    "valid_oos_hypothesis_tests": 0,
+    "multiplicity_adjustment": "Benjamini-Hochberg across OOS centered moving-block-bootstrap tests for the asset/set family; q<=0.05 required.",
+    "cells": [
+      {
+        "symbol": "EURUSD",
+        "set": "SET_1",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "EURUSD",
+        "set": "SET_2",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "EURUSD",
+        "set": "SET_3",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "EURUSD",
+        "set": "SET_4",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "EURUSD",
+        "set": "SET_5",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "GBPUSD",
+        "set": "SET_1",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "GBPUSD",
+        "set": "SET_2",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "GBPUSD",
+        "set": "SET_3",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "GBPUSD",
+        "set": "SET_4",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "GBPUSD",
+        "set": "SET_5",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "USDJPY",
+        "set": "SET_1",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "USDJPY",
+        "set": "SET_2",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "USDJPY",
+        "set": "SET_3",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "USDJPY",
+        "set": "SET_4",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "USDJPY",
+        "set": "SET_5",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "AUDUSD",
+        "set": "SET_1",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "AUDUSD",
+        "set": "SET_2",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "AUDUSD",
+        "set": "SET_3",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "AUDUSD",
+        "set": "SET_4",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      },
+      {
+        "symbol": "AUDUSD",
+        "set": "SET_5",
+        "required_minimum_trades": 100,
+        "trade_counts": null,
+        "performance_metrics": null,
+        "gate_results": null,
+        "multiplicity_adjustment": "NO_VALID_OOS_TEST",
+        "status": "NOT_RUN_INSUFFICIENT_REAL_DATA",
+        "reason": "no real, quality-passed source with required continuous coverage",
+        "family_adjusted_q_value": null,
+        "family_corrected": false
+      }
+    ]
+  },
+  "cross_asset_coverage_complete": false,
+  "symbol_results": {},
+  "scale_relationships": [],
+  "existing_baseline_artifact": {
+    "artifact": "C:\\Users\\nares\\Workspace\\Forex-platform\\research\\results\\experiments.json",
+    "status": "EXISTING_ARTIFACT",
+    "experiments": 3,
+    "provenance_counts": {
+      "SYNTHETIC": 3
+    },
+    "verdict_counts": {
+      "REJECTED": 3
+    },
+    "survivors": 0,
+    "warning": "prior short/synthetic sweep is not a valid real-data baseline comparison"
+  },
+  "smoke_test": null,
+  "capital_eligibility": {
+    "SET_1": "OBSERVATION ONLY",
+    "SET_2": "OBSERVATION ONLY",
+    "SET_3": "OBSERVATION ONLY",
+    "SET_4": "OBSERVATION ONLY",
+    "SET_5": "OBSERVATION ONLY"
+  },
+  "edge_registry": [],
+  "known_limits": [
+    "Transition frequencies are not trade expectancy.",
+    "Synthetic or unknown provenance never qualifies for scientific statistics.",
+    "Set 5 requires real M1 input; M15 is not upsampled.",
+    "No candidate trades means no PnL, costs, drawdown or G1-G8 decision.",
+    "The institutional fractal strategy is registered as a real-M1-only research candidate; it has not been empirically backtested or promoted.",
+    "Candidate profitability, promotion gates and full execution friction remain untested because no eligible real M1 dataset is available.",
+    "The candidate is not connected to paper or broker execution; calendar-news, volatility-based market impact, structural trailing, full bid/ask intrabar fills, portfolio aggregation and reconciliation are not validated in its backtest path.",
+    "State updates use completed timeframe candles, not unfinished candles.",
+    "No paper/live integration without independent validation; live capital remains $0.00."
+  ]
+}
