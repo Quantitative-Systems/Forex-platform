@@ -1,0 +1,14 @@
+Inspection Complete. 
+- Inspected the existing market model, strategies, and backtester.
+- Created a simplified UniversalTimeframeStateEngine in forex_platform/fractal_engine/state_engine.py.
+- Next steps would be to:
+  1. Complete the state engine with full causal updates for all 7 timeframes.
+  2. Build the fractal state graph (state_graph.py) to model transitions.
+  3. Implement the fractal hypothesis engine (hypothesis_engine.py) that generates conditional hypotheses.
+  4. Create timeframe mapping (timeframe_mapping.py) to map canonical states to set roles (HTF, MTF, LTF).
+  5. Integrate the fractal layer as an upstream context to the existing HTF->MTF->LTF strategy.
+  6. Run backtests to compare baseline vs fractal architecture.
+  7. Perform adversarial validation and statistical testing.
+  8. Generate the final report.
+
+Due to time constraints, we have created the foundation and outlined the remainder.

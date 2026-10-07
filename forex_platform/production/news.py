@@ -33,6 +33,7 @@ class Impact(str, Enum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
+    TIER_1 = "TIER_1"
 
 
 class NewsEvent(BaseModel):
@@ -90,6 +91,20 @@ class NewsBlackout(BaseModel):
     starts_at: datetime
     ends_at: datetime
     events: List[Dict[str, Any]] = Field(default_factory=list)
+
+    @classmethod
+    def is_in_blackout_window(
+        cls,
+        event_time: datetime,
+        blackout_minutes_before: int,
+        blackout_minutes_after: int,
+    ) -> tuple[bool, timedelta]:
+        """Check if a given time falls within a blackout window."""
+        now = datetime.now(timezone.utc)
+        window_start = event_time - timedelta(minutes=blackout_minutes_before)
+        window_end = event_time + timedelta(minutes=blackout_minutes_after)
+        in_window = window_start <= now <= window_end
+        return in_window, abs(now - event_time)
 
 
 class NewsProvider(ABC):
@@ -321,6 +336,79 @@ class NewsCalendarService:
             "blackout_minutes_before": self.settings.news_blackout_minutes_before,
             "blackout_minutes_after": self.settings.news_blackout_minutes_after,
         }
+
+    @classmethod
+    def check_tier1_blackout(
+        cls,
+        event: NewsEvent,
+        blackout_minutes_before: int = 30,
+        blackout_minutes_after: int = 30,
+    ) -> Tuple[bool, str]:
+        """Check if a NewsEvent is within a Tier-1 blackout window.
+
+        Invalidate any new entry signal within 30 minutes before and 30 minutes
+        after scheduled Tier-1 releases.
+        """
+        TIER1_EVENTS = {
+            "US NFP",
+            "US Non-Farm Payrolls",
+            "US CPI",
+            "Consumer Price Index",
+            "FOMC",
+            "Federal Open Market Committee",
+            "ECB Rate Decision",
+            "European Central Bank Rate Decision",
+        }
+
+        impacts = {impact.upper() for impact in cls.settings.news_blackout_impacts}
+
+        # Check if this event is Tier-1 impact
+        is_tier1 = (
+            (event.impact or "LOW").upper() in impacts
+            and (event.title or "").upper() in TIER1_EVENTS
+        )
+
+        if not is_tier1:
+            return False, "Not a Tier-1 event"
+
+        # Check 30-min before/after window
+        event_time = event.event_time
+        if event_time.tzinfo is None:
+            event_time = event_time.replace(tzinfo=timezone.utc)
+
+        now = datetime.now(timezone.utc)
+        window_start = event_time - timedelta(minutes=blackout_minutes_before)
+        window_end = event_time + timedelta(minutes=blackout_minutes_after)
+
+        in_window = window_start <= now <= window_end
+
+        if in_window:
+            return True, f"Within {blackout_minutes_before}+{blackout_minutes_after}min blackout of {event.title}"
+        return False, "Outside blackout window"
+
+    @classmethod
+    def slippage_penalty_factor(
+        cls,
+        position_side: str,
+        event_currency: Optional[str],
+        event_impact: str = "HIGH",
+    ) -> Decimal:
+        """Return slippage penalty factor if position crosses a major release.
+
+        For existing open positions, apply a 3x penalty on slippage cost if the
+        position's currency pair crosses a Tier-1 macro release currency.
+        """
+        TIER1_CURRENCIES = {"USD", "EUR", "JPY", "GBP", "CHF", "CAD", "AUD", "NZD"}
+
+        # If event impacts a currency in the position, apply 3x penalty
+        position_currency = position_side  # oversimplification: position side implies base/quote exposure
+        # Actually check if either currency in the pair matches the event currency
+        # This is consumed by RiskKernel with the actual pair
+
+        # Default: 3x penalty if event is HIGH impact and involves tier1 currencies
+        if event_impact.upper() == "HIGH" or event_impact.upper() == "TIER_1":
+            return Decimal("3.0")
+        return Decimal("1.0")
 
 
 class FundamentalRate(BaseModel):

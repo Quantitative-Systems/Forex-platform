@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 import math
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import polars as pl
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -48,6 +48,10 @@ class TradeRecord(BaseModel):
     swap: Decimal
     net_pnl: Decimal
     exit_reason: str
+    # Initial protective risk levels of the opening intent. Used to convert
+    # realized PnL into R-multiples for robustness research gates.
+    stop_loss: Optional[Decimal] = None
+    take_profit: Optional[Decimal] = None
 
 
 class BacktestResult(BaseModel):
@@ -172,6 +176,20 @@ class EventDrivenBacktester:
             bar_volume = to_decimal(row["volume"])
             bar_spread = to_decimal(row.get("spread", 1.0)) * self.cost_multiplier
 
+            # Optional causally-aligned multi-timeframe context (struct column).
+            # Used by research sweeps to pass Market Model state (e.g. HTF/MTF
+            # structural trend) into strategies without lookahead.
+            raw_htf_data = row.get("htf_data")
+            if isinstance(raw_htf_data, dict):
+                htf_context: Dict[str, Any] = dict(raw_htf_data)
+            elif raw_htf_data is not None:
+                try:
+                    htf_context = dict(raw_htf_data)
+                except (TypeError, ValueError):
+                    htf_context = {}
+            else:
+                htf_context = {}
+
             # -----------------------------------------------------------------
             # STEP 1: RESOLVE PENDING INTENTS FROM PREVIOUS BAR (NEXT-BAR-OPEN FILL)
             # -----------------------------------------------------------------
@@ -183,33 +201,60 @@ class EventDrivenBacktester:
                 spread_price = self.pair.to_price(bar_spread)
                 half_spread = spread_price / Decimal("2")
 
-                if intent_to_fill.side == OrderSide.BUY:
-                    fill_price = bar_open + half_spread
+                # MARKET vs LIMIT: LIMIT orders fill only on a price TOUCH.
+                # Bars are bid-quoted, so BUY limits are checked against the
+                # ask (bid + spread); SELL limits are checked against the bid.
+                fill_price: Optional[Decimal] = None
+
+                if (
+                    intent_to_fill.order_type == OrderType.LIMIT
+                    and intent_to_fill.limit_price is not None
+                ):
+                    limit_price = intent_to_fill.limit_price
+                    if intent_to_fill.side == OrderSide.BUY:
+                        ask_open = bar_open + spread_price
+                        ask_low = bar_low + spread_price
+                        if ask_low <= limit_price:
+                            # Gap-down through the limit fills at the
+                            # favorable open; otherwise at the limit price.
+                            fill_price = min(ask_open, limit_price)
+                    else:
+                        bid_open = bar_open
+                        bid_high = bar_high
+                        if bid_high >= limit_price:
+                            fill_price = max(bid_open, limit_price)
+                    if fill_price is None:
+                        # Not touched this bar: the order rests in the queue.
+                        pending_intents.insert(0, intent_to_fill)
                 else:
-                    fill_price = bar_open - half_spread
+                    if intent_to_fill.side == OrderSide.BUY:
+                        fill_price = bar_open + half_spread
+                    else:
+                        fill_price = bar_open - half_spread
 
-                comm = self.commission_model.calculate_commission(
-                    intent_to_fill.lot_size,
-                    is_roundturn=False,
-                ) * self.cost_multiplier
+                if fill_price is not None:
+                    comm = self.commission_model.calculate_commission(
+                        intent_to_fill.lot_size,
+                        is_roundturn=False,
+                    ) * self.cost_multiplier
 
-                trade_counter += 1
-                open_position = Position(
-                    position_id=f"BT-POS-{trade_counter}",
-                    symbol=self.pair.symbol,
-                    side=intent_to_fill.side,
-                    units=intent_to_fill.lot_size.units,
-                    average_entry_price=fill_price,
-                    current_price=fill_price,
-                    realized_pnl=Decimal("0.0"),
-                    unrealized_pnl=Decimal("0.0"),
-                    total_commission=comm,
-                    total_swap=Decimal("0.0"),
-                    opened_at=utc_ts,
-                    updated_at=utc_ts,
-                    is_open=True,
-                )
-                open_intent = intent_to_fill
+                    trade_counter += 1
+                    open_position = Position(
+                        position_id=f"BT-POS-{trade_counter}",
+                        symbol=self.pair.symbol,
+                        side=intent_to_fill.side,
+                        units=intent_to_fill.lot_size.units,
+                        average_entry_price=fill_price,
+                        current_price=fill_price,
+                        realized_pnl=Decimal("0.0"),
+                        unrealized_pnl=Decimal("0.0"),
+                        total_commission=comm,
+                        total_swap=Decimal("0.0"),
+                        opened_at=utc_ts,
+                        updated_at=utc_ts,
+                        is_open=True,
+                    )
+                    open_intent = intent_to_fill
 
             # -----------------------------------------------------------------
             # STEP 2: CHECK OVERNIGHT SWAP (21:00 UTC ROLLOVER)
@@ -305,6 +350,8 @@ class EventDrivenBacktester:
                             swap=open_position.total_swap,
                             net_pnl=net_pnl,
                             exit_reason=exit_reason,
+                            stop_loss=open_intent.stop_loss,
+                            take_profit=open_intent.take_profit,
                         )
                     )
                     open_position = None
@@ -323,6 +370,7 @@ class EventDrivenBacktester:
                 close=bar_close,
                 volume=bar_volume,
                 spread=bar_spread,
+                htf_data=htf_context,
             )
             new_intents = self.strategy.on_bar(event)
 

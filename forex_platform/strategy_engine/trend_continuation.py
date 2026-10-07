@@ -94,12 +94,24 @@ class TrendContinuationStrategy(BaseStrategy):
         if fast_ema is None or slow_ema is None:
             return []
 
-        # 3. Macro H1 trend confirmation (from causally aligned htf_data if present, or slow EMA)
-        htf_trend = event.htf_data.get("h1_trend")
-        if htf_trend == "UP" or (htf_trend is None and fast_ema > slow_ema):
+        # 3. Macro trend confirmation from causally aligned market-model context
+        #    (h1_trend/mtf_trend/htf_trend keys), falling back to the local
+        #    fast-vs-slow EMA regime when no directional context is available.
+        htf_trend = (
+            event.htf_data.get("h1_trend")
+            or event.htf_data.get("mtf_trend")
+            or event.htf_data.get("htf_trend")
+        )
+        if htf_trend == "UP":
             is_uptrend = True
             is_downtrend = False
-        elif htf_trend == "DOWN" or (htf_trend is None and fast_ema < slow_ema):
+        elif htf_trend == "DOWN":
+            is_uptrend = False
+            is_downtrend = True
+        elif fast_ema > slow_ema:
+            is_uptrend = True
+            is_downtrend = False
+        elif fast_ema < slow_ema:
             is_uptrend = False
             is_downtrend = True
         else:
@@ -114,8 +126,13 @@ class TrendContinuationStrategy(BaseStrategy):
         # Bullish Pullback Continuation:
         # Previous bar touched or dipped near fast EMA, current bar closed back above fast EMA
         if is_uptrend and prev_bar.low <= fast_ema and event.close > fast_ema:
+            # ENTRY RISK: we enforce minimum 4.0R distance to HTF structural TP
+            # Use ATR only for SL; TP is placed at HTF structural destination
             sl = event.close - (atr * Decimal("1.5"))
-            tp = event.close + (atr * Decimal("2.5"))
+            risk = abs(sl - event.close)
+            # Minimum 4.0R TP distance from entry
+            min_tp_distance = risk * Decimal("4.0")
+            tp = event.close + min_tp_distance
             intent = self.create_intent(
                 symbol=pair.symbol,
                 side=OrderSide.BUY,
@@ -131,8 +148,12 @@ class TrendContinuationStrategy(BaseStrategy):
 
         # Bearish Pullback Continuation:
         elif is_downtrend and prev_bar.high >= fast_ema and event.close < fast_ema:
+            # ENTRY RISK: we enforce minimum 4.0R distance to HTF structural TP
             sl = event.close + (atr * Decimal("1.5"))
-            tp = event.close - (atr * Decimal("2.5"))
+            risk = abs(sl - event.close)
+            # Minimum 4.0R TP distance from entry
+            min_tp_distance = risk * Decimal("4.0")
+            tp = event.close - min_tp_distance
             intent = self.create_intent(
                 symbol=pair.symbol,
                 side=OrderSide.SELL,

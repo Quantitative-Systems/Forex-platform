@@ -1,0 +1,9 @@
+Existing System Summary:
+- Market Model: Structure (swings, breaks, hierarchy, strength, trend), Zones (levels, imbalances, blocks, liquidity), Phase (pullback/continuation).
+- Timeframe Sets: 5 overlapping sets (1M->1W->1D, 1W->1D->4H, 1D->4H->1H, 4H->1H->15M, 1H->15M->3M).
+- Strategy: Phase Riding uses HTF (4H) for bias, MTF (1H) for setup, LTF (???) for entry.
+- Backtester: Causal event-driven with adverse-first stop resolution, realistic fees.
+- Evaluation: G1-G8 gates for promotion.
+- Data: Available EURUSD_M15.parquet in cache.
+
+Fractal Hypothesis: Build canonical state engine for 7 timeframes, preserve overlapping set views, test for predictive edge.
