@@ -107,6 +107,12 @@ Health endpoints:
 
 This repository is a serious research and safety foundation, but it is **not currently a profitable live trading system**. The next required milestone is real, provenance-labeled multi-pair data, followed by a strict campaign, forward paper trading, and only then limited-live validation.
 
+## Recent Research
+
+- Fractal Timeframe State Engine: Developed a universal timeframe state engine that maintains causal state for multiple timeframes (1M, 1W, 1D, 4H, 1H, 15M, 3M) to analyze fractal cross-timeframe state relationships in FX markets.
+- The engine preserves the existing HTF→MTF→LTF architecture while enabling analysis of overlapping timeframe sets and conditional hypotheses.
+- Initial inspection confirms the platform's suitability for fractal analysis; implementation and testing are underway.
+
 ## License
 
 MIT. Review data, broker, exchange, legal, and regulatory terms before operational use.
