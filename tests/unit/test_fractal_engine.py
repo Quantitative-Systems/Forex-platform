@@ -88,6 +88,8 @@ def make_state(
         timestamp=timestamp,
         bar_index=index,
         current_price=Decimal("1.1000"),
+        current_high=Decimal("1.1010"),
+        current_low=Decimal("1.0990"),
         structural_trend=trend,
         swing_state="HH_HL" if trend == 1 else "LH_LL" if trend == -1 else "MIXED",
         phase=phase,

@@ -13,6 +13,7 @@ import polars as pl
 
 class Timeframe(str, Enum):
     M1 = "1m"
+    M3 = "3m"
     M5 = "5m"
     M15 = "15m"
     M30 = "30m"
@@ -24,6 +25,7 @@ class Timeframe(str, Enum):
     def duration(self) -> timedelta:
         mapping = {
             Timeframe.M1: timedelta(minutes=1),
+            Timeframe.M3: timedelta(minutes=3),
             Timeframe.M5: timedelta(minutes=5),
             Timeframe.M15: timedelta(minutes=15),
             Timeframe.M30: timedelta(minutes=30),
@@ -41,6 +43,7 @@ class Timeframe(str, Enum):
     def polars_duration(self) -> str:
         mapping = {
             Timeframe.M1: "1m",
+            Timeframe.M3: "3m",
             Timeframe.M5: "5m",
             Timeframe.M15: "15m",
             Timeframe.M30: "30m",

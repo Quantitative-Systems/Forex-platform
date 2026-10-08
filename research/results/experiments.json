@@ -28,16 +28,16 @@
   "experiments": {
     "EXP-SET_4-EURUSD-TREND_CONTINUATION_MTF-EE4DF1282C": {
       "experiment_id": "EXP-SET_4-EURUSD-TREND_CONTINUATION_MTF-EE4DF1282C",
-      "sweep_run_id": "SWEEP-20261006T150742Z",
-      "timestamp_utc": "2026-10-06T15:07:42.304209+00:00",
+      "sweep_run_id": "SWEEP-20261007T180711Z",
+      "timestamp_utc": "2026-10-07T18:07:13.390821+00:00",
       "timeframe_set": "SET_4",
       "timeframe_chain": "4H->1H->15M",
       "pair": "EURUSD",
       "model_variant": "TREND_CONTINUATION_MTF",
       "parameters": {},
-      "data_provenance": "SYNTHETIC",
-      "data_source": "deterministic synthetic ECN generator",
-      "bars_total": 3904,
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Dukascopy ECN",
+      "bars_total": 68535,
       "splits": {
         "ratios": {
           "is": 0.6,
@@ -46,19 +46,19 @@
         },
         "boundaries": {
           "is": {
-            "start": "2026-01-05 00:00:00+00:00",
-            "end": "2026-02-09 00:15:00+00:00",
-            "bars": 2342
+            "start": "2024-01-01 22:00:00+00:00",
+            "end": "2025-08-25 19:30:00+00:00",
+            "bars": 41121
           },
           "val": {
-            "start": "2026-02-09 00:30:00+00:00",
-            "end": "2026-02-19 06:15:00+00:00",
-            "bars": 780
+            "start": "2025-08-25 19:45:00+00:00",
+            "end": "2026-03-16 05:15:00+00:00",
+            "bars": 13707
           },
           "oos": {
-            "start": "2026-02-19 06:30:00+00:00",
-            "end": "2026-03-03 15:45:00+00:00",
-            "bars": 782
+            "start": "2026-03-16 05:30:00+00:00",
+            "end": "2026-10-01 00:00:00+00:00",
+            "bars": 13707
           }
         }
       },
@@ -70,58 +70,58 @@
         "COST_STRESS_IF_TOP"
       ],
       "is": {
-        "trades": 60,
-        "net_profit": -1404.0,
-        "max_drawdown": 2.6244,
-        "expectancy_r": -0.2444,
-        "avg_win_r": 1.6653,
-        "annualized_return": -0.1371
+        "trades": 924,
+        "net_profit": -33166.0,
+        "max_drawdown": 34.5695,
+        "expectancy_r": -0.5766,
+        "avg_win_r": 3.1179,
+        "annualized_return": -0.2169
       },
       "val": {
-        "trades": 14,
-        "net_profit": 375.0,
-        "max_drawdown": 0.5638,
-        "expectancy_r": 0.1442,
-        "avg_win_r": 1.9919,
-        "annualized_return": 0.2423
+        "trades": 277,
+        "net_profit": -3696.0,
+        "max_drawdown": 8.4178,
+        "expectancy_r": -0.3743,
+        "avg_win_r": 2.9401,
+        "annualized_return": -0.0657
       },
       "oos": {
-        "trades": 20,
-        "net_profit": 1848.0,
-        "max_drawdown": 0.4706,
-        "expectancy_r": 0.6427,
-        "avg_win_r": 2.4083,
-        "annualized_return": 0.716
+        "trades": 320,
+        "net_profit": -10609.0,
+        "max_drawdown": 11.0756,
+        "expectancy_r": -0.6059,
+        "avg_win_r": 2.57,
+        "annualized_return": -0.1862
       },
       "full_window": {
-        "trades": 100,
-        "net_profit": 850.0,
-        "max_drawdown": 2.6817,
-        "expectancy_r": 0.0138,
-        "avg_win_r": 1.9595,
-        "annualized_return": 0.0551
+        "trades": 1525,
+        "net_profit": -47875.0,
+        "max_drawdown": 48.4564,
+        "expectancy_r": -0.5447,
+        "avg_win_r": 2.9773,
+        "annualized_return": -0.2112
       },
       "gates": {
         "GATE_A_STATISTICAL_SIGNIFICANCE": {
           "passed": true,
           "min_trades": 80,
-          "observed_trades": 100,
+          "observed_trades": 1525,
           "evaluated_on": "FULL_WINDOW"
         },
         "GATE_B_ASYMMETRY_EXPECTANCY": {
           "passed": false,
           "min_avg_win_r": 4.0,
           "min_net_expectancy_r": 0.35,
-          "observed_avg_win_r": 1.6653,
-          "observed_net_expectancy_r": -0.2444,
+          "observed_avg_win_r": 3.1179,
+          "observed_net_expectancy_r": -0.5766,
           "evaluated_on": "IS"
         },
         "GATE_C_WALK_FORWARD_EFFICIENCY": {
           "passed": false,
           "min_efficiency": 0.5,
           "observed_efficiency": null,
-          "is_annualized_return": -0.1371,
-          "oos_annualized_return": 0.716,
+          "is_annualized_return": -0.2169,
+          "oos_annualized_return": -0.1862,
           "evaluated_on": "IS_vs_OOS"
         },
         "GATE_D_COST_STRESS": {
@@ -144,27 +144,27 @@
         "trades": 0
       },
       "metrics": {
-        "is_expectancy_r": -0.2444,
-        "val_expectancy_r": 0.1442,
-        "oos_expectancy_r": 0.6427,
-        "full_expectancy_r": 0.0138,
-        "total_trades": 100,
-        "max_drawdown_pct": 2.6817,
+        "is_expectancy_r": -0.5766,
+        "val_expectancy_r": -0.3743,
+        "oos_expectancy_r": -0.6059,
+        "full_expectancy_r": -0.5447,
+        "total_trades": 1525,
+        "max_drawdown_pct": 48.4564,
         "net_surviving_r": null
       }
     },
     "EXP-SET_4-EURUSD-LONDON_ORB_BREAKOUT-36FDE06BDB": {
       "experiment_id": "EXP-SET_4-EURUSD-LONDON_ORB_BREAKOUT-36FDE06BDB",
-      "sweep_run_id": "SWEEP-20261006T150742Z",
-      "timestamp_utc": "2026-10-06T15:07:44.471680+00:00",
+      "sweep_run_id": "SWEEP-20261007T180711Z",
+      "timestamp_utc": "2026-10-07T18:08:17.032052+00:00",
       "timeframe_set": "SET_4",
       "timeframe_chain": "4H->1H->15M",
       "pair": "EURUSD",
       "model_variant": "LONDON_ORB_BREAKOUT",
       "parameters": {},
-      "data_provenance": "SYNTHETIC",
-      "data_source": "deterministic synthetic ECN generator",
-      "bars_total": 3904,
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Dukascopy ECN",
+      "bars_total": 68535,
       "splits": {
         "ratios": {
           "is": 0.6,
@@ -173,19 +173,19 @@
         },
         "boundaries": {
           "is": {
-            "start": "2026-01-05 00:00:00+00:00",
-            "end": "2026-02-09 00:15:00+00:00",
-            "bars": 2342
+            "start": "2024-01-01 22:00:00+00:00",
+            "end": "2025-08-25 19:30:00+00:00",
+            "bars": 41121
           },
           "val": {
-            "start": "2026-02-09 00:30:00+00:00",
-            "end": "2026-02-19 06:15:00+00:00",
-            "bars": 780
+            "start": "2025-08-25 19:45:00+00:00",
+            "end": "2026-03-16 05:15:00+00:00",
+            "bars": 13707
           },
           "oos": {
-            "start": "2026-02-19 06:30:00+00:00",
-            "end": "2026-03-03 15:45:00+00:00",
-            "bars": 782
+            "start": "2026-03-16 05:30:00+00:00",
+            "end": "2026-10-01 00:00:00+00:00",
+            "bars": 13707
           }
         }
       },
@@ -197,185 +197,58 @@
         "COST_STRESS_IF_TOP"
       ],
       "is": {
-        "trades": 15,
-        "net_profit": -328.0,
-        "max_drawdown": 0.737,
-        "expectancy_r": -0.0287,
-        "avg_win_r": 1.1207,
-        "annualized_return": -0.0337
+        "trades": 380,
+        "net_profit": -2049.0,
+        "max_drawdown": 4.6876,
+        "expectancy_r": -0.0673,
+        "avg_win_r": 0.9523,
+        "annualized_return": -0.0125
       },
       "val": {
-        "trades": 8,
-        "net_profit": -896.0,
-        "max_drawdown": 0.976,
-        "expectancy_r": -0.5211,
-        "avg_win_r": 1.0032,
-        "annualized_return": -0.2746
+        "trades": 125,
+        "net_profit": -119.0,
+        "max_drawdown": 3.4019,
+        "expectancy_r": -0.065,
+        "avg_win_r": 0.9974,
+        "annualized_return": -0.0021
       },
       "oos": {
-        "trades": 9,
-        "net_profit": 305.0,
-        "max_drawdown": 0.572,
-        "expectancy_r": 0.1179,
-        "avg_win_r": 1.0387,
-        "annualized_return": 0.094
+        "trades": 108,
+        "net_profit": -779.0,
+        "max_drawdown": 2.8321,
+        "expectancy_r": 0.0295,
+        "avg_win_r": 0.9034,
+        "annualized_return": -0.0143
       },
       "full_window": {
-        "trades": 32,
-        "net_profit": -676.0,
-        "max_drawdown": 1.709,
-        "expectancy_r": -0.0872,
-        "avg_win_r": 1.1281,
-        "annualized_return": -0.0421
+        "trades": 613,
+        "net_profit": -2985.0,
+        "max_drawdown": 5.7148,
+        "expectancy_r": -0.0497,
+        "avg_win_r": 0.9519,
+        "annualized_return": -0.011
       },
       "gates": {
         "GATE_A_STATISTICAL_SIGNIFICANCE": {
-          "passed": false,
+          "passed": true,
           "min_trades": 80,
-          "observed_trades": 32,
+          "observed_trades": 613,
           "evaluated_on": "FULL_WINDOW"
         },
         "GATE_B_ASYMMETRY_EXPECTANCY": {
           "passed": false,
           "min_avg_win_r": 4.0,
           "min_net_expectancy_r": 0.35,
-          "observed_avg_win_r": 1.1207,
-          "observed_net_expectancy_r": -0.0287,
+          "observed_avg_win_r": 0.9523,
+          "observed_net_expectancy_r": -0.0673,
           "evaluated_on": "IS"
         },
         "GATE_C_WALK_FORWARD_EFFICIENCY": {
           "passed": false,
           "min_efficiency": 0.5,
           "observed_efficiency": null,
-          "is_annualized_return": -0.0337,
-          "oos_annualized_return": 0.094,
-          "evaluated_on": "IS_vs_OOS"
-        },
-        "GATE_D_COST_STRESS": {
-          "passed": null,
-          "status": "NOT_EVALUATED",
-          "spread_multiplier": 2.0,
-          "slippage_pips": 0.3,
-          "min_net_expectancy_r": 0.0,
-          "observed_stress_expectancy_r": null,
-          "evaluated_on": "FULL_WINDOW"
-        }
-      },
-      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
-      "verdict": "REJECTED",
-      "cost_stress": {
-        "executed": false,
-        "spread_multiplier": 2.0,
-        "slippage_pips": 0.3,
-        "expectancy_r": null,
-        "trades": 0
-      },
-      "metrics": {
-        "is_expectancy_r": -0.0287,
-        "val_expectancy_r": -0.5211,
-        "oos_expectancy_r": 0.1179,
-        "full_expectancy_r": -0.0872,
-        "total_trades": 32,
-        "max_drawdown_pct": 1.709,
-        "net_surviving_r": null
-      }
-    },
-    "EXP-SET_4-EURUSD-ASIAN_RANGE_FADE-A2B448127C": {
-      "experiment_id": "EXP-SET_4-EURUSD-ASIAN_RANGE_FADE-A2B448127C",
-      "sweep_run_id": "SWEEP-20261006T150742Z",
-      "timestamp_utc": "2026-10-06T15:07:44.833688+00:00",
-      "timeframe_set": "SET_4",
-      "timeframe_chain": "4H->1H->15M",
-      "pair": "EURUSD",
-      "model_variant": "ASIAN_RANGE_FADE",
-      "parameters": {},
-      "data_provenance": "SYNTHETIC",
-      "data_source": "deterministic synthetic ECN generator",
-      "bars_total": 3904,
-      "splits": {
-        "ratios": {
-          "is": 0.6,
-          "val": 0.2,
-          "oos": 0.2
-        },
-        "boundaries": {
-          "is": {
-            "start": "2026-01-05 00:00:00+00:00",
-            "end": "2026-02-09 00:15:00+00:00",
-            "bars": 2342
-          },
-          "val": {
-            "start": "2026-02-09 00:30:00+00:00",
-            "end": "2026-02-19 06:15:00+00:00",
-            "bars": 780
-          },
-          "oos": {
-            "start": "2026-02-19 06:30:00+00:00",
-            "end": "2026-03-03 15:45:00+00:00",
-            "bars": 782
-          }
-        }
-      },
-      "phase_sequence": [
-        "IS",
-        "VAL",
-        "OOS_BLIND",
-        "FULL",
-        "COST_STRESS_IF_TOP"
-      ],
-      "is": {
-        "trades": 28,
-        "net_profit": 28.5,
-        "max_drawdown": 0.229,
-        "expectancy_r": -0.0649,
-        "avg_win_r": 0.5237,
-        "annualized_return": 0.003
-      },
-      "val": {
-        "trades": 26,
-        "net_profit": -480.0,
-        "max_drawdown": 0.48,
-        "expectancy_r": -0.4535,
-        "avg_win_r": 0.5636,
-        "annualized_return": -0.1577
-      },
-      "oos": {
-        "trades": 37,
-        "net_profit": -416.5,
-        "max_drawdown": 0.5506,
-        "expectancy_r": -0.2919,
-        "avg_win_r": 0.5606,
-        "annualized_return": -0.1158
-      },
-      "full_window": {
-        "trades": 93,
-        "net_profit": -815.0,
-        "max_drawdown": 0.9741,
-        "expectancy_r": -0.2511,
-        "avg_win_r": 0.5461,
-        "annualized_return": -0.0505
-      },
-      "gates": {
-        "GATE_A_STATISTICAL_SIGNIFICANCE": {
-          "passed": true,
-          "min_trades": 80,
-          "observed_trades": 93,
-          "evaluated_on": "FULL_WINDOW"
-        },
-        "GATE_B_ASYMMETRY_EXPECTANCY": {
-          "passed": false,
-          "min_avg_win_r": 4.0,
-          "min_net_expectancy_r": 0.35,
-          "observed_avg_win_r": 0.5237,
-          "observed_net_expectancy_r": -0.0649,
-          "evaluated_on": "IS"
-        },
-        "GATE_C_WALK_FORWARD_EFFICIENCY": {
-          "passed": false,
-          "min_efficiency": 0.5,
-          "observed_efficiency": -38.8979,
-          "is_annualized_return": 0.003,
-          "oos_annualized_return": -0.1158,
+          "is_annualized_return": -0.0125,
+          "oos_annualized_return": -0.0143,
           "evaluated_on": "IS_vs_OOS"
         },
         "GATE_D_COST_STRESS": {
@@ -398,25 +271,533 @@
         "trades": 0
       },
       "metrics": {
-        "is_expectancy_r": -0.0649,
-        "val_expectancy_r": -0.4535,
-        "oos_expectancy_r": -0.2919,
-        "full_expectancy_r": -0.2511,
-        "total_trades": 93,
-        "max_drawdown_pct": 0.9741,
+        "is_expectancy_r": -0.0673,
+        "val_expectancy_r": -0.065,
+        "oos_expectancy_r": 0.0295,
+        "full_expectancy_r": -0.0497,
+        "total_trades": 613,
+        "max_drawdown_pct": 5.7148,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_4-EURUSD-ASIAN_RANGE_FADE-A2B448127C": {
+      "experiment_id": "EXP-SET_4-EURUSD-ASIAN_RANGE_FADE-A2B448127C",
+      "sweep_run_id": "SWEEP-20261007T180711Z",
+      "timestamp_utc": "2026-10-07T18:08:32.327227+00:00",
+      "timeframe_set": "SET_4",
+      "timeframe_chain": "4H->1H->15M",
+      "pair": "EURUSD",
+      "model_variant": "ASIAN_RANGE_FADE",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Dukascopy ECN",
+      "bars_total": 68535,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-01-01 22:00:00+00:00",
+            "end": "2025-08-25 19:30:00+00:00",
+            "bars": 41121
+          },
+          "val": {
+            "start": "2025-08-25 19:45:00+00:00",
+            "end": "2026-03-16 05:15:00+00:00",
+            "bars": 13707
+          },
+          "oos": {
+            "start": "2026-03-16 05:30:00+00:00",
+            "end": "2026-10-01 00:00:00+00:00",
+            "bars": 13707
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 208,
+        "net_profit": -487.5,
+        "max_drawdown": 0.9958,
+        "expectancy_r": -0.1417,
+        "avg_win_r": 0.7053,
+        "annualized_return": -0.003
+      },
+      "val": {
+        "trades": 230,
+        "net_profit": -2286.5,
+        "max_drawdown": 2.4191,
+        "expectancy_r": -0.3277,
+        "avg_win_r": 0.6324,
+        "annualized_return": -0.0409
+      },
+      "oos": {
+        "trades": 195,
+        "net_profit": -1166.5,
+        "max_drawdown": 1.3147,
+        "expectancy_r": -0.3835,
+        "avg_win_r": 0.5839,
+        "annualized_return": -0.0213
+      },
+      "full_window": {
+        "trades": 208,
+        "net_profit": -487.5,
+        "max_drawdown": 0.9958,
+        "expectancy_r": -0.1417,
+        "avg_win_r": 0.7053,
+        "annualized_return": -0.0018
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": true,
+          "min_trades": 80,
+          "observed_trades": 208,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": 0.7053,
+          "observed_net_expectancy_r": -0.1417,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": -0.003,
+          "oos_annualized_return": -0.0213,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_B_ASYMMETRY_EXPECTANCY",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": -0.1417,
+        "val_expectancy_r": -0.3277,
+        "oos_expectancy_r": -0.3835,
+        "full_expectancy_r": -0.1417,
+        "total_trades": 208,
+        "max_drawdown_pct": 0.9958,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_3-EURUSD-TREND_CONTINUATION_MTF-FB6C28D966": {
+      "experiment_id": "EXP-SET_3-EURUSD-TREND_CONTINUATION_MTF-FB6C28D966",
+      "sweep_run_id": "SWEEP-20261007T181532Z",
+      "timestamp_utc": "2026-10-07T18:15:32.826236+00:00",
+      "timeframe_set": "SET_3",
+      "timeframe_chain": "1D->4H->1H",
+      "pair": "EURUSD",
+      "model_variant": "TREND_CONTINUATION_MTF",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Dukascopy ECN",
+      "bars_total": 17134,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-01-01 22:00:00+00:00",
+            "end": "2025-08-25 18:00:00+00:00",
+            "bars": 10280
+          },
+          "val": {
+            "start": "2025-08-25 19:00:00+00:00",
+            "end": "2026-03-16 03:00:00+00:00",
+            "bars": 3426
+          },
+          "oos": {
+            "start": "2026-03-16 04:00:00+00:00",
+            "end": "2026-10-01 00:00:00+00:00",
+            "bars": 3428
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 283,
+        "net_profit": -6817.0,
+        "max_drawdown": 13.1587,
+        "expectancy_r": -0.1704,
+        "avg_win_r": 3.8347,
+        "annualized_return": -0.0419
+      },
+      "val": {
+        "trades": 75,
+        "net_profit": 3091.0,
+        "max_drawdown": 1.6373,
+        "expectancy_r": 0.1523,
+        "avg_win_r": 3.0703,
+        "annualized_return": 0.0565
+      },
+      "oos": {
+        "trades": 89,
+        "net_profit": -1940.0,
+        "max_drawdown": 3.3954,
+        "expectancy_r": -0.2478,
+        "avg_win_r": 2.6612,
+        "annualized_return": -0.0353
+      },
+      "full_window": {
+        "trades": 450,
+        "net_profit": -6270.0,
+        "max_drawdown": 13.1587,
+        "expectancy_r": -0.1388,
+        "avg_win_r": 3.4634,
+        "annualized_return": -0.0233
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": true,
+          "min_trades": 80,
+          "observed_trades": 450,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": 3.8347,
+          "observed_net_expectancy_r": -0.1704,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": -0.0419,
+          "oos_annualized_return": -0.0353,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_B_ASYMMETRY_EXPECTANCY",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": -0.1704,
+        "val_expectancy_r": 0.1523,
+        "oos_expectancy_r": -0.2478,
+        "full_expectancy_r": -0.1388,
+        "total_trades": 450,
+        "max_drawdown_pct": 13.1587,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_3-EURUSD-LONDON_ORB_BREAKOUT-78714E502E": {
+      "experiment_id": "EXP-SET_3-EURUSD-LONDON_ORB_BREAKOUT-78714E502E",
+      "sweep_run_id": "SWEEP-20261007T181532Z",
+      "timestamp_utc": "2026-10-07T18:15:52.690351+00:00",
+      "timeframe_set": "SET_3",
+      "timeframe_chain": "1D->4H->1H",
+      "pair": "EURUSD",
+      "model_variant": "LONDON_ORB_BREAKOUT",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Dukascopy ECN",
+      "bars_total": 17134,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-01-01 22:00:00+00:00",
+            "end": "2025-08-25 18:00:00+00:00",
+            "bars": 10280
+          },
+          "val": {
+            "start": "2025-08-25 19:00:00+00:00",
+            "end": "2026-03-16 03:00:00+00:00",
+            "bars": 3426
+          },
+          "oos": {
+            "start": "2026-03-16 04:00:00+00:00",
+            "end": "2026-10-01 00:00:00+00:00",
+            "bars": 3428
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 326,
+        "net_profit": -1973.0,
+        "max_drawdown": 6.617,
+        "expectancy_r": -0.0511,
+        "avg_win_r": 0.8408,
+        "annualized_return": -0.012
+      },
+      "val": {
+        "trades": 102,
+        "net_profit": 2011.0,
+        "max_drawdown": 2.0929,
+        "expectancy_r": 0.0382,
+        "avg_win_r": 0.8698,
+        "annualized_return": 0.0366
+      },
+      "oos": {
+        "trades": 96,
+        "net_profit": -554.0,
+        "max_drawdown": 3.7365,
+        "expectancy_r": 0.0139,
+        "avg_win_r": 0.8451,
+        "annualized_return": -0.0102
+      },
+      "full_window": {
+        "trades": 524,
+        "net_profit": -516.0,
+        "max_drawdown": 6.617,
+        "expectancy_r": -0.0218,
+        "avg_win_r": 0.8475,
+        "annualized_return": -0.0019
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": true,
+          "min_trades": 80,
+          "observed_trades": 524,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": 0.8408,
+          "observed_net_expectancy_r": -0.0511,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": -0.012,
+          "oos_annualized_return": -0.0102,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_B_ASYMMETRY_EXPECTANCY",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": -0.0511,
+        "val_expectancy_r": 0.0382,
+        "oos_expectancy_r": 0.0139,
+        "full_expectancy_r": -0.0218,
+        "total_trades": 524,
+        "max_drawdown_pct": 6.617,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_3-EURUSD-ASIAN_RANGE_FADE-BC3D3F1602": {
+      "experiment_id": "EXP-SET_3-EURUSD-ASIAN_RANGE_FADE-BC3D3F1602",
+      "sweep_run_id": "SWEEP-20261007T181532Z",
+      "timestamp_utc": "2026-10-07T18:15:59.070347+00:00",
+      "timeframe_set": "SET_3",
+      "timeframe_chain": "1D->4H->1H",
+      "pair": "EURUSD",
+      "model_variant": "ASIAN_RANGE_FADE",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Dukascopy ECN",
+      "bars_total": 17134,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-01-01 22:00:00+00:00",
+            "end": "2025-08-25 18:00:00+00:00",
+            "bars": 10280
+          },
+          "val": {
+            "start": "2025-08-25 19:00:00+00:00",
+            "end": "2026-03-16 03:00:00+00:00",
+            "bars": 3426
+          },
+          "oos": {
+            "start": "2026-03-16 04:00:00+00:00",
+            "end": "2026-10-01 00:00:00+00:00",
+            "bars": 3428
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 86,
+        "net_profit": -1341.5,
+        "max_drawdown": 1.3415,
+        "expectancy_r": -0.3114,
+        "avg_win_r": 0.7847,
+        "annualized_return": -0.0082
+      },
+      "val": {
+        "trades": 64,
+        "net_profit": -791.0,
+        "max_drawdown": 0.791,
+        "expectancy_r": -0.2619,
+        "avg_win_r": 0.6125,
+        "annualized_return": -0.0142
+      },
+      "oos": {
+        "trades": 72,
+        "net_profit": -794.0,
+        "max_drawdown": 0.794,
+        "expectancy_r": -0.2605,
+        "avg_win_r": 0.667,
+        "annualized_return": -0.0145
+      },
+      "full_window": {
+        "trades": 86,
+        "net_profit": -1341.5,
+        "max_drawdown": 1.3415,
+        "expectancy_r": -0.3114,
+        "avg_win_r": 0.7847,
+        "annualized_return": -0.0049
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": true,
+          "min_trades": 80,
+          "observed_trades": 86,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": 0.7847,
+          "observed_net_expectancy_r": -0.3114,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": -0.0082,
+          "oos_annualized_return": -0.0145,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_B_ASYMMETRY_EXPECTANCY",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": -0.3114,
+        "val_expectancy_r": -0.2619,
+        "oos_expectancy_r": -0.2605,
+        "full_expectancy_r": -0.3114,
+        "total_trades": 86,
+        "max_drawdown_pct": 1.3415,
         "net_surviving_r": null
       }
     }
   },
   "last_sweep": {
-    "sweep_run_id": "SWEEP-20261006T150742Z",
-    "started_utc": "2026-10-06T15:07:42.249171+00:00",
-    "completed_utc": "2026-10-06T15:07:45.233375+00:00",
+    "sweep_run_id": "SWEEP-20261007T181532Z",
+    "started_utc": "2026-10-07T18:15:32.497572+00:00",
+    "completed_utc": "2026-10-07T18:16:05.034025+00:00",
     "symbols": [
       "EURUSD"
     ],
     "timeframe_sets": [
-      "SET_4"
+      "SET_3"
     ],
     "variants": [
       "TREND_CONTINUATION_MTF",
@@ -453,9 +834,9 @@
     "rejected": 3,
     "errors": 0,
     "provenance_by_pair": {
-      "SET_4/EURUSD": "SYNTHETIC"
+      "SET_3/EURUSD": "REAL_VENDOR"
     }
   },
-  "experiment_count": 3,
+  "experiment_count": 6,
   "survivor_count": 0
 }

@@ -1,11 +1,13 @@
 # Surviving Edges
 
+> This file records the earlier six-variant Market Model sweep. The later unified fractal rider campaign also produced no survivor; its complete 20-cell results are in [FRACTAL_STRUCTURAL_RIDER_REPORT.md](FRACTAL_STRUCTURAL_RIDER_REPORT.md).
+
 Only Market Model variants that passed **all four hard elimination gates**
 are listed here. Anything rejected by any gate is auto-pruned.
 
-- Generated: 2026-10-06T15:07:45.233375+00:00
-- Sweep run: `SWEEP-20261006T150742Z`
-- Experiments evaluated: 3
+- Generated: 2026-10-07T18:16:05.034025+00:00
+- Sweep run: `SWEEP-20261007T181532Z`
+- Experiments evaluated: 6
 - Survivors: 0
 
 ## Gates

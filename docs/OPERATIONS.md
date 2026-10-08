@@ -104,6 +104,25 @@ data/cache/manifest_M15.json
 
 The manifest records provenance, row counts, date ranges, and quality results. Batch downloads fail closed if real data cannot be obtained. Synthetic fallback is explicit and non-qualifying.
 
+## Fractal research campaign
+
+Install the optional downloader dependencies and fetch the paired Dukascopy M1 history used by the unified five-set runner:
+
+~~~bash
+python -m pip install -e ".[research]"
+python forex_platform/market_data/download_dukascopy_m1.py \
+  --symbols EURUSD GBPUSD USDJPY AUDUSD \
+  --start 2024-01-01T00:00:00+00:00
+~~~
+
+The downloader writes paired BID/ASK candles and provenance metadata beneath data/cache/dukascopy. Run the all-set batch after the data is present:
+
+~~~bash
+python research/fractal_structural_rider_batch.py
+~~~
+
+The default outputs are research/FRACTAL_STRUCTURAL_RIDER_REPORT.md and research/results/fractal_structural_rider.json. The campaign uses the current cache and does not download automatically. Review gap warnings and the report's missing news-calendar and financing limitations before comparing results. Data caches are local and excluded from Git.
+
 ## Routine checks
 
 ```bash

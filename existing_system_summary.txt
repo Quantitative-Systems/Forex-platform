@@ -1,9 +1,9 @@
-Existing System Summary:
-- Market Model: Structure (swings, breaks, hierarchy, strength, trend), Zones (levels, imbalances, blocks, liquidity), Phase (pullback/continuation).
-- Timeframe Sets: 5 overlapping sets (1M->1W->1D, 1W->1D->4H, 1D->4H->1H, 4H->1H->15M, 1H->15M->3M).
-- Strategy: Phase Riding uses HTF (4H) for bias, MTF (1H) for setup, LTF (???) for entry.
-- Backtester: Causal event-driven with adverse-first stop resolution, realistic fees.
-- Evaluation: G1-G8 gates for promotion.
-- Data: Available EURUSD_M15.parquet in cache.
+PLATFORM SUMMARY — 8 OCTOBER 2026
 
-Fractal Hypothesis: Build canonical state engine for 7 timeframes, preserve overlapping set views, test for predictive edge.
+- The Python platform includes market-data ingestion and quality checks, a market-structure model, a causal fractal state engine, strategy and research engines, portfolio/risk controls, paper workflows, and broker adapters.
+- The fractal state engine shares canonical completed states across Monthly, Weekly, Daily, 4H, 1H, 15M, and 3M. Its five set views overlap by timeframe role rather than running as independent ladders.
+- The structural rider evaluates HTF trend/range context, an MTF structural shift, and an LTF BOS or liquidity sweep-reclaim. It uses a structural 4R minimum, caps planned risk at 1% per trade, and arbitrates shared movements once.
+- The latest Dukascopy campaign evaluated four pairs by five sets. It recorded two trades and zero all-gate survivors. The tested strategy is rejected under its gates; the broader fractal transition hypothesis remains unproven.
+- The research candidate is not connected to live broker execution. Live capital is $0.
+
+See README.md for the project guide, docs/ARCHITECTURE.md for components, and docs/RESEARCH_OUTCOMES.md plus research/FRACTAL_STRUCTURAL_RIDER_REPORT.md for the current evidence.

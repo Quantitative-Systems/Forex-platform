@@ -1,0 +1,23 @@
+COMPLETED FRACTAL RESEARCH WORK — 8 OCTOBER 2026
+
+IMPLEMENTED
+- A causal state engine for the canonical Monthly, Weekly, Daily, 4H, 1H, 15M, and 3M ladder.
+- Shared timeframe-set views, state consistency checks, and a parent-to-child requirement lifecycle.
+- A research-only structural rider with HTF context, MTF confirmation, LTF BOS or sweep-reclaim triggers, movement arbitration, structural stops and targets, 1% maximum planned risk, and MTF trailing after +2R.
+- Paired Dukascopy BID/ASK M1 data acquisition and a four-pair, five-set batch runner.
+- Backtest quote-side handling and walk-forward changes needed by the campaign.
+
+RESEARCH OUTCOME
+- Four pairs and all five set allocations were evaluated across 20 matrix cells.
+- Two trades were recorded: EURUSD SET 5 -1.106R and USDJPY SET 5 +1.891R.
+- No cell passed all four hard gates. The tested rider is falsified under its predeclared gates; the broader fractal hypothesis remains unproven.
+- The historical Tier-1 news blackout was not applied because no historical event calendar was available. Static swap assumptions and observed data gaps are documented.
+- No live capital is enabled.
+
+DOCUMENTATION AND OUTPUTS
+- README.md: setup, architecture, campaign commands, and current status.
+- docs/RESEARCH_OUTCOMES.md: results and interpretation.
+- research/FRACTAL_STRUCTURAL_RIDER_REPORT.md: complete matrix, audit, and caveats.
+- research/results/fractal_structural_rider.json: machine-readable campaign output.
+
+This summary is a status note. It is not proof of profitability or permission to trade live capital.

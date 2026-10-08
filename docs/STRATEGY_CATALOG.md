@@ -8,21 +8,21 @@ The repository contains strategy families for comparative research. A strategy's
 
 **Status:** research-only; not qualified, not forward paper-traded, and not connected to broker execution.
 
-The candidate uses completed M1 bars to build one canonical history across this ladder: 1M, 1W, 1D, 4H, 1H, 15M, and 3M. The five independent evaluation views are:
+The candidate consumes completed M1 bars and builds one causal state history across the ladder: monthly (1M), 1W, 1D, 4H, 1H, 15M, and 3M. The five overlapping evaluation views are:
 
 | Set | HTF bias | MTF setup | LTF entry |
 |---|---:|---:|---:|
-| SET 1 | 1M | 1W | 1D |
+| SET 1 | Monthly (1M) | 1W | 1D |
 | SET 2 | 1W | 1D | 4H |
 | SET 3 | 1D | 4H | 1H |
 | SET 4 | 4H | 1H | 15M |
 | SET 5 | 1H | 15M | 3M |
 
-The setup requires higher-timeframe continuation and suitable structural range location, middle-timeframe pullback and FVG/order-block context, then a confirmed lower-timeframe break followed by a later zone retest. A shared movement identifier deduplicates a structural move represented in overlapping sets.
+The HTF trend and dealing-range location define a pullback or continuation hypothesis. The MTF must confirm a structural shift after the HTF state. An LTF micro-BOS or confirmed liquidity sweep-and-reclaim can trigger at the next source-bar open. The stop is placed at the latest confirmed opposing LTF swing with a two-pip buffer. The structural HTF target must offer at least 4R after estimated costs; the strategy rejects trades that do not qualify instead of forcing an artificial target. After +2R, confirmed MTF protected swings can ratchet the stop. Shared movement IDs arbitrate overlapping signals once and opposing signals are dropped.
 
-Candidate controls include 0.25% default equity risk per trade, a one-lot maximum, a 4R minimum net reward-to-risk screen, spread and slippage reserves, session and rollover filtering, and a daily realized-loss limit. These are configuration guardrails, not evidence of positive expectancy or a loss guarantee.
+Position sizing is capped at 1% of account equity, with spread, commission, and slippage reserves included in risk sizing. The strategy also screens entry spread, session/rollover, and daily realized loss. These controls do not guarantee that realized losses stay within exactly 1% during gaps or slippage.
 
-**Latest evidence:** the four research histories failed the weekday continuity gate. All 20 asset/set cells remain untested; each cell requires at least 100 trades. See [Research Outcomes](RESEARCH_OUTCOMES.md) and the [detailed campaign report](../research/FRACTAL_RESEARCH_REPORT.md).
+**Latest evidence (8 October 2026):** the unified campaign executed all 20 pair/set cells on four real-vendor BID/ASK histories and recorded two trades, both allocated to SET 5. EURUSD returned -1.106R and USDJPY +1.891R. Every cell failed at least one hard gate; the broader fractal hypothesis remains unproven. Historical Tier-1 news blackout data was unavailable and was not applied. See [Research Outcomes](RESEARCH_OUTCOMES.md) and the [detailed campaign report](../research/FRACTAL_STRUCTURAL_RIDER_REPORT.md).
 
 ## Scalping
 

@@ -12,6 +12,7 @@ import json
 import logging
 import math
 from datetime import datetime, timezone
+from decimal import Decimal
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
@@ -226,7 +227,14 @@ class ContinuousDiscoveryLoop:
 
             # 2. Cost-shock test on OOS data (2.0x cost multiplier)
             _, _, oos_df = WalkForwardEngine.partition_data(df)
-            shock_tester = EventDrivenBacktester(deepcopy(strategy), pair, cost_multiplier=2.0)
+            shock_tester = EventDrivenBacktester(
+                deepcopy(strategy), pair, cost_multiplier=2.0,
+                slippage_pips=Decimal("0.3"),
+                atr_expansion_slippage_factor=getattr(
+                    strategy, "atr_expansion_slippage_factor", Decimal("0")
+                ),
+                commission_multiplier=Decimal("1"),
+            )
             cost_shock_result = shock_tester.run(oos_df, timeframe=candidate.timeframe)
 
             # 3. Qualification gates

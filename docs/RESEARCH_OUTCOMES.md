@@ -1,88 +1,78 @@
 # Research Outcomes
 
-## Current conclusion
+## Current conclusion — 8 October 2026
 
-The latest fractal research campaign does **not** establish a profitable strategy. No candidate has qualified, and live capital remains **$0**.
+The unified fractal structural rider is **falsified under its predeclared gates**. The broader claim that higher-timeframe state predicts monetizable lower-timeframe transitions remains **unproven**. The campaign executed all 20 pair/set cells but recorded only two trades; no cell met the 80-trade minimum or passed all four gates. Live capital remains $0.
 
-The campaign checked whether the available history could support the requested four-asset, five-timeframe-set evaluation. It did not proceed to performance testing because all four bid/ask M1 histories failed the weekday continuity gate.
+The result is a rejection of this tested rule set under the stated sample and assumptions. Two trades are not enough to infer a stable win rate, expected return, or generalization to other assets and regimes.
 
-## Data audit
+## Campaign design
 
-The public HistData downloader retrieved 100 monthly archives: 25 months for each of EURUSD, GBPUSD, USDJPY, and AUDUSD. The resulting histories span approximately 2.08 years per pair and are tagged with vendor provenance.
-
-| Pair | M1 rows | Weekday gaps flagged | Price anomalies | Quality result |
-|---|---:|---:|---:|---|
-| EURUSD | 775,273 | 52 | 0 | Rejected |
-| GBPUSD | 774,699 | 57 | 0 | Rejected |
-| USDJPY | 774,569 | 45 | 0 | Rejected |
-| AUDUSD | 774,083 | 68 | 0 | Rejected |
-
-Longer gaps were left visible rather than filled. An absent quote interval can hide an intrabar stop or target, so these histories cannot be treated as continuous execution evidence. Details, hashes, and source notes are in `research/results/fractal_research.json`.
-
-## Asset and timeframe-set matrix
-
-The campaign defines 20 independent research cells: four currency pairs multiplied by five timeframe sets. Each cell requires at least 100 completed trades before performance gates can be evaluated.
-
-| Measure | Result |
-|---|---:|
-| Cells required | 20 |
-| Cells with quality-passed data | 0 |
-| Cells backtested | 0 |
-| Minimum trades required per cell | 100 |
-| Qualified candidates | 0 |
-
-Every cell is `NOT_RUN_INSUFFICIENT_REAL_DATA`. Trade counts, expectancy, win rate, profit factor, drawdown, Sharpe, walk-forward performance, and cost-shock performance are unavailable. A skipped test is not a losing result, but it is also not evidence of profitability.
-
-## Candidate design
-
-The research candidate consumes completed M1 bars and uses one causal state history for five overlapping views:
+One causal seven-timeframe state history feeds five overlapping views:
 
 | Set | HTF | MTF | LTF |
 |---|---:|---:|---:|
-| SET 1 | 1M | 1W | 1D |
+| SET 1 | 1M (monthly) | 1W | 1D |
 | SET 2 | 1W | 1D | 4H |
 | SET 3 | 1D | 4H | 1H |
 | SET 4 | 4H | 1H | 15M |
 | SET 5 | 1H | 15M | 3M |
 
-The candidate combines HTF continuation and range location, MTF pullback and zone context, and a confirmed LTF break followed by a later retest. Shared movement identity prevents overlapping set views from counting one structural move repeatedly. The candidate has risk sizing, session and daily-loss controls, a spread screen, a slippage reserve, and a minimum net 4R reward-to-risk filter. Those rules remain hypotheses until validated on eligible data.
+The strategy uses HTF structural trend and range location to define a pullback or continuation hypothesis. It waits for an MTF shift after the HTF state, then triggers on a closed LTF micro-BOS or confirmed liquidity sweep-and-reclaim. Orders are modelled at the next source-bar open. Stops use the latest confirmed opposing LTF swing plus a two-pip buffer. The HTF structural target must offer at least 4R after the estimated costs; the strategy does not manufacture a 4R target. Account risk is capped at 1% per trade. After +2R, a confirmed MTF protected swing may ratchet the stop. Signals sharing a movement are arbitrated once across sets; conflicting directions are dropped.
 
-The backtester now models buys at ask and sells at bid, evaluates short exits using ask prices, handles gap-through stops with adverse slippage, and closes open positions at the end of a test window. Those accounting changes improve simulation fidelity; they do not create or prove an edge.
+The 20 matrix rows are allocations from a single all-set run for each pair. They are not 20 independent strategy portfolios.
 
-The candidate is registered for research only. It has not qualified, has not been forward paper-traded, and is not connected to the broker execution path.
+## Data audit
 
-## Earlier exploratory result
+The campaign used paired historical BID/ASK M1 candles from Dukascopy, from 2024-01-01 through 2026-10-08. No synthetic spread or fabricated candles were used.
 
-A prior short EURUSD M15 test used 4,880 bars from 5 January through 18 March 2026 with unknown provenance. Its OOS results were:
+| Pair | Vendor bars | Coverage | Unexplained gaps over 5 min | Largest such gap | Quote anomalies | Status |
+|---|---:|---:|---:|---:|---:|---|
+| EURUSD | 1,030,511 | 2.766 years | 9 | 10 min | 0 | Eligible with gap warnings |
+| GBPUSD | 1,028,962 | 2.766 years | 19 | 107 min | 0 | Eligible with gap warnings |
+| USDJPY | 1,030,671 | 2.766 years | 32 | 107 min | 0 | Eligible with gap warnings |
+| AUDUSD | 1,028,212 | 2.766 years | 29 | 108 min | 0 | Eligible with gap warnings |
 
-| Strategy | OOS trades | Expectancy | OOS Sharpe | OOS P&L |
-|---|---:|---:|---:|---:|
-| Asian scalper | 26 | -11.63 | -8.21 | -$302.50 |
-| London breakout | 6 | -3.17 | -0.10 | -$19.00 |
-| Trend continuation | 21 | -36.10 | -8.42 | -$758.00 |
-| Macro carry | 0 | 0.00 | 0.00 | No trades |
-| Triangular arbitrage | 0 | 0.00 | 0.00 | No trades |
+Dukascopy M1 bars are tick-built, so minutes without a vendor quote are absent. The campaign preserved those gaps rather than forward-filling them. It required REAL_VENDOR provenance, at least two years of history, valid BID/ASK OHLC, and no unexplained nonholiday gap of 120 minutes or more. Shorter unexplained intervals remain a caveat. GBPUSD, USDJPY, and AUDUSD share an approximately 107-minute interruption on 2024-12-17.
 
-This small, unknown-source test is not eligible qualification evidence. It is retained as a rejection signal for those specific configurations on that sample.
+## Asset and set results
 
-## What is established
+| Pair | Set | Trades | Net full-window result | Cost-stress result | Gate status |
+|---|---|---:|---:|---:|---|
+| EURUSD | SET 5 | 1 | -1.106R | -1.116R | A fail, B fail, C fail, D fail |
+| USDJPY | SET 5 | 1 | +1.891R | +1.760R | A fail, B fail, C fail, D pass |
+| GBPUSD | All sets | 0 | No trades | No trades | All gates fail |
+| AUDUSD | All sets | 0 | No trades | No trades | All gates fail |
 
-- Timeframe sets are defined as overlapping views of one canonical ladder.
-- Completed states are shared by identity across views, and confirmed structure is published causally.
-- The research campaign enforces real-data provenance, coverage, quality, sample-size, walk-forward, cost-stress, and multiple-testing checks.
-- The backtester includes explicit bid/ask-side execution and end-of-window liquidation behavior.
-- Current data failed the quality gate and weak candidates remain unpromoted.
+The other 18 individual pair/set cells each had zero trades and failed all four gates.
 
-## What is not established
+Gate A requires at least 80 full-window trades. Gate B requires an in-sample average winner of at least 4R and expectancy of at least +0.35R. Gate C requires annualized OOS/IS return of at least 0.50. Gate D requires non-negative full-window expectancy with doubled observed spread and stressed slippage. The one-trade USDJPY cost-stress pass cannot compensate for its sample-size and performance-gate failures.
 
-- Positive net expectancy on quality-passed, multi-year market data.
-- 100 trades in each asset/set cell.
-- Robustness across market regimes, brokers, or the full 28-pair registry.
-- Forward paper performance, live execution quality, or safe live profitability.
-- That a 4R target filter or any other rule has a positive expectancy.
+Campaign totals: two raw qualifying signals, two unique movement IDs, no multi-set overlaps, and no conflicting signals dropped. Both events were assigned to SET 5. No pair had a positive OOS cell, and no candidate survived.
 
-## Next validation milestone
+## Direct findings
 
-Obtain complete, provenance-documented bid/ask history for EURUSD, GBPUSD, USDJPY, and AUDUSD. Prefer the broker feed intended for execution; a different venue's spread and fill behavior may not match it. Keep missing intervals visible, record time zone and source, and rerun the quality audit.
+- The timeframe sets are correlated views of one ladder **by construction** because each closed timeframe state is shared across set roles.
+- The strategy campaign does not establish that HTF state predicts LTF transitions. That requires a dedicated transition-information analysis, with adequate independent observations.
+- The frequency and monetizability of nested pullbacks at 4R or more are not established by this two-trade sample.
+- SET 5 produced one loss and one gain before full qualification; there is no evidence that it holds an economic edge after friction.
+- No asset generalization is established. Only EURUSD and USDJPY traded, once each.
 
-Only after the data passes should the campaign attempt at least 100 trades in each of the 20 cells, apply the existing out-of-sample and cost-stress gates, and report every result including failures. Any survivors must then be forward paper-tested before a separate human-reviewed live stage.
+## Execution assumptions and limits
+
+- Chronological partitions are 60% in-sample, 20% validation, and 20% out-of-sample.
+- Commission is $7 per standard lot round turn. Slippage starts at 0.2 pips with an ATR expansion reserve. Cost stress doubles observed bid/ask spread and uses 0.3-pip base slippage.
+- Swap is a static model assumption (-0.6 pips long, +0.2 pips short, Wednesday 3x), not historical broker financing.
+- A historical Tier-1 macro-news calendar was unavailable; the requested 30-minute news blackout was not applied.
+- The small sample makes win rate, profit factor, annualized return, and drawdown unsuitable as evidence of future behavior.
+- Nothing in this campaign authorizes live trading or guarantees returns.
+
+The complete 20-cell report, data audit, deduplication counters, and premium/discount attribution are in [FRACTAL_STRUCTURAL_RIDER_REPORT.md](../research/FRACTAL_STRUCTURAL_RIDER_REPORT.md) and [fractal_structural_rider.json](../research/results/fractal_structural_rider.json).
+
+## Earlier exploratory study
+
+The separate HistData campaign in [FRACTAL_RESEARCH_REPORT.md](../research/FRACTAL_RESEARCH_REPORT.md) rejected its four histories under a stricter continuity policy and ran no performance tests. It is retained as an earlier data-quality study; it is not the latest rider campaign summarized above.
+
+## Validation focus
+
+Keep these rules frozen when evaluating a new held-out sample. Any strategy revision should be versioned and evaluated on development data before a new untouched out-of-sample period. Separately test whether parent states add predictive information to child-state transitions, measure signal frequency and overlap, and obtain a historical news calendar and broker-relevant financing assumptions. Do not lower the gates to force a promotion. Any qualifying candidate still requires forward paper evaluation and independent review before live consideration.

@@ -30,17 +30,15 @@ from forex_platform.market_model.contracts import (
     ZoneScope,
     ZoneType,
 )
-from forex_platform.market_model.structure.swings import detect_swings
 from forex_platform.market_model.zones.imbalances import (
     FVGDirection,
-    detect_fair_value_gaps,
+    FairValueGap,
     fvgs_to_zones,
 )
 from forex_platform.market_model.zones.blocks import detect_order_blocks, order_blocks_to_zones
 from forex_platform.market_model.zones.liquidity import (
     LiquidityKind,
     detect_liquidity_pools,
-    detect_liquidity_sweeps,
     liquidity_pools_to_zones,
 )
 from forex_platform.fractal_engine.timeframes import (
@@ -59,6 +57,9 @@ class LocationState:
     DISCOUNT = "DISCOUNT"
     UNKNOWN = "UNKNOWN"
     AMBIGUOUS = "AMBIGUOUS"
+
+
+LIQUIDITY_POOL_SWING_LOOKBACK = 24
 
 
 @dataclass(frozen=True)
@@ -97,6 +98,8 @@ class CanonicalTimeframeState:
     timestamp: datetime
     bar_index: int
     current_price: Decimal
+    current_high: Decimal
+    current_low: Decimal
     structural_trend: Optional[int]
     swing_state: str
     phase: MarketPhase
@@ -207,6 +210,7 @@ class _OnlineTimeframeProcessor:
         self._pip_size = CurrencyPair.from_symbol(symbol).pip_size
         self.bars: list[dict[str, Any]] = []
         self.swings: list[SwingPoint] = []
+        self._swings_by_index: dict[int, SwingPoint] = {}
         self._highs: list[SwingPoint] = []
         self._lows: list[SwingPoint] = []
         self._pending_highs: list[tuple[Decimal, int, SwingPoint]] = []
@@ -219,6 +223,16 @@ class _OnlineTimeframeProcessor:
         self._active_zones: dict[str, tuple[MarketZone, int, str]] = {}
         self._liquidity_pool_zones: dict[str, tuple[MarketZone, int, str]] = {}
         self._seen_pool_ids: set[str] = set()
+        # Price heaps make zone invalidation proportional to zones removed,
+        # instead of scanning all surviving zones on every candle.
+        self._bullish_zone_invalidations: list[tuple[Decimal, str]] = []
+        self._bearish_zone_invalidations: list[tuple[Decimal, str]] = []
+        self._eqh_pool_prices: list[tuple[Decimal, str]] = []
+        self._eql_pool_prices: list[tuple[Decimal, str]] = []
+        self._zone_cache_dirty = True
+        self._cached_zones: tuple[MarketZone, ...] = ()
+        self._cached_zone_ids: tuple[str, ...] = ()
+        self._protected_anchor_by_type: dict[SwingType, SwingPoint] = {}
         self._last_zone_ids: tuple[str, ...] = ()
         self.states: list[CanonicalTimeframeState] = []
         self._previous_signature: Optional[str] = None
@@ -238,15 +252,29 @@ class _OnlineTimeframeProcessor:
         # The middle candle becomes observable on this rightmost close only.
         width = 2 * self.lookback + 1
         if len(self.bars) >= width:
-            window = pl.DataFrame(self.bars[-width:]).with_columns(
-                pl.col("timestamp").cast(pl.Datetime("us", "UTC"))
-            )
-            detected = detect_swings(window, lookback=self.lookback, scope=SwingScope.EXTERNAL)
-            if detected:
-                offset = index - width + 1
-                swing = detected[-1].model_copy(update={"index": offset + detected[-1].index})
+            swing_index = index - self.lookback
+            candidate = self.bars[swing_index]
+            left = self.bars[swing_index - self.lookback:swing_index]
+            right = self.bars[swing_index + 1:swing_index + self.lookback + 1]
+            is_high = all(candidate["high"] > item["high"] for item in (*left, *right))
+            is_low = all(candidate["low"] < item["low"] for item in (*left, *right))
+            swing = None
+            if is_high:
+                swing = SwingPoint(
+                    index=swing_index, timestamp=candidate["timestamp"],
+                    price=Decimal(str(candidate["high"])),
+                    swing_type=SwingType.HIGH, scope=SwingScope.EXTERNAL,
+                )
+            elif is_low:
+                swing = SwingPoint(
+                    index=swing_index, timestamp=candidate["timestamp"],
+                    price=Decimal(str(candidate["low"])),
+                    swing_type=SwingType.LOW, scope=SwingScope.EXTERNAL,
+                )
+            if swing is not None:
                 if not self.swings or swing.index > self.swings[-1].index:
                     self.swings.append(swing)
+                    self._swings_by_index[swing.index] = swing
                     newly_confirmed_swing = swing
                     if swing.swing_type == SwingType.HIGH:
                         self._highs.append(swing)
@@ -282,10 +310,13 @@ class _OnlineTimeframeProcessor:
             if kind == BreakType.BOS:
                 self._weak_indices.add(swing.index)
                 origin_type = SwingType.LOW if direction > 0 else SwingType.HIGH
-                origin = next((item for item in reversed(self.swings)
-                               if item.index < index and item.swing_type == origin_type), None)
+                origin_candidates = self._lows if origin_type == SwingType.LOW else self._highs
+                origin = origin_candidates[-1] if origin_candidates else None
                 if origin is not None:
                     self._protected_indices.add(origin.index)
+                    current_anchor = self._protected_anchor_by_type.get(origin_type)
+                    if current_anchor is None or origin.index > current_anchor.index:
+                        self._protected_anchor_by_type[origin_type] = origin
 
         self._update_zones(index, close_time, newly_confirmed_swing, new_breaks)
         trend = self._trend()
@@ -308,8 +339,9 @@ class _OnlineTimeframeProcessor:
                             else LocationState.EQUILIBRIUM)
 
         key_levels = self._key_levels(close_time)
-        zones = tuple(item[0] for _, item in sorted(self._active_zones.items()))
-        zone_ids = tuple(sorted(self._active_zones))
+        self._refresh_zone_cache()
+        zones = self._cached_zones
+        zone_ids = self._cached_zone_ids
         signature = "|".join((
             str(trend if trend is not None else 0), phase.value, location,
             f"{selected_range.low}:{selected_range.high}" if selected_range else "NO_RANGE",
@@ -324,6 +356,8 @@ class _OnlineTimeframeProcessor:
             timestamp=close_time,
             bar_index=index,
             current_price=close,
+            current_high=Decimal(str(row["high"])),
+            current_low=Decimal(str(row["low"])),
             structural_trend=trend,
             swing_state=swing_state,
             phase=phase,
@@ -347,6 +381,12 @@ class _OnlineTimeframeProcessor:
             active_sessions=tuple(item.value for item in session.active_sessions),
         )
         self.states.append(state)
+        # Online consumers only need a short causal tail. Full histories are
+        # returned explicitly by ``build``; retaining every emitted snapshot
+        # here duplicated hundreds of thousands of rich state objects during
+        # live/research streaming runs.
+        if len(self.states) > 3:
+            del self.states[:-3]
         return state
 
     def _update_zones(
@@ -357,100 +397,149 @@ class _OnlineTimeframeProcessor:
         new_breaks: list[StructureBreak],
     ) -> None:
         if len(self.bars) >= 3:
-            recent = pl.DataFrame(self.bars[-3:]).with_columns(
-                pl.col("timestamp").cast(pl.Datetime("us", "UTC"))
-            )
-            gaps = detect_fair_value_gaps(recent)
-            if gaps:
-                gap = gaps[-1]
-                offset = index - 2
+            first = self.bars[-3]
+            current = self.bars[-1]
+            gap: Optional[FairValueGap] = None
+            if current["low"] > first["high"]:
+                bottom, top = Decimal(str(first["high"])), Decimal(str(current["low"]))
+                gap = FairValueGap(
+                    index=index, start_index=index - 2, timestamp=available_at,
+                    direction=FVGDirection.BULLISH, top=top, bottom=bottom,
+                    midpoint=(top + bottom) / 2,
+                )
+            elif current["high"] < first["low"]:
+                bottom, top = Decimal(str(current["high"])), Decimal(str(first["low"]))
+                gap = FairValueGap(
+                    index=index, start_index=index - 2, timestamp=available_at,
+                    direction=FVGDirection.BEARISH, top=top, bottom=bottom,
+                    midpoint=(top + bottom) / 2,
+                )
+            if gap is not None:
                 local = fvgs_to_zones((gap,))[0]
                 zone = local.model_copy(update={
-                    "index_start": offset + local.index_start,
-                    "index_end": offset + local.index_end,
                     "timestamp_start": available_at,
                     "timestamp_end": available_at,
                 })
                 direction = 1 if gap.direction == FVGDirection.BULLISH else -1
                 zone_id = f"FVG:{index}:{gap.direction.value}"
-                self._active_zones[zone_id] = (zone, direction, "FVG")
+                self._add_active_zone(zone_id, zone, direction, "FVG")
 
         if new_breaks:
-            history = pl.DataFrame(self.bars).with_columns(
+            # Order blocks inspect at most the five bars immediately before a
+            # break. Pass only that causal slice instead of rebuilding and
+            # rescanning the entire expanding timeframe history on every BOS.
+            history_start = max(0, index - 5)
+            history = pl.DataFrame(self.bars[history_start:index + 1]).with_columns(
                 pl.col("timestamp").cast(pl.Datetime("us", "UTC"))
             )
-            for structure_break in new_breaks:
-                blocks = detect_order_blocks(history, (structure_break,), self.swings)
-                for block in blocks:
-                    zone = order_blocks_to_zones((block,))[0].model_copy(update={
-                        "timestamp_start": available_at,
-                        "timestamp_end": available_at,
-                    })
-                    zone_id = f"OB:{structure_break.index}:{block.index}:{structure_break.direction}"
-                    self._active_zones[zone_id] = (zone, structure_break.direction, "OB")
-
-        if new_swing is not None:
-            pools = detect_liquidity_pools(self.swings, tolerance=self._pip_size)
-            for pool in pools:
-                pool_id = f"{pool.kind.value}:{','.join(map(str, pool.swing_indexes))}"
-                if pool_id in self._seen_pool_ids:
-                    continue
-                self._seen_pool_ids.add(pool_id)
-                zone = liquidity_pools_to_zones((pool,))[0].model_copy(update={
+            local_breaks = [
+                item.model_copy(update={"index": item.index - history_start})
+                for item in new_breaks
+            ]
+            relevant_swings = [
+                self._swings_by_index[brk.swing_index]
+                for brk in new_breaks if brk.swing_index in self._swings_by_index
+            ]
+            blocks = detect_order_blocks(history, local_breaks, relevant_swings)
+            for block in blocks:
+                block = block.model_copy(update={
+                    "index": block.index + history_start,
+                    "start_index": block.start_index + history_start,
+                    "break_index": block.break_index + history_start,
+                })
+                zone = order_blocks_to_zones((block,))[0].model_copy(update={
                     "timestamp_start": available_at,
                     "timestamp_end": available_at,
                 })
-                direction = 0
-                self._liquidity_pool_zones[pool_id] = (zone, direction, pool.kind.value)
+                direction = 1 if block.direction.value == "BULLISH" else -1
+                zone_id = f"OB:{block.break_index}:{block.index}:{direction}"
+                self._add_active_zone(zone_id, zone, direction, "OB")
+
+        new_pool_ids: list[str] = []
+        if new_swing is not None:
+            # Equal-high/low pools describe current timeframe-relative
+            # liquidity. Limiting candidates to the recent confirmed swing
+            # window avoids chaining stale prices across the full history.
+            pools = detect_liquidity_pools(
+                self.swings[-LIQUIDITY_POOL_SWING_LOOKBACK:], tolerance=self._pip_size,
+            )
+            for pool in pools:
+                pool_id = f"{pool.kind.value}:{','.join(map(str, pool.swing_indexes))}"
+                if pool_id not in self._seen_pool_ids:
+                    self._seen_pool_ids.add(pool_id)
+                    zone = liquidity_pools_to_zones((pool,))[0].model_copy(update={
+                        "timestamp_start": available_at,
+                        "timestamp_end": available_at,
+                    })
+                    entry = (zone, 0, pool.kind.value)
+                    self._liquidity_pool_zones[pool_id] = entry
+                    self._active_zones[pool_id] = entry
+                    self._zone_cache_dirty = True
+                    new_pool_ids.append(pool_id)
 
         # A close through the far boundary invalidates an FVG/OB. Liquidity
         # pools are retired after a wick sweep or a close through the level.
+        # Because close is inside the candle's high/low, the combined sweep or
+        # close-through rule is exactly high > EQH / low < EQL for old pools.
         close = Decimal(str(self.bars[-1]["close"]))
         high = Decimal(str(self.bars[-1]["high"]))
         low = Decimal(str(self.bars[-1]["low"]))
-        for zone_id, (zone, direction, _kind) in list(self._active_zones.items()):
-            invalid = (direction > 0 and close < zone.price_low) or (
-                direction < 0 and close > zone.price_high
-            )
-            if invalid:
-                del self._active_zones[zone_id]
+        while self._bullish_zone_invalidations and -self._bullish_zone_invalidations[0][0] > close:
+            _negative_low, zone_id = heapq.heappop(self._bullish_zone_invalidations)
+            self._remove_active_zone(zone_id)
+        while self._bearish_zone_invalidations and self._bearish_zone_invalidations[0][0] < close:
+            _high_price, zone_id = heapq.heappop(self._bearish_zone_invalidations)
+            self._remove_active_zone(zone_id)
 
-        if self._liquidity_pool_zones:
-            pools_for_sweeps = []
-            pool_id_by_signature: dict[tuple[str, Decimal], str] = {}
-            for zone_id, (zone, _direction, kind) in self._liquidity_pool_zones.items():
-                if zone.timestamp_end >= available_at:
-                    continue
-                liquidity_kind = LiquidityKind.EQH if kind == LiquidityKind.EQH.value else LiquidityKind.EQL
-                from forex_platform.market_model.zones.liquidity import LiquidityPool
-                pool = LiquidityPool(
-                    kind=liquidity_kind,
-                    price=zone.price_high,
-                    tolerance=self._pip_size,
-                    swing_indexes=[zone.index_start, zone.index_end],
-                    timestamp=zone.timestamp_end,
-                    scope=ZoneScope.EXTERNAL,
-                )
-                pools_for_sweeps.append(pool)
-                pool_id_by_signature[(kind, zone.price_high)] = zone_id
-            current_bar = pl.DataFrame([self.bars[-1]]).with_columns(
-                pl.col("timestamp").cast(pl.Datetime("us", "UTC"))
-            )
-            swept = detect_liquidity_sweeps(current_bar, pools_for_sweeps)
-            for event in swept:
-                kind = LiquidityKind.EQH.value if event.direction < 0 else LiquidityKind.EQL.value
-                self._liquidity_pool_zones.pop(pool_id_by_signature.get((kind, event.swept_price), ""), None)
-            for zone_id, (zone, direction, kind) in list(self._liquidity_pool_zones.items()):
-                if (kind == LiquidityKind.EQH.value and close > zone.price_high) or (
-                    kind == LiquidityKind.EQL.value and close < zone.price_low
-                ):
-                    del self._liquidity_pool_zones[zone_id]
+        while self._eqh_pool_prices and self._eqh_pool_prices[0][0] < high:
+            _price, zone_id = heapq.heappop(self._eqh_pool_prices)
+            self._remove_active_zone(zone_id)
+        while self._eql_pool_prices and -self._eql_pool_prices[0][0] > low:
+            _negative_price, zone_id = heapq.heappop(self._eql_pool_prices)
+            self._remove_active_zone(zone_id)
 
-        # Include recognized, still-live liquidity zones with FVG/OB zones.
-        self._active_zones.update(self._liquidity_pool_zones)
-        for zone_id in tuple(self._active_zones):
-            if zone_id.startswith(("EQH:", "EQL:")) and zone_id not in self._liquidity_pool_zones:
-                self._active_zones.pop(zone_id, None)
+        # A pool first recognized on this close is not eligible for a same-bar
+        # wick sweep, but a body close through it invalidates it immediately.
+        for zone_id in new_pool_ids:
+            entry = self._liquidity_pool_zones.get(zone_id)
+            if entry is None:
+                continue
+            zone, _direction, kind = entry
+            if kind == LiquidityKind.EQH.value:
+                if close > zone.price_high:
+                    self._remove_active_zone(zone_id)
+                else:
+                    heapq.heappush(self._eqh_pool_prices, (zone.price_high, zone_id))
+            else:
+                if close < zone.price_low:
+                    self._remove_active_zone(zone_id)
+                else:
+                    heapq.heappush(self._eql_pool_prices, (-zone.price_low, zone_id))
+
+    def _add_active_zone(self, zone_id: str, zone: MarketZone, direction: int, kind: str) -> None:
+        entry = (zone, direction, kind)
+        self._active_zones[zone_id] = entry
+        if direction > 0:
+            heapq.heappush(self._bullish_zone_invalidations, (-zone.price_low, zone_id))
+        elif direction < 0:
+            heapq.heappush(self._bearish_zone_invalidations, (zone.price_high, zone_id))
+        self._zone_cache_dirty = True
+
+    def _remove_active_zone(self, zone_id: str) -> None:
+        entry = self._active_zones.pop(zone_id, None)
+        if entry is None:
+            return
+        if entry[2] in (LiquidityKind.EQH.value, LiquidityKind.EQL.value):
+            self._liquidity_pool_zones.pop(zone_id, None)
+        self._zone_cache_dirty = True
+
+    def _refresh_zone_cache(self) -> None:
+        if not self._zone_cache_dirty:
+            return
+        ordered = sorted(self._active_zones.items())
+        self._cached_zone_ids = tuple(zone_id for zone_id, _entry in ordered)
+        self._cached_zones = tuple(entry[0] for _zone_id, entry in ordered)
+        self._zone_cache_dirty = False
 
     def _record_range(self, new_swing: SwingPoint) -> None:
         if len(self.swings) < 2:
@@ -517,13 +606,12 @@ class _OnlineTimeframeProcessor:
         if trend in (None, 0):
             return None
         swing_type = SwingType.LOW if trend > 0 else SwingType.HIGH
-        anchors = [s for s in self.swings
-                   if s.index in self._protected_indices and s.swing_type == swing_type]
-        if not anchors:
-            anchors = self._lows if trend > 0 else self._highs
-        if not anchors:
+        anchor = self._protected_anchor_by_type.get(swing_type)
+        if anchor is None:
+            candidates = self._lows if trend > 0 else self._highs
+            anchor = candidates[-1] if candidates else None
+        if anchor is None:
             return None
-        anchor = anchors[-1]
         relation = "below" if trend > 0 else "above"
         return f"closed price {relation} {anchor.price} ({anchor.swing_type.value} at {anchor.timestamp.isoformat()})"
 

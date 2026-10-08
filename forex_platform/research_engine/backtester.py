@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
+from collections import deque
 import math
 from typing import Any, Dict, List, Mapping, Optional, Tuple
 import polars as pl
@@ -48,6 +49,7 @@ class TradeRecord(BaseModel):
     swap: Decimal
     net_pnl: Decimal
     exit_reason: str
+    client_tag: Optional[str] = None
     # Initial protective risk levels of the opening intent. Used to convert
     # realized PnL into R-multiples for robustness research gates.
     stop_loss: Optional[Decimal] = None
@@ -94,6 +96,10 @@ class EventDrivenBacktester:
         long_swap_pips: Decimal | float | str = Decimal("-0.6"),
         short_swap_pips: Decimal | float | str = Decimal("0.2"),
         cost_multiplier: float = 1.0,
+        slippage_pips: Decimal | float | str = Decimal("0"),
+        atr_expansion_slippage_factor: Decimal | float | str = Decimal("0"),
+        commission_multiplier: Decimal | float | str | None = None,
+        equity_curve_max_points: Optional[int] = None,
         account_currency: str = "USD",
         quote_to_account_rates: Optional[Mapping[str, Decimal | float | str]] = None,
     ):
@@ -106,6 +112,17 @@ class EventDrivenBacktester:
         self.long_swap_pips = to_decimal(long_swap_pips)
         self.short_swap_pips = to_decimal(short_swap_pips)
         self.cost_multiplier = Decimal(str(cost_multiplier))
+        self.slippage_pips = to_decimal(slippage_pips)
+        self.atr_expansion_slippage_factor = to_decimal(atr_expansion_slippage_factor)
+        self.commission_multiplier = (
+            self.cost_multiplier if commission_multiplier is None
+            else to_decimal(commission_multiplier)
+        )
+        if equity_curve_max_points is not None and equity_curve_max_points < 0:
+            raise ValueError("equity_curve_max_points must be nonnegative or None")
+        self.equity_curve_max_points = equity_curve_max_points
+        if min(self.slippage_pips, self.atr_expansion_slippage_factor, self.commission_multiplier) < 0:
+            raise ValueError("slippage and commission multipliers must be nonnegative")
         self.account_currency = account_currency.upper()
         self.quote_to_account_rates = {
             currency.upper(): to_decimal(rate)
@@ -180,6 +197,7 @@ class EventDrivenBacktester:
             return 0.0
         periods_per_year = {
             Timeframe.M1: 252.0 * 24.0 * 60.0,
+            Timeframe.M3: 252.0 * 24.0 * 20.0,
             Timeframe.M5: 252.0 * 24.0 * 12.0,
             Timeframe.M15: 252.0 * 24.0 * 4.0,
             Timeframe.M30: 252.0 * 24.0 * 2.0,
@@ -203,6 +221,8 @@ class EventDrivenBacktester:
 
         open_position: Optional[Position] = None
         open_intent: Optional[OrderIntent] = None
+        active_stop_loss: Optional[Decimal] = None
+        scheduled_exit_reason: Optional[str] = None
         pending_intents: List[OrderIntent] = []
         trades: List[TradeRecord] = []
         equity_curve: List[Tuple[datetime, Decimal]] = []
@@ -210,10 +230,23 @@ class EventDrivenBacktester:
         day_start_balance = balance
 
         total_rows = df.height
+        equity_curve_stride = (
+            1 if self.equity_curve_max_points is None
+            else max(1, math.ceil(total_rows / self.equity_curve_max_points))
+            if self.equity_curve_max_points > 0
+            else total_rows + 1
+        )
         trade_counter = 0
+        previous_row: Optional[Dict[str, Any]] = None
+        last_row: Optional[Dict[str, Any]] = None
+        atr_fast_window: deque[Decimal] = deque(maxlen=14)
+        atr_slow_window: deque[Decimal] = deque(maxlen=100)
+        atr_fast_sum = Decimal("0")
+        atr_slow_sum = Decimal("0")
+        current_slippage_price = self.pair.to_price(self.slippage_pips)
 
-        for i in range(total_rows):
-            row = df.row(i, named=True)
+        for i, row in enumerate(df.iter_rows(named=True)):
+            last_row = row
             raw_ts = row["timestamp"]
             ts = raw_ts if isinstance(raw_ts, datetime) else datetime.fromisoformat(str(raw_ts))
             utc_ts = ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
@@ -232,6 +265,14 @@ class EventDrivenBacktester:
             ask_high = self._ask_price(row, bar_high, "high", spread_price)
             ask_low = self._ask_price(row, bar_low, "low", spread_price)
             ask_close = self._ask_price(row, bar_close, "close", spread_price)
+            atr_fast = atr_fast_sum / Decimal(len(atr_fast_window)) if atr_fast_window else Decimal("0")
+            atr_slow = atr_slow_sum / Decimal(len(atr_slow_window)) if atr_slow_window else Decimal("0")
+            expansion = max(Decimal("0"), atr_fast / atr_slow - Decimal("1")) if atr_slow > 0 else Decimal("0")
+            bar_slippage_pips = (
+                self.slippage_pips
+                + self.pair.to_pips(atr_fast) * self.atr_expansion_slippage_factor * expansion
+            )
+            current_slippage_price = self.pair.to_price(bar_slippage_pips)
 
             # Optional causally-aligned multi-timeframe context (struct column).
             # Used by research sweeps to pass Market Model state (e.g. HTF/MTF
@@ -284,10 +325,16 @@ class EventDrivenBacktester:
                         fill_price = bar_open
 
                 if fill_price is not None:
+                    if intent_to_fill.order_type != OrderType.LIMIT:
+                        fill_price = (
+                            fill_price + current_slippage_price
+                            if intent_to_fill.side == OrderSide.BUY
+                            else max(Decimal("0"), fill_price - current_slippage_price)
+                        )
                     comm = self.commission_model.calculate_commission(
                         intent_to_fill.lot_size,
                         is_roundturn=False,
-                    ) * self.cost_multiplier
+                    ) * self.commission_multiplier
 
                     trade_counter += 1
                     open_position = Position(
@@ -306,12 +353,55 @@ class EventDrivenBacktester:
                         is_open=True,
                     )
                     open_intent = intent_to_fill
+                    active_stop_loss = intent_to_fill.stop_loss
+
+            if open_position is not None and open_intent is not None and scheduled_exit_reason:
+                market_exit_price = (
+                    max(Decimal("0"), bar_open - current_slippage_price)
+                    if open_position.side == OrderSide.BUY
+                    else ask_open + current_slippage_price
+                )
+                closing_comm = self.commission_model.calculate_commission(
+                    LotSize.from_units(open_position.units), is_roundturn=False,
+                ) * self.commission_multiplier
+                open_position.total_commission += closing_comm
+                gross_pnl_quote = open_position.close(market_exit_price)
+                quote_rate = self.quote_to_account_rate(row, market_exit_price)
+                gross_pnl = gross_pnl_quote * quote_rate
+                swap_account = open_position.total_swap * quote_rate
+                net_pnl = gross_pnl - open_position.total_commission + swap_account
+                balance += net_pnl
+                trades.append(TradeRecord(
+                    trade_id=f"TRD-{trade_counter:04d}",
+                    symbol=self.pair.symbol,
+                    side=open_position.side,
+                    units=open_intent.lot_size.units,
+                    entry_time=open_position.opened_at,
+                    entry_price=open_position.average_entry_price,
+                    exit_time=utc_ts,
+                    exit_price=market_exit_price,
+                    gross_pnl=gross_pnl,
+                    commission=open_position.total_commission,
+                    swap=swap_account,
+                    net_pnl=net_pnl,
+                    exit_reason=scheduled_exit_reason,
+                    client_tag=open_intent.client_tag,
+                    stop_loss=open_intent.stop_loss,
+                    take_profit=open_intent.take_profit,
+                ))
+                open_position = None
+                open_intent = None
+                active_stop_loss = None
+                scheduled_exit_reason = None
+                pending_intents.clear()
 
             # -----------------------------------------------------------------
             # STEP 2: CHECK OVERNIGHT SWAP (21:00 UTC ROLLOVER)
             # -----------------------------------------------------------------
             if open_position is not None and i > 0:
-                prev_row = df.row(i - 1, named=True)
+                prev_row = previous_row
+                if prev_row is None:
+                    raise RuntimeError("previous row is unavailable during swap check")
                 prev_ts = prev_row["timestamp"]
                 prev_utc = prev_ts if isinstance(prev_ts, datetime) else datetime.fromisoformat(str(prev_ts))
                 if prev_utc.tzinfo is None:
@@ -331,7 +421,7 @@ class EventDrivenBacktester:
             # STEP 3: ADVERSE-FIRST INTRA-BAR STOP VS TARGET RESOLUTION
             # -----------------------------------------------------------------
             if open_position is not None and open_intent is not None:
-                sl = open_intent.stop_loss
+                sl = active_stop_loss
                 tp = open_intent.take_profit
                 pos_closed = False
                 exit_price = bar_close
@@ -344,15 +434,15 @@ class EventDrivenBacktester:
                     if sl_hit and tp_hit:
                         # ADVERSE-FIRST: Stop loss takes priority!
                         pos_closed = True
-                        exit_price = min(bar_open, sl)  # Stops slip adversely through gaps.
+                        exit_price = min(bar_open, sl) - current_slippage_price
                         exit_reason = "STOP_LOSS_ADVERSE_COLLISION"
                     elif sl_hit:
                         pos_closed = True
-                        exit_price = min(bar_open, sl)
+                        exit_price = min(bar_open, sl) - current_slippage_price
                         exit_reason = "STOP_LOSS"
                     elif tp_hit:
                         pos_closed = True
-                        exit_price = max(bar_open, tp)
+                        exit_price = max(bar_open, tp) - current_slippage_price
                         exit_reason = "TAKE_PROFIT"
 
                 elif open_position.side == OrderSide.SELL:
@@ -362,15 +452,15 @@ class EventDrivenBacktester:
                     if sl_hit and tp_hit:
                         # ADVERSE-FIRST: Stop loss takes priority!
                         pos_closed = True
-                        exit_price = max(ask_open, sl)
+                        exit_price = max(ask_open, sl) + current_slippage_price
                         exit_reason = "STOP_LOSS_ADVERSE_COLLISION"
                     elif sl_hit:
                         pos_closed = True
-                        exit_price = max(ask_open, sl)
+                        exit_price = max(ask_open, sl) + current_slippage_price
                         exit_reason = "STOP_LOSS"
                     elif tp_hit:
                         pos_closed = True
-                        exit_price = min(ask_open, tp)
+                        exit_price = min(ask_open, tp) + current_slippage_price
                         exit_reason = "TAKE_PROFIT"
 
                 if pos_closed:
@@ -378,7 +468,7 @@ class EventDrivenBacktester:
                     closing_comm = self.commission_model.calculate_commission(
                         LotSize.from_units(open_position.units),
                         is_roundturn=False,
-                    ) * self.cost_multiplier
+                    ) * self.commission_multiplier
                     open_position.total_commission += closing_comm
 
                     # Calculate gross PnL
@@ -404,12 +494,15 @@ class EventDrivenBacktester:
                             swap=swap_account,
                             net_pnl=net_pnl,
                             exit_reason=exit_reason,
+                            client_tag=open_intent.client_tag,
                             stop_loss=open_intent.stop_loss,
                             take_profit=open_intent.take_profit,
                         )
                     )
                     open_position = None
                     open_intent = None
+                    active_stop_loss = None
+                    scheduled_exit_reason = None
 
             # -----------------------------------------------------------------
             # STEP 4: DELIVER CLOSED BAR EVENT TO STRATEGY (CAUSAL HOOK)
@@ -443,8 +536,39 @@ class EventDrivenBacktester:
             new_intents = self.strategy.on_bar(event)
 
             # Queue new intents for execution on NEXT bar open
-            if new_intents:
+            if new_intents and open_position is None:
                 pending_intents.extend(new_intents)
+
+            # Optional strategy management runs after the bar-close update.
+            # Any structural market exit is scheduled for the next bar open;
+            # a ratcheted stop likewise becomes active only on the next bar.
+            if open_position is not None and open_intent is not None:
+                manager = getattr(self.strategy, "manage_open_position", None)
+                if callable(manager):
+                    action = manager(
+                        event,
+                        open_position,
+                        open_intent,
+                        active_stop_loss,
+                        bar_high,
+                        ask_low,
+                    ) or {}
+                    proposed_stop = action.get("stop_loss")
+                    if proposed_stop is not None:
+                        proposed_stop = to_decimal(proposed_stop)
+                        if open_position.side == OrderSide.BUY:
+                            if (
+                                proposed_stop < bar_close
+                                and (active_stop_loss is None or proposed_stop > active_stop_loss)
+                            ):
+                                active_stop_loss = proposed_stop
+                        elif (
+                            proposed_stop > ask_close
+                            and (active_stop_loss is None or proposed_stop < active_stop_loss)
+                        ):
+                            active_stop_loss = proposed_stop
+                    if action.get("exit_next_open"):
+                        scheduled_exit_reason = str(action.get("exit_reason", "STRATEGY_MARKET_EXIT"))
 
             # Record equity curve
             unrealized = Decimal("0.0")
@@ -454,7 +578,11 @@ class EventDrivenBacktester:
                 unrealized = open_position.unrealized_pnl * self.quote_to_account_rate(row, liquidation_price)
 
             curr_equity = balance + unrealized
-            equity_curve.append((utc_ts, curr_equity))
+            if self.equity_curve_max_points is None or (
+                self.equity_curve_max_points > 0
+                and (i % equity_curve_stride == 0 or i == total_rows - 1)
+            ):
+                equity_curve.append((utc_ts, curr_equity))
 
             if curr_equity > peak_balance:
                 peak_balance = curr_equity
@@ -462,11 +590,30 @@ class EventDrivenBacktester:
             if dd > max_drawdown:
                 max_drawdown = dd
 
+            # A bar's range is available only after its close, so update the
+            # volatility reserve for fills on the next source bar.
+            prior_close = to_decimal(previous_row["close"]) if previous_row is not None else bar_open
+            true_range = max(
+                bar_high - bar_low,
+                abs(bar_high - prior_close),
+                abs(bar_low - prior_close),
+            )
+            if len(atr_fast_window) == atr_fast_window.maxlen:
+                atr_fast_sum -= atr_fast_window[0]
+            if len(atr_slow_window) == atr_slow_window.maxlen:
+                atr_slow_sum -= atr_slow_window[0]
+            atr_fast_window.append(true_range)
+            atr_slow_window.append(true_range)
+            atr_fast_sum += true_range
+            atr_slow_sum += true_range
+            previous_row = row
+
         # A window ending with an open position must realize its liquidation
         # value at the final executable quote; otherwise OOS windows omit both
         # the trade and its costs from reported expectancy and final balance.
         if open_position is not None and open_intent is not None and total_rows:
-            last_row = df.row(total_rows - 1, named=True)
+            if last_row is None:
+                raise RuntimeError("last row is unavailable for end-of-data liquidation")
             last_bid_close = to_decimal(last_row["close"])
             last_spread = last_row.get("spread_pips")
             if last_spread is None:
@@ -478,14 +625,18 @@ class EventDrivenBacktester:
                 "close",
                 self.pair.to_price(last_modeled_spread),
             )
-            liquidation_price = last_bid_close if open_position.side == OrderSide.BUY else last_ask_close
+            liquidation_price = (
+                max(Decimal("0"), last_bid_close - current_slippage_price)
+                if open_position.side == OrderSide.BUY
+                else last_ask_close + current_slippage_price
+            )
             last_ts = last_row["timestamp"]
             last_utc_ts = last_ts if isinstance(last_ts, datetime) else datetime.fromisoformat(str(last_ts))
             if last_utc_ts.tzinfo is None:
                 last_utc_ts = last_utc_ts.replace(tzinfo=timezone.utc)
             closing_comm = self.commission_model.calculate_commission(
                 LotSize.from_units(open_position.units), is_roundturn=False,
-            ) * self.cost_multiplier
+            ) * self.commission_multiplier
             open_position.total_commission += closing_comm
             gross_pnl_quote = open_position.close(liquidation_price)
             quote_rate = self.quote_to_account_rate(last_row, liquidation_price)
@@ -508,6 +659,7 @@ class EventDrivenBacktester:
                     swap=swap_account,
                     net_pnl=net_pnl,
                     exit_reason="END_OF_DATA_LIQUIDATION",
+                    client_tag=open_intent.client_tag,
                     stop_loss=open_intent.stop_loss,
                     take_profit=open_intent.take_profit,
                 )

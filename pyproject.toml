@@ -26,6 +26,10 @@ dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
 ]
+research = [
+    "dukascopy-python>=4.0.1",
+    "pandas>=2.2.0",
+]
 
 [project.scripts]
 forex-platform = "forex_platform.cli:main"

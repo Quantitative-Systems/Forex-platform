@@ -126,9 +126,18 @@ class WalkForwardEngine:
         """
         dev_df, val_df, oos_df = cls.partition_data(df)
 
-        dev_tester = EventDrivenBacktester(deepcopy(strategy), currency_pair, cost_multiplier=cost_multiplier)
-        val_tester = EventDrivenBacktester(deepcopy(strategy), currency_pair, cost_multiplier=cost_multiplier)
-        oos_tester = EventDrivenBacktester(deepcopy(strategy), currency_pair, cost_multiplier=cost_multiplier)
+        def build_tester() -> EventDrivenBacktester:
+            return EventDrivenBacktester(
+                deepcopy(strategy),
+                currency_pair,
+                cost_multiplier=cost_multiplier,
+                slippage_pips=getattr(strategy, "slippage_buffer_pips", 0),
+                atr_expansion_slippage_factor=getattr(strategy, "atr_expansion_slippage_factor", 0),
+            )
+
+        dev_tester = build_tester()
+        val_tester = build_tester()
+        oos_tester = build_tester()
 
         dev_res = dev_tester.run(dev_df, timeframe=timeframe)
         val_res = val_tester.run(val_df, timeframe=timeframe)

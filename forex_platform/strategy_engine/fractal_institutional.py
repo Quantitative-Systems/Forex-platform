@@ -1,15 +1,14 @@
 """Research-first institutional structure strategy on the shared fractal ladder.
 
-The strategy consumes completed M1 bars, shares one causal state engine across
-all five timeframe sets, arms only on a confirmed LTF structural break, and
-enters only on a later zone retest while HTF/MTF context remains valid. It is a
-candidate for backtesting and paper evaluation; it does not promise or imply a
-profitable edge.
+The strategy consumes completed source bars (M1 or aggregated M3) and shares
+one causal state engine across all five timeframe sets. After HTF/MTF
+validation, it enters on an LTF micro-BOS or liquidity sweep-and-reclaim close.
+It is a candidate for backtesting and paper evaluation; it does not promise or
+imply a profitable edge.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_DOWN
 from typing import Mapping, Optional
@@ -34,28 +33,19 @@ from forex_platform.fractal_engine.timeframes import (
     normalized_set_key,
 )
 from forex_platform.market_data.causal_aligner import Timeframe
-from forex_platform.market_model.contracts import MarketPhase, MarketZone, ZoneType
+from forex_platform.market_model.contracts import MarketPhase
 from forex_platform.strategy_engine.base import BarEvent, BaseStrategy
 
 
-@dataclass(frozen=True)
-class ArmedRetest:
-    set_key: str
-    movement_id: str
-    direction: int
-    zone_id: str
-    zone: MarketZone
-    armed_at: datetime
-    ltf_bars_waited: int = 0
-
-
 class InstitutionalFractalStrategy(BaseStrategy):
-    """Causal HTF-bias / MTF-pullback / LTF-reversal-and-retest candidate.
+    """Causal HTF-bias / MTF-setup / LTF-trigger research candidate.
 
-    All five canonical sets are evaluated from the same state histories. One
-    confirmed 3M structural leg can produce at most one entry across those
-    overlapping views. Position risk is sized from explicit account equity;
-    quote-currency conversion for cross pairs must be supplied by the caller.
+    All five canonical sets are evaluated from the same state histories. An
+    LTF micro-BOS or liquidity sweep-and-reclaim can trigger an entry after
+    the MTF setup validates. One active 3M structural leg can produce at most
+    one entry across overlapping views. Position risk is sized from explicit
+    account equity; quote-currency conversion for cross pairs must be supplied
+    by the caller.
     """
 
     SUPPORTED_SOURCE_TIMEFRAME = Timeframe.M1
@@ -68,21 +58,21 @@ class InstitutionalFractalStrategy(BaseStrategy):
         account_equity: Decimal | str | float = Decimal("100000"),
         account_currency: str = "USD",
         quote_to_account_rates: Optional[Mapping[str, Decimal | str | float]] = None,
-        risk_fraction: Decimal | str | float = Decimal("0.0025"),
+        risk_fraction: Decimal | str | float = Decimal("0.01"),
         minimum_net_reward_risk: Decimal | str | float = Decimal("4"),
         minimum_stop_pips: Decimal | str | float = Decimal("3"),
         maximum_stop_pips: Decimal | str | float = Decimal("80"),
         maximum_entry_spread_pips: Decimal | str | float = Decimal("3"),
         commission_per_lot_round_turn: Decimal | str | float = Decimal("7"),
-        slippage_buffer_pips: Decimal | str | float = Decimal("0.5"),
-        stop_buffer_pips: Decimal | str | float = Decimal("1.5"),
-        maximum_retest_distance_pips: Decimal | str | float = Decimal("30"),
-        maximum_retest_bars: int = 8,
-        maximum_lots: Decimal | str | float = Decimal("1"),
+        slippage_buffer_pips: Decimal | str | float = Decimal("0.2"),
+        atr_expansion_slippage_factor: Decimal | str | float = Decimal("0.1"),
+        stop_buffer_pips: Decimal | str | float = Decimal("2.0"),
+        maximum_lots: Decimal | str | float = Decimal("100"),
         lot_step: Decimal | str | float = Decimal("0.01"),
         swing_lookback: int = 5,
         session_filter: bool = True,
         selected_set: Optional[str] = None,
+        source_timeframe: Timeframe = Timeframe.M1,
     ) -> None:
         selected_set = normalized_set_key(selected_set) if selected_set else None
         target_symbols = symbols or ["EURUSD"]
@@ -90,12 +80,11 @@ class InstitutionalFractalStrategy(BaseStrategy):
             strategy_id=strategy_id,
             name="Institutional Fractal (research candidate)",
             symbols=target_symbols,
-            timeframes=[self.SUPPORTED_SOURCE_TIMEFRAME],
+            timeframes=[source_timeframe],
             parameters={
                 "account_equity": str(account_equity),
                 "risk_fraction": str(risk_fraction),
                 "minimum_net_reward_risk": str(minimum_net_reward_risk),
-                "maximum_retest_bars": maximum_retest_bars,
                 "selected_set": selected_set,
             },
         )
@@ -112,21 +101,30 @@ class InstitutionalFractalStrategy(BaseStrategy):
         self.maximum_entry_spread_pips = Decimal(str(maximum_entry_spread_pips))
         self.commission_per_lot_round_turn = Decimal(str(commission_per_lot_round_turn))
         self.slippage_buffer_pips = Decimal(str(slippage_buffer_pips))
+        self.atr_expansion_slippage_factor = Decimal(str(atr_expansion_slippage_factor))
         self.stop_buffer_pips = Decimal(str(stop_buffer_pips))
-        self.maximum_retest_distance_pips = Decimal(str(maximum_retest_distance_pips))
-        self.maximum_retest_bars = int(maximum_retest_bars)
         self.maximum_lots = Decimal(str(maximum_lots))
         self.lot_step = Decimal(str(lot_step))
         self.swing_lookback = int(swing_lookback)
         self.session_filter_enabled = bool(session_filter)
         self.selected_set = selected_set
+        self.source_timeframe = source_timeframe
 
         self._engines: dict[str, UniversalTimeframeStateEngine] = {}
         self._movement_direction: dict[str, int] = {}
         self._movement_sequence: dict[str, int] = {}
         self._movement_id: dict[str, str] = {}
-        self._armed: dict[tuple[str, str], ArmedRetest] = {}
+        self._movement_signature: dict[str, tuple[object, ...]] = {}
+        self._context_movement_direction: dict[tuple[str, str], int] = {}
+        self._context_movement_sequence: dict[tuple[str, str], int] = {}
+        self._context_movement_id: dict[tuple[str, str], str] = {}
+        self._context_movement_signature: dict[tuple[str, str], tuple[object, ...]] = {}
         self._used_movements: set[tuple[str, str]] = set()
+        self.raw_signal_count = 0
+        self.unique_signal_movements: set[tuple[str, str]] = set()
+        self.multi_set_overlap_count = 0
+        self.dropped_conflicting_signal_count = 0
+        self.allocated_signal_movements: set[tuple[str, str]] = set()
         self.last_decision: dict[str, str] = {}
         self.daily_realized_pnl = Decimal("0")
         self.max_daily_loss_fraction = Decimal("0.02")
@@ -137,8 +135,6 @@ class InstitutionalFractalStrategy(BaseStrategy):
             raise ValueError("risk_fraction must be in (0, 0.01]")
         if self.minimum_net_reward_risk < Decimal("4"):
             raise ValueError("minimum_net_reward_risk cannot be below the frozen 4R floor")
-        if self.maximum_retest_bars < 1:
-            raise ValueError("maximum_retest_bars must be positive")
         if self.maximum_lots <= 0 or self.lot_step <= 0:
             raise ValueError("maximum_lots and lot_step must be positive")
         if tuple(TIMEFRAME_SETS) != ("SET_1", "SET_2", "SET_3", "SET_4", "SET_5"):
@@ -168,15 +164,18 @@ class InstitutionalFractalStrategy(BaseStrategy):
             }
 
     def on_bar(self, event: BarEvent) -> list[OrderIntent]:
-        if event.timeframe != self.SUPPORTED_SOURCE_TIMEFRAME:
-            raise ValueError("InstitutionalFractalStrategy requires completed M1 source bars")
+        if event.timeframe != self.source_timeframe:
+            raise ValueError(f"InstitutionalFractalStrategy requires completed {self.source_timeframe.value} source bars")
         self.update_history(event)
         symbol = event.symbol.upper().replace("/", "").replace("_", "").replace("-", "")
         engine = self._engines.setdefault(
             symbol,
             UniversalTimeframeStateEngine(
                 symbol,
-                base_timeframe=self.SUPPORTED_SOURCE_TIMEFRAME,
+                base_timeframe=self.source_timeframe,
+                # Fresh-break validation compares only the latest state with
+                # its predecessor, so keep the online state buffer bounded.
+                max_history_bars=3,
                 swing_lookback=self.swing_lookback,
             ),
         )
@@ -211,67 +210,90 @@ class InstitutionalFractalStrategy(BaseStrategy):
             ltf = newly_closed.get(ltf_name)
             if ltf is None:
                 continue
-            key = (symbol, set_key)
             htf = engine.get_state(ladder[0])
             mtf = engine.get_state(ladder[1])
             if htf is None or mtf is None:
-                self._armed.pop(key, None)
                 self.last_decision[set_key] = "WAITING_FOR_CLOSED_CONTEXT"
                 continue
-            if not self._higher_timeframe_setup(htf, mtf):
-                self._armed.pop(key, None)
+            setup_movement_id = self._advance_context_movement(symbol, set_key, htf)
+            if setup_movement_id is None:
+                self.last_decision[set_key] = "WAITING_FOR_HTF_STRUCTURE"
+                continue
+            setup = self._higher_timeframe_setup(htf, mtf)
+            if setup is None:
                 self.last_decision[set_key] = "HTF_MTF_FILTER"
                 continue
-
-            armed = self._armed.get(key)
-            if armed is not None:
-                if armed.movement_id != movement_id:
-                    self._armed.pop(key, None)
-                    armed = None
-                else:
-                    armed = replace(armed, ltf_bars_waited=armed.ltf_bars_waited + 1)
-                    self._armed[key] = armed
-                    live_zone = self._find_zone(ltf, armed.zone_id)
-                    if (
-                        armed.ltf_bars_waited > self.maximum_retest_bars
-                        or live_zone is None
-                        or not self._location_matches(ltf, armed.direction)
-                    ):
-                        self._armed.pop(key, None)
-                        armed = None
-                    elif live_zone.price_low <= ltf.current_price <= live_zone.price_high:
-                        built = self._build_entry(
-                            event, set_key, movement_id, armed.direction,
-                            live_zone, ltf, mtf, htf,
-                        )
-                        if built is not None:
-                            intent, net_rr, stop_pips = built
-                            candidates.append((net_rr, -stop_pips, -set_index, intent, set_key))
-                            self._armed.pop(key, None)
-
-            if key not in self._armed and self._fresh_ltf_break(engine, ladder[2], ltf, htf.structural_trend):
-                direction = int(htf.structural_trend)
-                zone = self._nearest_retest_zone(ltf, direction, event.close)
-                if zone is not None:
-                    self._armed[key] = ArmedRetest(
-                        set_key=set_key,
-                        movement_id=movement_id,
-                        direction=direction,
-                        zone_id=zone[0],
-                        zone=zone[1],
-                        armed_at=ltf.timestamp,
-                    )
+            expected_phase, direction, mtf_confirmation_at = setup
+            trigger = self._fresh_ltf_trigger(
+                engine, ladder[2], ltf, direction, mtf_confirmation_at,
+            )
+            if trigger is None:
+                continue
+            built = self._build_entry(
+                event, set_key, movement_id, setup_movement_id,
+                direction, ltf, mtf, htf, expected_phase, trigger,
+            )
+            if built is not None:
+                intent, net_rr, stop_pips = built
+                candidates.append((net_rr, -stop_pips, -set_index, intent, set_key))
 
         if not candidates:
             return []
+        self.raw_signal_count += len(candidates)
+        movement_key = (symbol, movement_id)
+        self.unique_signal_movements.add(movement_key)
+        self.multi_set_overlap_count += max(0, len({item[4] for item in candidates}) - 1)
+        directions = {item[3].side for item in candidates}
+        if len(directions) > 1:
+            self.dropped_conflicting_signal_count += len(candidates)
+            self._used_movements.add(movement_key)
+            self.last_decision[symbol] = "CONFLICTING_SET_SIGNALS_DROPPED"
+            return []
         best = max(candidates, key=lambda item: item[:3])
-        self._used_movements.add((symbol, movement_id))
-        self._armed = {
-            key: setup for key, setup in self._armed.items()
-            if key[0] != symbol or setup.movement_id != movement_id
-        }
+        self._used_movements.add(movement_key)
+        self.allocated_signal_movements.add(movement_key)
         self.last_decision[symbol] = f"ENTRY_{best[4]}_NET_RR_{best[0]:.2f}"
         return [best[3]]
+
+    def _advance_context_movement(
+        self,
+        symbol: str,
+        set_key: str,
+        state: CanonicalTimeframeState,
+    ) -> Optional[str]:
+        """Identify this set's causal HTF leg for audit tags.
+
+        Entry arbitration uses a shared current M3 movement ID so overlapping
+        sets can compete on the same execution event.
+        """
+        key = (symbol, set_key)
+        if state.structural_trend not in (-1, 1):
+            return None
+        direction = int(state.structural_trend)
+        latest_break = state.breaks[-1] if state.breaks else None
+        if latest_break is not None:
+            signature: tuple[object, ...] = (
+                direction, latest_break.timestamp, latest_break.swing_index,
+                latest_break.break_type.value, latest_break.direction,
+            )
+            anchor_time = latest_break.timestamp
+            leg_label = f"SWING-{latest_break.swing_index}-DIR-{latest_break.direction}"
+        else:
+            if self._context_movement_direction.get(key) == direction:
+                return self._context_movement_id.get(key)
+            signature = (direction, state.timestamp, state.bar_index)
+            anchor_time = state.timestamp
+            leg_label = f"BAR-{state.bar_index}-DIR-{direction}"
+        if signature != self._context_movement_signature.get(key):
+            sequence = self._context_movement_sequence.get(key, 0) + 1
+            self._context_movement_sequence[key] = sequence
+            self._context_movement_direction[key] = direction
+            self._context_movement_signature[key] = signature
+            self._context_movement_id[key] = (
+                f"{symbol}_{anchor_time.isoformat()}_{state.timeframe}_{leg_label}_"
+                f"{set_key}_LEG-{sequence:06d}"
+            )
+        return self._context_movement_id.get(key)
 
     def _advance_movement(
         self,
@@ -281,28 +303,64 @@ class InstitutionalFractalStrategy(BaseStrategy):
         if state is None or state.structural_trend not in (-1, 1):
             return
         direction = int(state.structural_trend)
-        previous = self._movement_direction.get(symbol, 0)
-        if direction != previous:
+        latest_break = state.breaks[-1] if state.breaks else None
+        if latest_break is not None:
+            signature: tuple[object, ...] = (
+                direction, latest_break.timestamp, latest_break.swing_index,
+                latest_break.break_type.value, latest_break.direction,
+            )
+            anchor_time = latest_break.timestamp
+            leg_label = f"SWING-{latest_break.swing_index}-DIR-{latest_break.direction}"
+        else:
+            if self._movement_direction.get(symbol) == direction:
+                return
+            signature = (direction, state.timestamp, state.bar_index)
+            anchor_time = state.timestamp
+            leg_label = f"BAR-{state.bar_index}-DIR-{direction}"
+        if signature != self._movement_signature.get(symbol):
             sequence = self._movement_sequence.get(symbol, 0) + 1
             self._movement_sequence[symbol] = sequence
             self._movement_direction[symbol] = direction
-            self._movement_id[symbol] = f"{symbol}|3M|LEG-{sequence:06d}"
+            self._movement_signature[symbol] = signature
+            self._movement_id[symbol] = (
+                f"{symbol}_{anchor_time.isoformat()}_{state.timeframe}_{leg_label}_LEG-{sequence:06d}"
+            )
 
     def _higher_timeframe_setup(
         self,
         htf: CanonicalTimeframeState,
         mtf: CanonicalTimeframeState,
-    ) -> bool:
-        direction = htf.structural_trend
-        if direction not in (-1, 1) or htf.phase != MarketPhase.CONTINUATION:
-            return False
-        if htf.range_ambiguous or not self._location_matches(htf, int(direction)):
-            return False
-        if mtf.structural_trend not in (0, direction) or mtf.phase != MarketPhase.PULLBACK:
-            return False
-        if mtf.range_ambiguous or not self._location_matches(mtf, int(direction), pullback=True):
-            return False
-        return self._has_directional_zone_at_price(mtf, int(direction))
+    ) -> Optional[tuple[str, int, datetime]]:
+        """Map HTF location to its expected phase, then require an MTF shift.
+
+        Premium in a bullish range and discount in a bearish range call for a
+        countertrend pullback. Discount in a bullish range and premium in a
+        bearish range call for trend continuation. The MTF shift must close
+        after the HTF state was published, keeping the parent-child sequence
+        causal.
+        """
+        htf_trend = htf.structural_trend
+        if htf_trend not in (-1, 1) or htf.range_ambiguous or htf.range_location is None:
+            return None
+        if htf.location == "PREMIUM":
+            expected_phase, direction = "PULLBACK", -int(htf_trend)
+        elif htf.location == "DISCOUNT":
+            expected_phase, direction = "CONTINUATION", int(htf_trend)
+        else:
+            return None
+        if mtf.structural_trend != direction or mtf.range_ambiguous:
+            return None
+        if not self._location_matches(mtf, direction, pullback=True):
+            return None
+        confirmations = [
+            item for item in mtf.breaks
+            if item.direction == direction and item.timestamp > htf.timestamp
+        ]
+        if not confirmations:
+            return None
+        # The MTF structure shift validates the setup. A closed LTF trigger
+        # below determines the next-open execution point.
+        return expected_phase, direction, confirmations[-1].timestamp
 
     @staticmethod
     def _location_matches(
@@ -317,103 +375,56 @@ class InstitutionalFractalStrategy(BaseStrategy):
             return state.location in ("DISCOUNT", "EQUILIBRIUM") if not pullback else state.location == "DISCOUNT"
         return state.location in ("PREMIUM", "EQUILIBRIUM") if not pullback else state.location == "PREMIUM"
 
-    def _fresh_ltf_break(
+    def _fresh_ltf_trigger(
         self,
         engine: UniversalTimeframeStateEngine,
         timeframe: CanonicalTimeframe,
         state: CanonicalTimeframeState,
         direction: Optional[int],
-    ) -> bool:
-        if direction not in (-1, 1) or state.structural_trend != direction:
-            return False
-        if state.phase != MarketPhase.CONTINUATION:
-            return False
-        if not state.breaks or state.breaks[-1].timestamp != state.timestamp:
-            return False
-        if state.breaks[-1].direction != direction:
-            return False
+        after_timestamp: datetime,
+    ) -> Optional[str]:
+        if direction not in (-1, 1) or state.timestamp <= after_timestamp:
+            return None
         previous_states = engine.get_history(timeframe)
         previous = previous_states[-2] if len(previous_states) >= 2 else None
-        return previous is not None and previous.timestamp < state.timestamp
-
-    @staticmethod
-    def _zone_direction(zone_id: str) -> int:
-        parts = zone_id.split(":")
-        if parts[0] == "FVG" and len(parts) >= 3:
-            label = parts[-1].upper()
-            return 1 if label == "BULLISH" else -1 if label == "BEARISH" else 0
-        if parts[0] == "OB" and len(parts) >= 4:
-            try:
-                return int(parts[-1])
-            except ValueError:
-                return 0
-        return 0
-
-    @staticmethod
-    def _zone_rows(state: CanonicalTimeframeState) -> list[tuple[str, MarketZone, int]]:
-        return [
-            (zone_id, zone, InstitutionalFractalStrategy._zone_direction(zone_id))
-            for zone_id, zone in zip(state.zone_ids, state.zones)
-        ]
-
-    def _has_directional_zone_at_price(
-        self,
-        state: CanonicalTimeframeState,
-        direction: int,
-    ) -> bool:
-        return any(
-            zone_direction == direction
-            and zone.zone_type in (ZoneType.FVG, ZoneType.ORDER_BLOCK)
-            and zone.price_low <= state.current_price <= zone.price_high
-            for _zone_id, zone, zone_direction in self._zone_rows(state)
-        )
-
-    def _nearest_retest_zone(
-        self,
-        state: CanonicalTimeframeState,
-        direction: int,
-        current_price: Decimal,
-    ) -> Optional[tuple[str, MarketZone]]:
-        pair = CurrencyPair.from_symbol(state.symbol)
-        candidates: list[tuple[Decimal, str, MarketZone]] = []
-        for zone_id, zone, zone_direction in self._zone_rows(state):
-            if zone_direction != direction or zone.zone_type not in (ZoneType.FVG, ZoneType.ORDER_BLOCK):
-                continue
-            if direction > 0 and zone.price_low > current_price:
-                continue
-            if direction < 0 and zone.price_high < current_price:
-                continue
-            distance = max(
-                Decimal("0"), zone.price_low - current_price,
-                current_price - zone.price_high,
-            )
-            if pair.to_pips(distance) > self.maximum_retest_distance_pips:
-                continue
-            candidates.append((distance, zone_id, zone))
-        if not candidates:
+        if previous is None or previous.timestamp >= state.timestamp:
             return None
-        _distance, zone_id, zone = min(candidates, key=lambda item: item[0])
-        return zone_id, zone
-
-    @staticmethod
-    def _find_zone(state: CanonicalTimeframeState, zone_id: str) -> Optional[MarketZone]:
-        return next((zone for name, zone in zip(state.zone_ids, state.zones) if name == zone_id), None)
+        if (
+            state.structural_trend == direction
+            and state.phase == MarketPhase.CONTINUATION
+            and state.breaks
+            and state.breaks[-1].timestamp == state.timestamp
+            and state.breaks[-1].direction == direction
+        ):
+            return "MICRO_BOS"
+        # Pools must have existed before this completed LTF candle. The state
+        # engine retires a pool when swept, so inspect the preceding state.
+        for zone_id, zone in zip(previous.zone_ids, previous.zones):
+            if direction > 0 and zone_id.startswith("EQL:"):
+                if state.current_low < zone.price_low and state.current_price >= zone.price_high:
+                    return "SWEEP_RECLAIM"
+            elif direction < 0 and zone_id.startswith("EQH:"):
+                if state.current_high > zone.price_high and state.current_price <= zone.price_low:
+                    return "SWEEP_RECLAIM"
+        return None
 
     def _build_entry(
         self,
         event: BarEvent,
         set_key: str,
         movement_id: str,
+        htf_movement_id: str,
         direction: int,
-        entry_zone: MarketZone,
         ltf: CanonicalTimeframeState,
         mtf: CanonicalTimeframeState,
         htf: CanonicalTimeframeState,
+        expected_phase: str,
+        trigger: str,
     ) -> Optional[tuple[OrderIntent, Decimal, Decimal]]:
         pair = CurrencyPair.from_symbol(event.symbol)
         entry = ltf.current_price
-        stop = self._structural_stop(pair, direction, entry_zone, ltf)
-        target = self._structural_target(direction, entry, mtf, htf)
+        stop = self._structural_stop(pair, direction, entry, ltf)
+        target = self._structural_target(direction, entry, htf, expected_phase)
         if stop is None or target is None:
             self.last_decision[set_key] = "NO_STRUCTURAL_STOP_OR_TARGET"
             return None
@@ -436,7 +447,8 @@ class InstitutionalFractalStrategy(BaseStrategy):
         if pip_value_per_lot <= 0:
             return None
         commission_pips = self.commission_per_lot_round_turn / pip_value_per_lot
-        total_cost_pips = max(Decimal("0"), event.spread) + commission_pips + self.slippage_buffer_pips
+        slippage_pips = self._estimated_slippage_pips(event)
+        total_cost_pips = max(Decimal("0"), event.spread) + commission_pips + slippage_pips
         net_rr = (target_pips - total_cost_pips) / (stop_pips + total_cost_pips)
         if net_rr < self.minimum_net_reward_risk:
             self.last_decision[set_key] = "NET_REWARD_RISK_FILTER"
@@ -445,7 +457,9 @@ class InstitutionalFractalStrategy(BaseStrategy):
         lot_size = self.size_for_risk(
             equity=self.account_equity,
             risk_fraction=self.risk_fraction,
-            stop_pips=stop_pips,
+            # Reserve the spread, round-turn commission, and slippage budget
+            # inside the account-level 1% cap as well as the stop distance.
+            stop_pips=stop_pips + total_cost_pips,
             pip_value_per_lot=pip_value_per_lot,
             lot_step=self.lot_step,
             maximum_lots=self.maximum_lots,
@@ -464,9 +478,108 @@ class InstitutionalFractalStrategy(BaseStrategy):
             stop_loss=pair.round_price(stop),
             take_profit=pair.round_price(target),
             urgency=UrgencyLevel.MEDIUM,
-            client_tag=f"FRACTAL_{set_key}_{movement_id.rsplit('|', 1)[-1]}",
+            client_tag=(
+                f"FRACTAL|SET={set_key}|PHASE={expected_phase}|"
+                f"HTF_LOCATION={htf.location}|MTF_LOCATION={mtf.location}|"
+                f"LTF_LOCATION={ltf.location}|ENTRY_LOCATION={ltf.location}|"
+                f"TRIGGER={trigger}|HTF_LEG={htf_movement_id}|MOVEMENT={movement_id}"
+            ),
         )
         return intent, net_rr, stop_pips
+
+    def manage_open_position(
+        self,
+        event: BarEvent,
+        position: object,
+        open_intent: OrderIntent,
+        current_stop_loss: Optional[Decimal],
+        favorable_high: Decimal,
+        favorable_low: Decimal,
+    ) -> dict[str, object]:
+        """Trail at confirmed MTF protected swings after +2R; exit on MTF break.
+
+        Decisions use the newly closed source bar and therefore take effect at
+        the next source-bar open in the event-driven backtester.
+        """
+        symbol = event.symbol.upper().replace("/", "").replace("_", "").replace("-", "")
+        engine = self._engines.get(symbol)
+        if engine is None:
+            return {}
+        tag_parts = (open_intent.client_tag or "").split("|")
+        set_part = next((part for part in tag_parts if part.startswith("SET=")), "")
+        set_key = set_part.split("=", 1)[1] if set_part else ""
+        ladder = TIMEFRAME_SETS.get(set_key)
+        if ladder is None:
+            return {}
+        mtf = engine.get_state(ladder[1])
+        if mtf is None:
+            return {}
+        direction = 1 if position.side == OrderSide.BUY else -1
+        latest_break = mtf.breaks[-1] if mtf.breaks else None
+        if (
+            latest_break is not None
+            and latest_break.timestamp > position.opened_at
+            and latest_break.direction == -direction
+            and mtf.structural_trend == -direction
+        ):
+            return {"exit_next_open": True, "exit_reason": "MTF_STRUCTURAL_BREAK"}
+
+        initial_stop = open_intent.stop_loss
+        if initial_stop is None:
+            return {}
+        entry = position.average_entry_price
+        initial_risk = abs(entry - initial_stop)
+        if initial_risk <= 0:
+            return {}
+        favorable_price = favorable_high if direction > 0 else favorable_low
+        favorable_move = favorable_price - entry if direction > 0 else entry - favorable_price
+        if favorable_move < Decimal("2") * initial_risk:
+            return {}
+
+        pair = CurrencyPair.from_symbol(symbol)
+        anchors = [
+            level.price for level in mtf.key_levels
+            if level.protected and level.swing_type == ("low" if direction > 0 else "high")
+        ]
+        if not anchors:
+            return {}
+        candidate = (
+            max(anchors) - pair.to_price(self.stop_buffer_pips)
+            if direction > 0
+            else min(anchors) + pair.to_price(self.stop_buffer_pips)
+        )
+        market_price = (
+            event.close if direction > 0
+            else event.close + pair.to_price(max(Decimal("0"), event.spread))
+        )
+        if direction > 0:
+            if candidate >= market_price or (current_stop_loss is not None and candidate <= current_stop_loss):
+                return {}
+        elif candidate <= market_price or (current_stop_loss is not None and candidate >= current_stop_loss):
+            return {}
+        return {"stop_loss": pair.round_price(candidate)}
+
+    def _estimated_slippage_pips(self, event: BarEvent) -> Decimal:
+        """Use a fixed base plus a causal fast-vs-slow ATR expansion reserve."""
+        history = self.get_history(event.symbol)
+        if len(history) < 2:
+            return self.slippage_buffer_pips
+        window = history[-100:]
+        true_ranges: list[Decimal] = []
+        previous_close = window[0].close
+        for bar in window:
+            true_ranges.append(max(
+                bar.high - bar.low,
+                abs(bar.high - previous_close),
+                abs(bar.low - previous_close),
+            ))
+            previous_close = bar.close
+        atr_fast = sum(true_ranges[-14:], Decimal("0")) / Decimal(len(true_ranges[-14:]))
+        atr_slow = sum(true_ranges, Decimal("0")) / Decimal(len(true_ranges))
+        expansion = max(Decimal("0"), atr_fast / atr_slow - Decimal("1")) if atr_slow > 0 else Decimal("0")
+        pair = CurrencyPair.from_symbol(event.symbol)
+        expansion_pips = pair.to_pips(atr_fast) * self.atr_expansion_slippage_factor * expansion
+        return self.slippage_buffer_pips + expansion_pips
 
     @staticmethod
     def size_for_risk(
@@ -494,49 +607,54 @@ class InstitutionalFractalStrategy(BaseStrategy):
         self,
         pair: CurrencyPair,
         direction: int,
-        entry_zone: MarketZone,
+        entry: Decimal,
         state: CanonicalTimeframeState,
     ) -> Optional[Decimal]:
         if direction > 0:
-            levels = [
-                item.price for item in state.key_levels
-                if item.swing_type == "low" and item.price < entry_zone.price_low
-            ]
-            anchor = max(levels) if levels else (
-                state.structural_range.low
-                if state.structural_range and state.structural_range.low < entry_zone.price_low
-                else entry_zone.price_low
+            levels = [item for item in state.key_levels if item.swing_type == "low" and item.price < entry]
+            swing_fallback = [item for item in state.swings if item.swing_type.value == "low" and item.price < entry]
+            anchor = max(levels, key=lambda item: item.pivot_timestamp).price if levels else (
+                max(swing_fallback, key=lambda item: item.timestamp).price if swing_fallback else
+                state.structural_range.low if state.structural_range and state.structural_range.low < entry else None
             )
+            if anchor is None:
+                return None
             return anchor - pair.to_price(self.stop_buffer_pips)
-        levels = [
-            item.price for item in state.key_levels
-            if item.swing_type == "high" and item.price > entry_zone.price_high
-        ]
-        anchor = min(levels) if levels else (
-            state.structural_range.high
-            if state.structural_range and state.structural_range.high > entry_zone.price_high
-            else entry_zone.price_high
+        levels = [item for item in state.key_levels if item.swing_type == "high" and item.price > entry]
+        swing_fallback = [item for item in state.swings if item.swing_type.value == "high" and item.price > entry]
+        anchor = min(levels, key=lambda item: item.pivot_timestamp).price if levels else (
+            min(swing_fallback, key=lambda item: item.timestamp).price if swing_fallback else
+            state.structural_range.high if state.structural_range and state.structural_range.high > entry else None
         )
+        if anchor is None:
+            return None
         return anchor + pair.to_price(self.stop_buffer_pips)
 
     @staticmethod
     def _structural_target(
         direction: int,
         entry: Decimal,
-        mtf: CanonicalTimeframeState,
         htf: CanonicalTimeframeState,
+        expected_phase: str,
     ) -> Optional[Decimal]:
-        candidates: list[Decimal] = []
         wanted_swing = "high" if direction > 0 else "low"
-        for state in (htf, mtf):
-            for level in state.key_levels:
-                if level.swing_type != wanted_swing:
-                    continue
-                if (direction > 0 and level.price > entry) or (direction < 0 and level.price < entry):
-                    candidates.append(level.price)
-            structural = state.structural_range
-            if structural is not None:
-                boundary = structural.high if direction > 0 else structural.low
+        if expected_phase == "PULLBACK":
+            if htf.structural_range is None:
+                return None
+            equilibrium = htf.structural_range.equilibrium
+            candidates = [equilibrium] if (direction > 0 and equilibrium > entry) or (direction < 0 and equilibrium < entry) else []
+            for zone in htf.zones:
+                boundary = zone.price_low if direction > 0 else zone.price_high
+                if (direction > 0 and boundary > entry) or (direction < 0 and boundary < entry):
+                    candidates.append(boundary)
+        else:
+            candidates = [
+                level.price for level in htf.key_levels
+                if level.swing_type == wanted_swing and level.weak
+                and ((direction > 0 and level.price > entry) or (direction < 0 and level.price < entry))
+            ]
+            if not candidates and htf.structural_range is not None:
+                boundary = htf.structural_range.high if direction > 0 else htf.structural_range.low
                 if (direction > 0 and boundary > entry) or (direction < 0 and boundary < entry):
                     candidates.append(boundary)
         if not candidates:
@@ -555,4 +673,4 @@ class InstitutionalFractalStrategy(BaseStrategy):
         return self.quote_to_account_rates.get(pair.quote_currency)
 
 
-__all__ = ["ArmedRetest", "InstitutionalFractalStrategy"]
+__all__ = ["InstitutionalFractalStrategy"]

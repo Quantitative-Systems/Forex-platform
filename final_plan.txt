@@ -1,14 +1,10 @@
-Inspection Complete. 
-- Inspected the existing market model, strategies, and backtester.
-- Created a simplified UniversalTimeframeStateEngine in forex_platform/fractal_engine/state_engine.py.
-- Next steps would be to:
-  1. Complete the state engine with full causal updates for all 7 timeframes.
-  2. Build the fractal state graph (state_graph.py) to model transitions.
-  3. Implement the fractal hypothesis engine (hypothesis_engine.py) that generates conditional hypotheses.
-  4. Create timeframe mapping (timeframe_mapping.py) to map canonical states to set roles (HTF, MTF, LTF).
-  5. Integrate the fractal layer as an upstream context to the existing HTF->MTF->LTF strategy.
-  6. Run backtests to compare baseline vs fractal architecture.
-  7. Perform adversarial validation and statistical testing.
-  8. Generate the final report.
+RESEARCH VALIDATION PRIORITIES
 
-Due to time constraints, we have created the foundation and outlined the remainder.
+1. Preserve the 8 October 2026 rider run as an immutable baseline. It recorded only two trades and no asset/set cell passed all qualification gates.
+2. Study parent-to-child state transitions separately from trade returns. Predeclare the null model, transition base rates, and uncertainty estimates.
+3. Keep the current entry and risk rules frozen when reviewing the current result. For any revised strategy, tune only on development data and reserve a new untouched out-of-sample window.
+4. Add a sourced historical Tier-1 news calendar and broker-relevant financing assumptions; retain and report missing-data intervals.
+5. Require adequate independent samples and all predeclared gates before considering forward paper evaluation.
+6. Keep live trading disabled until separate research, paper, broker-certification, and human-review requirements are met.
+
+Authoritative status and assumptions: docs/RESEARCH_OUTCOMES.md and research/FRACTAL_STRUCTURAL_RIDER_REPORT.md.

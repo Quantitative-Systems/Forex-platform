@@ -1,75 +1,64 @@
 # Product Roadmap
 
-The priority is evidence quality and execution validation. Adding strategies or optimizing settings cannot substitute for reliable data and out-of-sample results.
+The platform prioritizes trustworthy evidence and execution validation. More indicators, assets, or parameter searches cannot substitute for adequate out-of-sample evidence.
 
-## Current position
+## Current position — 8 October 2026
 
-The fractal research candidate and five-set campaign are implemented. The latest public dataset contains about 2.08 years of bid/ask M1 history for EURUSD, GBPUSD, USDJPY, and AUDUSD, but each pair failed the weekday continuity audit. As a result, 0 of the 20 asset/set cells have been backtested. The platform has no qualified candidate and no live capital is enabled.
+The seven-timeframe state engine, shared five-set views, parent-child requirement tracking, fractal rider, and four-pair batch research runner are implemented. The latest run covered EURUSD, GBPUSD, USDJPY, and AUDUSD across all five sets, using paired Dukascopy BID/ASK M1 history from 2024-01-01 through 2026-10-08.
 
-## Phase 0 - Evidence integrity
+Only two trades were recorded; no cell passed the four research gates. The tested rider is falsified under its frozen rules. The broader fractal hypothesis remains unproven because the transition-prediction question needs a separate statistical study. No candidate is qualified, none has entered forward paper evaluation, and live capital is $0. The requested historical Tier-1 news blackout was not applied because the campaign had no historical event calendar.
 
-- Acquire complete, licensed or otherwise authorized, provenance-labeled bid/ask data.
-- Prefer the same broker feed intended for execution.
-- Record source, license or permitted use, time zone, checksums, row counts, date ranges, and quality reports.
-- Preserve weekday gaps; reject histories that could conceal intrabar exits.
-- Build a full manifest for the four-pair fractal campaign before expanding to the broader 28-pair registry.
+## Phase 0 — Evidence and assumptions
 
-**Exit criteria:** all qualifying histories pass provenance, continuity, spread, timestamp, and quote-quality checks for the minimum coverage period.
+- Add a sourced historical macro-news calendar and broker-specific historical financing where available.
+- Review short unexplained vendor-data gaps and obtain a feed representative of the intended execution venue.
+- Record source terms, time zone, checksums, coverage, quote quality, and model assumptions in every run.
+- Keep missing candles visible; do not repair gaps in a way that hides stop or target paths.
 
-## Phase 1 - Fractal candidate evaluation
+**Exit criteria:** independent data review confirms that the chosen feed and documented gap policy are suitable for the intended research questions.
 
-- Run all five timeframe sets independently for EURUSD, GBPUSD, USDJPY, and AUDUSD.
-- Collect at least 100 completed trades in each of the 20 asset/set cells.
-- Keep the HTF/MTF/LTF rules and risk assumptions fixed before the final OOS evaluation.
-- Run chronological DEV/VAL/OOS splits, rolling windows, bootstrap confidence checks, FDR correction, doubled-cost stress, and top-winner removal.
-- Report every cell, including rejected and under-sampled cells.
+## Phase 1 — Falsifiable strategy research
 
-**Exit criteria:** a candidate passes the predefined G1-G8 gates with positive out-of-sample and cost-stressed results across multiple assets and windows. Reaching 100 trades alone is not a pass.
+- Keep the present result and rule version immutable as the baseline.
+- Test parent-to-child transition information separately from trade profitability, with explicit null hypotheses, base rates, and uncertainty intervals.
+- If the strategy rules change, use development data for the change and reserve a new untouched out-of-sample period.
+- Seek adequate independent observations for each declared candidate; do not lower the 80-trade campaign gate to produce a pass.
+- Report all 20 pair/set cells, signal overlap, costs, gaps, missing news filters, and under-sampled cells.
 
-## Phase 2 - Forward paper trading
+**Exit criteria:** a predeclared candidate clears the sample, expectancy, walk-forward, and cost-stress gates on eligible data, with replication across more than one asset or period.
 
-- Run only research-qualified candidates through the paper execution path.
-- Log decisions, order rejects, partial fills, latency, spreads, slippage, and reconciliation events.
-- Compare observed paper execution with research assumptions.
-- Monitor changing performance without tuning on the forward evaluation period.
+## Phase 2 — Forward paper evaluation
 
-**Exit criteria:** forward results remain positive and within predeclared tolerances over a sufficiently long, regime-diverse sample.
+- Promote only research-qualified candidates to the paper path.
+- Log decisions, order rejects, partial fills, latency, spreads, slippage, financing, and reconciliation events.
+- Compare realized paper execution against research assumptions without tuning on the forward sample.
 
-## Phase 3 - Portfolio validation
+**Exit criteria:** paper results remain within predeclared risk and execution tolerances over a sufficiently long, regime-diverse observation period.
 
-- Combine only forward paper-qualified strategies.
+## Phase 3 — Portfolio validation
+
+- Combine only paper-qualified strategies.
 - Enforce gross, symbol, currency, correlation, and drawdown limits.
-- Stress correlated exposures and liquidity events.
-- Re-run portfolio-level OOS and forward evaluation.
+- Stress correlated exposures and liquidity events; re-evaluate the portfolio as a whole.
 
-**Exit criteria:** net portfolio performance remains positive after costs and risk limits under OOS and forward observation.
+**Exit criteria:** net portfolio behavior remains within risk limits in independent out-of-sample and forward periods.
 
-## Phase 4 - Broker certification
+## Phase 4 — Broker certification
 
-- Connect a broker demo account through the authenticated gateway.
-- Verify symbol mapping, order types, fills, cancels, positions, account data, and reconciliation.
+- Validate symbol mapping, order types, fills, cancels, position/account data, and reconciliation on a broker demo account.
 - Test disconnects, restarts, duplicate requests, rejects, and partial fills.
+- Keep broker credentials on the approved gateway host.
 
-**Exit criteria:** a broker-specific certification report passes and the paper path matches the intended live order route.
+**Exit criteria:** a broker-specific certification report passes and the paper path matches the intended route.
 
-## Phase 5 - Limited live operation
+## Phase 5 — Limited live operation
 
-- Require explicit human approval.
-- Start with minimal capital and a strict account-level ceiling.
-- Keep continuous monitoring and automatic kill switches enabled.
-- Prohibit automatic capital increases.
-
-**Exit criteria:** risk and operational stability remain within the agreed limits over a reviewed observation period.
-
-## Phase 6 - Additional asset classes
-
-Only after spot-FX data, execution, and risk controls are validated should the platform add indices, metals, commodities, equities, crypto, futures, or options. Each asset class needs its own contract specifications, hours, margin, financing, settlement, and risk model.
+Any live stage requires separate human approval, minimal initial capital, strict account-level limits, continuous monitoring, and active kill switches. The platform does not enable live capital automatically.
 
 ## Research principles
 
-- Do not promise guaranteed returns.
+- Do not promise guaranteed returns or label an unqualified candidate profitable.
 - Do not treat synthetic or unknown-provenance data as performance evidence.
-- Do not lower gates to force a strategy promotion.
-- Do not treat a minimum trade count as proof of an edge.
-- Do not enable live capital automatically.
-- Do not treat strategy count as a measure of research quality.
+- Do not lower predeclared gates to force a promotion.
+- Do not treat trade count alone, a high reward-to-risk filter, or a single winning trade as proof of an edge.
+- Do not automatically enable live routing or increase capital.

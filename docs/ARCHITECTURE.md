@@ -75,13 +75,13 @@ The evaluator applies G1-G8. Failed candidates are archived under `research/fail
 | SET 4 | 4H | 1H | 15M |
 | SET 5 | 1H | 15M | 3M |
 
-`forex_platform/fractal_engine/hypothesis_engine.py` records conditional state paths. It describes transitions; it does not by itself establish returns or a tradable edge.
+`forex_platform/fractal_engine/hypothesis_engine.py` records conditional state paths. `forex_platform/fractal_engine/requirements.py` tracks parent-to-child expectations as causal lifecycle events, while `consistency.py` checks shared state invariants. These components describe structure and transitions; they do not by themselves establish returns or a tradable edge.
 
 ### Fractal candidate
 
-`forex_platform/strategy_engine/fractal_institutional.py` consumes completed M1 input. The research candidate combines HTF continuation and range location, MTF pullback and zone context, and a confirmed LTF break followed by a later retest. Movement identifiers prevent the same structural leg from being counted repeatedly through overlapping sets. The candidate remains research-only until it passes eligible-data, sample-size, out-of-sample, cost-stress, and forward-paper checks.
+`forex_platform/strategy_engine/fractal_institutional.py` consumes completed M1 input. HTF structure and range location define a pullback or continuation hypothesis; an MTF shift validates the setup; an LTF micro-BOS or confirmed liquidity sweep-and-reclaim triggers at the next source-bar open. The stop uses a confirmed LTF swing with a two-pip buffer, and the structural HTF target must offer at least 4R net of estimated costs. Position sizing is capped at 1% account risk. After +2R, a confirmed MTF protected swing can trail the stop. Shared movement identity arbitrates signals across sets and drops opposing candidates.
 
-The latest report is `research/FRACTAL_RESEARCH_REPORT.md`. The current bid/ask campaign failed its weekday continuity checks, so no asset/set performance metrics are available.
+The latest report is `research/FRACTAL_STRUCTURAL_RIDER_REPORT.md`. The four-pair campaign evaluated all 20 set cells and recorded two SET 5 trades. No cell passed all four gates; the rider is falsified under its frozen rules and the broader fractal hypothesis remains unproven. The older HistData continuity-rejected study is retained in `research/FRACTAL_RESEARCH_REPORT.md`.
 
 ## Data layer
 
@@ -101,7 +101,7 @@ The latest report is `research/FRACTAL_RESEARCH_REPORT.md`. The current bid/ask 
 
 `forex-platform download-history` supports multi-symbol/timeframe downloads and fails closed by default. Synthetic fallback requires an explicit flag and is never qualifying evidence.
 
-`forex_platform/market_data/histdata_ticks.py` downloads monthly raw bid/ask tick archives, converts the fixed EST-without-DST timestamps to UTC, aggregates separate bid/ask M1 OHLC, and records provenance. It only carries forward very short no-quote gaps; longer gaps remain visible to quality gates. Downloaded archives and caches stay local and are excluded from Git.
+`forex_platform/market_data/histdata_ticks.py` downloads monthly raw bid/ask tick archives, converts the fixed EST-without-DST timestamps to UTC, aggregates separate bid/ask M1 OHLC, and records provenance. `forex_platform/market_data/download_dukascopy_m1.py` fetches aligned historical BID/ASK M1 candles for the four fractal campaign pairs. The rider campaign preserves missing intervals; it does not fabricate bars. Downloaded archives and caches stay local and are excluded from Git.
 
 ## Strategy layer
 

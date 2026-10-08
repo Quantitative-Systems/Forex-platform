@@ -1,5 +1,7 @@
 # Fractal Cross-Timeframe Research Report
 
+> **Historical data-quality study (7 October 2026).** This report describes an earlier HistData run whose strict continuity policy rejected the available histories before performance testing. It has been superseded as the latest strategy result by [FRACTAL_STRUCTURAL_RIDER_REPORT.md](FRACTAL_STRUCTURAL_RIDER_REPORT.md), which evaluates the subsequent Dukascopy BID/ASK campaign. See [current research outcomes](../docs/RESEARCH_OUTCOMES.md).
+
 - Generated: 2026-10-07T12:33:48.909467+00:00
 - Verdict: **INSUFFICIENT DATA**
 - Live capital: **$0.00**
