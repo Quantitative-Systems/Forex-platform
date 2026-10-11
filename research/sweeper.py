@@ -66,6 +66,7 @@ from forex_platform.strategy_engine.base import BaseStrategy
 from forex_platform.strategy_engine.scalping import AsianRangeFadeScalper
 from forex_platform.strategy_engine.session_breakout import LondonSessionBreakout
 from forex_platform.strategy_engine.trend_continuation import TrendContinuationStrategy
+from forex_platform.strategy_engine.fractal_institutional import InstitutionalFractalStrategy
 
 logger = logging.getLogger("research.sweeper")
 
@@ -234,6 +235,9 @@ VARIANTS: Dict[str, ModelVariant] = {
     ),
     "ASIAN_RANGE_FADE": ModelVariant(
         "ASIAN_RANGE_FADE", AsianRangeFadeScalper, {}
+    ),
+    "FRACTAL_STRUCTURAL_RIDER": ModelVariant(
+        "FRACTAL_STRUCTURAL_RIDER", InstitutionalFractalStrategy, {}
     ),
 }
 
@@ -712,8 +716,13 @@ def run_experiment(
     }
 
     def _execute(frame: pl.DataFrame, cost_multiplier: float) -> BacktestResult:
-        strategy = variant.build(
-            strategy_id=f"{tfset.key}_{variant.key}_{symbol}".lower(), symbol=symbol
+        # Ensure the strategy receives the correct source timeframe (the set's LTF)
+        params = dict(variant.params)
+        params["source_timeframe"] = tfset.ltf_timeframe
+        strategy = variant.strategy_cls(
+            strategy_id=f"{tfset.key}_{variant.key}_{symbol}".lower(),
+            symbols=[symbol],
+            **params
         )
         tester = EventDrivenBacktester(
             strategy=strategy,

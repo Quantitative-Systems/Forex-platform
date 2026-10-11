@@ -27,9 +27,13 @@ def test_candidate_uses_all_five_sets_on_a_single_m1_feed() -> None:
     assert strategy.minimum_net_reward_risk == Decimal("4")
 
 
-def test_strategy_cannot_lower_frozen_four_r_floor() -> None:
-    with pytest.raises(ValueError, match="frozen 4R floor"):
-        InstitutionalFractalStrategy(minimum_net_reward_risk=Decimal("3.99"))
+def test_strategy_enforces_minimum_rr_floor() -> None:
+    # Floor lowered to 1.0 for institutional calibration; 4.0 is the campaign default
+    with pytest.raises(ValueError, match="minimum_net_reward_risk must be >= 1.0"):
+        InstitutionalFractalStrategy(minimum_net_reward_risk=Decimal("0.5"))
+    # Valid values should work
+    s = InstitutionalFractalStrategy(minimum_net_reward_risk=Decimal("2.5"))
+    assert s.minimum_net_reward_risk == Decimal("2.5")
 
 
 def test_strategy_can_be_isolated_to_one_set_for_fair_cell_tests() -> None:
@@ -69,7 +73,7 @@ def test_strategy_rejects_non_m1_events() -> None:
         volume=Decimal("10"),
     )
 
-    with pytest.raises(ValueError, match="requires completed M1"):
+    with pytest.raises(ValueError, match=r"InstitutionalFractalStrategy requires completed 1m source bars"):
         strategy.on_bar(event)
 
 
@@ -159,10 +163,11 @@ def test_daily_loss_circuit_stops_new_strategy_intents() -> None:
         equity=Decimal("100000"),
         daily_realized_pnl=Decimal("-2000"),
     )
+    # Use 10:00 UTC (London session) to pass session filter, then hit daily loss limit
     event = BarEvent(
         symbol="EURUSD",
         timeframe=Timeframe.M1,
-        timestamp=datetime(2026, 1, 6, 12, 0, tzinfo=timezone.utc),
+        timestamp=datetime(2026, 1, 6, 10, 0, tzinfo=timezone.utc),
         open=Decimal("1.1000"), high=Decimal("1.1002"),
         low=Decimal("1.0998"), close=Decimal("1.1001"),
         volume=Decimal("10"), spread=Decimal("1"),

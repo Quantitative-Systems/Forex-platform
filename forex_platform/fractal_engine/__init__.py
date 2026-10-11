@@ -25,11 +25,13 @@ from forex_platform.fractal_engine.requirements import (
     parent_invalidation_price,
 )
 from forex_platform.fractal_engine.state_engine import (
+    DEFAULT_SWING_LOOKBACK_MAP,
     CanonicalTimeframeState,
     KeyLevel,
     StructuralRange,
     UniversalTimeframeStateEngine,
     aggregate_bars,
+    resolve_swing_lookback_map,
 )
 from forex_platform.fractal_engine.state_graph import (
     CausalMovementLedger,
@@ -57,6 +59,7 @@ __all__ = [
     "ConsistencyEpisode",
     "ConsistencyObservation",
     "CrossSetConsistencyReport",
+    "DEFAULT_SWING_LOOKBACK_MAP",
     "FractalHypothesis",
     "FractalHypothesisEngine",
     "FractalStateGraph",
@@ -78,4 +81,5 @@ __all__ = [
     "expected_child_shift",
     "expected_phase",
     "parent_invalidation_price",
+    "resolve_swing_lookback_map",
 ]

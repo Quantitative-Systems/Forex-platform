@@ -787,22 +787,2567 @@
         "max_drawdown_pct": 1.3415,
         "net_surviving_r": null
       }
+    },
+    "EXP-SET_1-EURUSD-FRACTAL_STRUCTURAL_RIDER-44847EB1A3": {
+      "experiment_id": "EXP-SET_1-EURUSD-FRACTAL_STRUCTURAL_RIDER-44847EB1A3",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T03:50:59.607350+00:00",
+      "timeframe_set": "SET_1",
+      "timeframe_chain": "1Mo->1W->1D",
+      "pair": "EURUSD",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 652,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 00:00:00+00:00",
+            "end": "2025-11-30 00:00:00+00:00",
+            "bars": 391
+          },
+          "val": {
+            "start": "2025-12-01 00:00:00+00:00",
+            "end": "2026-04-30 00:00:00+00:00",
+            "bars": 130
+          },
+          "oos": {
+            "start": "2026-05-01 00:00:00+00:00",
+            "end": "2026-09-30 00:00:00+00:00",
+            "bars": 131
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_1-GBPUSD-FRACTAL_STRUCTURAL_RIDER-B8F0EB4293": {
+      "experiment_id": "EXP-SET_1-GBPUSD-FRACTAL_STRUCTURAL_RIDER-B8F0EB4293",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T03:51:00.943663+00:00",
+      "timeframe_set": "SET_1",
+      "timeframe_chain": "1Mo->1W->1D",
+      "pair": "GBPUSD",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 652,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 00:00:00+00:00",
+            "end": "2025-11-30 00:00:00+00:00",
+            "bars": 391
+          },
+          "val": {
+            "start": "2025-12-01 00:00:00+00:00",
+            "end": "2026-04-30 00:00:00+00:00",
+            "bars": 130
+          },
+          "oos": {
+            "start": "2026-05-01 00:00:00+00:00",
+            "end": "2026-09-30 00:00:00+00:00",
+            "bars": 131
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_1-USDJPY-FRACTAL_STRUCTURAL_RIDER-04540A9CAE": {
+      "experiment_id": "EXP-SET_1-USDJPY-FRACTAL_STRUCTURAL_RIDER-04540A9CAE",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T03:51:02.154994+00:00",
+      "timeframe_set": "SET_1",
+      "timeframe_chain": "1Mo->1W->1D",
+      "pair": "USDJPY",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 652,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 00:00:00+00:00",
+            "end": "2025-11-30 00:00:00+00:00",
+            "bars": 391
+          },
+          "val": {
+            "start": "2025-12-01 00:00:00+00:00",
+            "end": "2026-04-30 00:00:00+00:00",
+            "bars": 130
+          },
+          "oos": {
+            "start": "2026-05-01 00:00:00+00:00",
+            "end": "2026-09-30 00:00:00+00:00",
+            "bars": 131
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_1-AUDUSD-FRACTAL_STRUCTURAL_RIDER-242FB30368": {
+      "experiment_id": "EXP-SET_1-AUDUSD-FRACTAL_STRUCTURAL_RIDER-242FB30368",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T03:51:03.406477+00:00",
+      "timeframe_set": "SET_1",
+      "timeframe_chain": "1Mo->1W->1D",
+      "pair": "AUDUSD",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 652,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 00:00:00+00:00",
+            "end": "2025-11-30 00:00:00+00:00",
+            "bars": 391
+          },
+          "val": {
+            "start": "2025-12-01 00:00:00+00:00",
+            "end": "2026-04-30 00:00:00+00:00",
+            "bars": 130
+          },
+          "oos": {
+            "start": "2026-05-01 00:00:00+00:00",
+            "end": "2026-09-30 00:00:00+00:00",
+            "bars": 131
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_2-EURUSD-FRACTAL_STRUCTURAL_RIDER-E0A71298C2": {
+      "experiment_id": "EXP-SET_2-EURUSD-FRACTAL_STRUCTURAL_RIDER-E0A71298C2",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T03:51:04.711054+00:00",
+      "timeframe_set": "SET_2",
+      "timeframe_chain": "1W->1D->4H",
+      "pair": "EURUSD",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 3346,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 20:00:00+00:00",
+            "end": "2025-11-28 20:00:00+00:00",
+            "bars": 2007
+          },
+          "val": {
+            "start": "2025-11-30 20:00:00+00:00",
+            "end": "2026-05-01 00:00:00+00:00",
+            "bars": 669
+          },
+          "oos": {
+            "start": "2026-05-01 04:00:00+00:00",
+            "end": "2026-09-30 20:00:00+00:00",
+            "bars": 670
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_2-GBPUSD-FRACTAL_STRUCTURAL_RIDER-BEA4C627ED": {
+      "experiment_id": "EXP-SET_2-GBPUSD-FRACTAL_STRUCTURAL_RIDER-BEA4C627ED",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T03:51:15.684752+00:00",
+      "timeframe_set": "SET_2",
+      "timeframe_chain": "1W->1D->4H",
+      "pair": "GBPUSD",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 3345,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 20:00:00+00:00",
+            "end": "2025-11-28 20:00:00+00:00",
+            "bars": 2007
+          },
+          "val": {
+            "start": "2025-11-30 20:00:00+00:00",
+            "end": "2026-05-01 00:00:00+00:00",
+            "bars": 669
+          },
+          "oos": {
+            "start": "2026-05-01 04:00:00+00:00",
+            "end": "2026-09-30 20:00:00+00:00",
+            "bars": 669
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_2-USDJPY-FRACTAL_STRUCTURAL_RIDER-29059AE0EA": {
+      "experiment_id": "EXP-SET_2-USDJPY-FRACTAL_STRUCTURAL_RIDER-29059AE0EA",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T03:51:26.514990+00:00",
+      "timeframe_set": "SET_2",
+      "timeframe_chain": "1W->1D->4H",
+      "pair": "USDJPY",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 3342,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 20:00:00+00:00",
+            "end": "2025-11-30 20:00:00+00:00",
+            "bars": 2005
+          },
+          "val": {
+            "start": "2025-12-01 00:00:00+00:00",
+            "end": "2026-05-01 00:00:00+00:00",
+            "bars": 668
+          },
+          "oos": {
+            "start": "2026-05-01 04:00:00+00:00",
+            "end": "2026-09-30 20:00:00+00:00",
+            "bars": 669
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_2-AUDUSD-FRACTAL_STRUCTURAL_RIDER-1BD43B4ED2": {
+      "experiment_id": "EXP-SET_2-AUDUSD-FRACTAL_STRUCTURAL_RIDER-1BD43B4ED2",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T03:51:35.632480+00:00",
+      "timeframe_set": "SET_2",
+      "timeframe_chain": "1W->1D->4H",
+      "pair": "AUDUSD",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 3343,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 20:00:00+00:00",
+            "end": "2025-11-30 20:00:00+00:00",
+            "bars": 2005
+          },
+          "val": {
+            "start": "2025-12-01 00:00:00+00:00",
+            "end": "2026-05-01 00:00:00+00:00",
+            "bars": 668
+          },
+          "oos": {
+            "start": "2026-05-01 04:00:00+00:00",
+            "end": "2026-09-30 20:00:00+00:00",
+            "bars": 670
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_3-EURUSD-FRACTAL_STRUCTURAL_RIDER-818FFCBBED": {
+      "experiment_id": "EXP-SET_3-EURUSD-FRACTAL_STRUCTURAL_RIDER-818FFCBBED",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T03:51:46.599816+00:00",
+      "timeframe_set": "SET_3",
+      "timeframe_chain": "1D->4H->1H",
+      "pair": "EURUSD",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 12929,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 22:00:00+00:00",
+            "end": "2025-11-28 18:00:00+00:00",
+            "bars": 7757
+          },
+          "val": {
+            "start": "2025-11-28 19:00:00+00:00",
+            "end": "2026-05-01 02:00:00+00:00",
+            "bars": 2585
+          },
+          "oos": {
+            "start": "2026-05-01 03:00:00+00:00",
+            "end": "2026-10-01 03:00:00+00:00",
+            "bars": 2587
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_3-GBPUSD-FRACTAL_STRUCTURAL_RIDER-E0BC15FBD7": {
+      "experiment_id": "EXP-SET_3-GBPUSD-FRACTAL_STRUCTURAL_RIDER-E0BC15FBD7",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T03:52:57.019841+00:00",
+      "timeframe_set": "SET_3",
+      "timeframe_chain": "1D->4H->1H",
+      "pair": "GBPUSD",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 12923,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 22:00:00+00:00",
+            "end": "2025-11-28 18:00:00+00:00",
+            "bars": 7753
+          },
+          "val": {
+            "start": "2025-11-28 19:00:00+00:00",
+            "end": "2026-05-01 01:00:00+00:00",
+            "bars": 2584
+          },
+          "oos": {
+            "start": "2026-05-01 02:00:00+00:00",
+            "end": "2026-10-01 03:00:00+00:00",
+            "bars": 2586
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_3-USDJPY-FRACTAL_STRUCTURAL_RIDER-17E448CE22": {
+      "experiment_id": "EXP-SET_3-USDJPY-FRACTAL_STRUCTURAL_RIDER-17E448CE22",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T03:54:11.153199+00:00",
+      "timeframe_set": "SET_3",
+      "timeframe_chain": "1D->4H->1H",
+      "pair": "USDJPY",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 12917,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 22:00:00+00:00",
+            "end": "2025-12-01 04:00:00+00:00",
+            "bars": 7750
+          },
+          "val": {
+            "start": "2025-12-01 05:00:00+00:00",
+            "end": "2026-05-01 10:00:00+00:00",
+            "bars": 2583
+          },
+          "oos": {
+            "start": "2026-05-01 11:00:00+00:00",
+            "end": "2026-10-01 03:00:00+00:00",
+            "bars": 2584
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_3-AUDUSD-FRACTAL_STRUCTURAL_RIDER-E2A31566CB": {
+      "experiment_id": "EXP-SET_3-AUDUSD-FRACTAL_STRUCTURAL_RIDER-E2A31566CB",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T03:55:25.704978+00:00",
+      "timeframe_set": "SET_3",
+      "timeframe_chain": "1D->4H->1H",
+      "pair": "AUDUSD",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 12914,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 22:00:00+00:00",
+            "end": "2025-12-01 01:00:00+00:00",
+            "bars": 7748
+          },
+          "val": {
+            "start": "2025-12-01 02:00:00+00:00",
+            "end": "2026-05-01 06:00:00+00:00",
+            "bars": 2582
+          },
+          "oos": {
+            "start": "2026-05-01 07:00:00+00:00",
+            "end": "2026-10-01 03:00:00+00:00",
+            "bars": 2584
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_4-EURUSD-FRACTAL_STRUCTURAL_RIDER-8AFB0532F0": {
+      "experiment_id": "EXP-SET_4-EURUSD-FRACTAL_STRUCTURAL_RIDER-8AFB0532F0",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T03:56:51.219631+00:00",
+      "timeframe_set": "SET_4",
+      "timeframe_chain": "4H->1H->15M",
+      "pair": "EURUSD",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Dukascopy ECN",
+      "bars_total": 68535,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-01-01 22:00:00+00:00",
+            "end": "2025-08-25 19:30:00+00:00",
+            "bars": 41121
+          },
+          "val": {
+            "start": "2025-08-25 19:45:00+00:00",
+            "end": "2026-03-16 05:15:00+00:00",
+            "bars": 13707
+          },
+          "oos": {
+            "start": "2026-03-16 05:30:00+00:00",
+            "end": "2026-10-01 00:00:00+00:00",
+            "bars": 13707
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_4-GBPUSD-FRACTAL_STRUCTURAL_RIDER-BF57682A8C": {
+      "experiment_id": "EXP-SET_4-GBPUSD-FRACTAL_STRUCTURAL_RIDER-BF57682A8C",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T04:08:19.442091+00:00",
+      "timeframe_set": "SET_4",
+      "timeframe_chain": "4H->1H->15M",
+      "pair": "GBPUSD",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 51686,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 22:00:00+00:00",
+            "end": "2025-11-28 19:30:00+00:00",
+            "bars": 31011
+          },
+          "val": {
+            "start": "2025-11-28 19:45:00+00:00",
+            "end": "2026-05-01 04:00:00+00:00",
+            "bars": 10337
+          },
+          "oos": {
+            "start": "2026-05-01 04:15:00+00:00",
+            "end": "2026-10-01 04:30:00+00:00",
+            "bars": 10338
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_4-USDJPY-FRACTAL_STRUCTURAL_RIDER-A9BF1CA51D": {
+      "experiment_id": "EXP-SET_4-USDJPY-FRACTAL_STRUCTURAL_RIDER-A9BF1CA51D",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T04:18:24.128549+00:00",
+      "timeframe_set": "SET_4",
+      "timeframe_chain": "4H->1H->15M",
+      "pair": "USDJPY",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 51667,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 22:00:00+00:00",
+            "end": "2025-12-01 05:15:00+00:00",
+            "bars": 31000
+          },
+          "val": {
+            "start": "2025-12-01 05:30:00+00:00",
+            "end": "2026-05-01 11:45:00+00:00",
+            "bars": 10333
+          },
+          "oos": {
+            "start": "2026-05-01 12:00:00+00:00",
+            "end": "2026-10-01 04:30:00+00:00",
+            "bars": 10334
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_4-AUDUSD-FRACTAL_STRUCTURAL_RIDER-EAAECE315A": {
+      "experiment_id": "EXP-SET_4-AUDUSD-FRACTAL_STRUCTURAL_RIDER-EAAECE315A",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T04:25:22.198232+00:00",
+      "timeframe_set": "SET_4",
+      "timeframe_chain": "4H->1H->15M",
+      "pair": "AUDUSD",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 51653,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 22:00:00+00:00",
+            "end": "2025-12-01 02:30:00+00:00",
+            "bars": 30991
+          },
+          "val": {
+            "start": "2025-12-01 02:45:00+00:00",
+            "end": "2026-05-01 08:30:00+00:00",
+            "bars": 10330
+          },
+          "oos": {
+            "start": "2026-05-01 08:45:00+00:00",
+            "end": "2026-10-01 04:30:00+00:00",
+            "bars": 10332
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_5-EURUSD-FRACTAL_STRUCTURAL_RIDER-B6B56B28B9": {
+      "experiment_id": "EXP-SET_5-EURUSD-FRACTAL_STRUCTURAL_RIDER-B6B56B28B9",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T04:34:06.664947+00:00",
+      "timeframe_set": "SET_5",
+      "timeframe_chain": "1H->15M->5M",
+      "pair": "EURUSD",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 155101,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 22:00:00+00:00",
+            "end": "2025-11-28 18:35:00+00:00",
+            "bars": 93060
+          },
+          "val": {
+            "start": "2025-11-28 18:40:00+00:00",
+            "end": "2026-05-01 05:45:00+00:00",
+            "bars": 31020
+          },
+          "oos": {
+            "start": "2026-05-01 05:50:00+00:00",
+            "end": "2026-10-01 04:50:00+00:00",
+            "bars": 31021
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_5-GBPUSD-FRACTAL_STRUCTURAL_RIDER-08D2C6F1FC": {
+      "experiment_id": "EXP-SET_5-GBPUSD-FRACTAL_STRUCTURAL_RIDER-08D2C6F1FC",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T04:41:35.501659+00:00",
+      "timeframe_set": "SET_5",
+      "timeframe_chain": "1H->15M->5M",
+      "pair": "GBPUSD",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 155007,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 22:00:00+00:00",
+            "end": "2025-11-28 19:55:00+00:00",
+            "bars": 93004
+          },
+          "val": {
+            "start": "2025-11-28 20:00:00+00:00",
+            "end": "2026-05-01 05:15:00+00:00",
+            "bars": 31001
+          },
+          "oos": {
+            "start": "2026-05-01 05:20:00+00:00",
+            "end": "2026-10-01 04:50:00+00:00",
+            "bars": 31002
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_5-USDJPY-FRACTAL_STRUCTURAL_RIDER-3A54D61847": {
+      "experiment_id": "EXP-SET_5-USDJPY-FRACTAL_STRUCTURAL_RIDER-3A54D61847",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T04:54:13.136624+00:00",
+      "timeframe_set": "SET_5",
+      "timeframe_chain": "1H->15M->5M",
+      "pair": "USDJPY",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 154967,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 22:00:00+00:00",
+            "end": "2025-12-01 06:05:00+00:00",
+            "bars": 92980
+          },
+          "val": {
+            "start": "2025-12-01 06:10:00+00:00",
+            "end": "2026-05-01 12:40:00+00:00",
+            "bars": 30993
+          },
+          "oos": {
+            "start": "2026-05-01 12:45:00+00:00",
+            "end": "2026-10-01 04:50:00+00:00",
+            "bars": 30994
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
+    },
+    "EXP-SET_5-AUDUSD-FRACTAL_STRUCTURAL_RIDER-DABA4EC4C5": {
+      "experiment_id": "EXP-SET_5-AUDUSD-FRACTAL_STRUCTURAL_RIDER-DABA4EC4C5",
+      "sweep_run_id": "SWEEP-20261009T035059Z",
+      "timestamp_utc": "2026-10-09T05:06:29.746349+00:00",
+      "timeframe_set": "SET_5",
+      "timeframe_chain": "1H->15M->5M",
+      "pair": "AUDUSD",
+      "model_variant": "FRACTAL_STRUCTURAL_RIDER",
+      "parameters": {},
+      "data_provenance": "REAL_VENDOR",
+      "data_source": "Downsampled from M1",
+      "bars_total": 154893,
+      "splits": {
+        "ratios": {
+          "is": 0.6,
+          "val": 0.2,
+          "oos": 0.2
+        },
+        "boundaries": {
+          "is": {
+            "start": "2024-09-01 22:00:00+00:00",
+            "end": "2025-12-01 03:00:00+00:00",
+            "bars": 92935
+          },
+          "val": {
+            "start": "2025-12-01 03:05:00+00:00",
+            "end": "2026-05-01 10:10:00+00:00",
+            "bars": 30978
+          },
+          "oos": {
+            "start": "2026-05-01 10:15:00+00:00",
+            "end": "2026-10-01 04:50:00+00:00",
+            "bars": 30980
+          }
+        }
+      },
+      "phase_sequence": [
+        "IS",
+        "VAL",
+        "OOS_BLIND",
+        "FULL",
+        "COST_STRESS_IF_TOP"
+      ],
+      "is": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "val": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "oos": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "full_window": {
+        "trades": 0,
+        "net_profit": 0.0,
+        "max_drawdown": 0.0,
+        "expectancy_r": null,
+        "avg_win_r": null,
+        "annualized_return": 0.0
+      },
+      "gates": {
+        "GATE_A_STATISTICAL_SIGNIFICANCE": {
+          "passed": false,
+          "min_trades": 80,
+          "observed_trades": 0,
+          "evaluated_on": "FULL_WINDOW"
+        },
+        "GATE_B_ASYMMETRY_EXPECTANCY": {
+          "passed": false,
+          "min_avg_win_r": 4.0,
+          "min_net_expectancy_r": 0.35,
+          "observed_avg_win_r": null,
+          "observed_net_expectancy_r": null,
+          "evaluated_on": "IS"
+        },
+        "GATE_C_WALK_FORWARD_EFFICIENCY": {
+          "passed": false,
+          "min_efficiency": 0.5,
+          "observed_efficiency": null,
+          "is_annualized_return": 0.0,
+          "oos_annualized_return": 0.0,
+          "evaluated_on": "IS_vs_OOS"
+        },
+        "GATE_D_COST_STRESS": {
+          "passed": null,
+          "status": "NOT_EVALUATED",
+          "spread_multiplier": 2.0,
+          "slippage_pips": 0.3,
+          "min_net_expectancy_r": 0.0,
+          "observed_stress_expectancy_r": null,
+          "evaluated_on": "FULL_WINDOW"
+        }
+      },
+      "rejected_by": "GATE_A_STATISTICAL_SIGNIFICANCE",
+      "verdict": "REJECTED",
+      "cost_stress": {
+        "executed": false,
+        "spread_multiplier": 2.0,
+        "slippage_pips": 0.3,
+        "expectancy_r": null,
+        "trades": 0
+      },
+      "metrics": {
+        "is_expectancy_r": null,
+        "val_expectancy_r": null,
+        "oos_expectancy_r": null,
+        "full_expectancy_r": null,
+        "total_trades": 0,
+        "max_drawdown_pct": 0.0,
+        "net_surviving_r": null
+      }
     }
   },
   "last_sweep": {
-    "sweep_run_id": "SWEEP-20261007T181532Z",
-    "started_utc": "2026-10-07T18:15:32.497572+00:00",
-    "completed_utc": "2026-10-07T18:16:05.034025+00:00",
+    "sweep_run_id": "SWEEP-20261009T035059Z",
+    "started_utc": "2026-10-09T03:50:59.552742+00:00",
+    "completed_utc": "2026-10-09T05:23:54.886328+00:00",
     "symbols": [
-      "EURUSD"
+      "EURUSD",
+      "GBPUSD",
+      "USDJPY",
+      "AUDUSD"
     ],
     "timeframe_sets": [
-      "SET_3"
+      "SET_1",
+      "SET_2",
+      "SET_3",
+      "SET_4",
+      "SET_5"
     ],
     "variants": [
-      "TREND_CONTINUATION_MTF",
-      "LONDON_ORB_BREAKOUT",
-      "ASIAN_RANGE_FADE"
+      "FRACTAL_STRUCTURAL_RIDER"
     ],
     "split_ratios": {
       "is": 0.6,
@@ -829,14 +3374,33 @@
         "evaluated_on": "FULL_WINDOW"
       }
     },
-    "experiments_run": 3,
+    "experiments_run": 20,
     "survived": 0,
-    "rejected": 3,
+    "rejected": 20,
     "errors": 0,
     "provenance_by_pair": {
-      "SET_3/EURUSD": "REAL_VENDOR"
+      "SET_1/EURUSD": "REAL_VENDOR",
+      "SET_1/GBPUSD": "REAL_VENDOR",
+      "SET_1/USDJPY": "REAL_VENDOR",
+      "SET_1/AUDUSD": "REAL_VENDOR",
+      "SET_2/EURUSD": "REAL_VENDOR",
+      "SET_2/GBPUSD": "REAL_VENDOR",
+      "SET_2/USDJPY": "REAL_VENDOR",
+      "SET_2/AUDUSD": "REAL_VENDOR",
+      "SET_3/EURUSD": "REAL_VENDOR",
+      "SET_3/GBPUSD": "REAL_VENDOR",
+      "SET_3/USDJPY": "REAL_VENDOR",
+      "SET_3/AUDUSD": "REAL_VENDOR",
+      "SET_4/EURUSD": "REAL_VENDOR",
+      "SET_4/GBPUSD": "REAL_VENDOR",
+      "SET_4/USDJPY": "REAL_VENDOR",
+      "SET_4/AUDUSD": "REAL_VENDOR",
+      "SET_5/EURUSD": "REAL_VENDOR",
+      "SET_5/GBPUSD": "REAL_VENDOR",
+      "SET_5/USDJPY": "REAL_VENDOR",
+      "SET_5/AUDUSD": "REAL_VENDOR"
     }
   },
-  "experiment_count": 6,
+  "experiment_count": 26,
   "survivor_count": 0
 }

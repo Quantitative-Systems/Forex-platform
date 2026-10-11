@@ -62,6 +62,46 @@ class LocationState:
 LIQUIDITY_POOL_SWING_LOOKBACK = 24
 
 
+# Scale-aware default pivot lookbacks (EXP_002 diagnostic calibration).
+# Coarse timeframes need tighter windows (few bars exist); fine timeframes
+# keep responsive micro-structure. Single-int callers still work: the int is
+# broadcast to every timeframe.
+DEFAULT_SWING_LOOKBACK_MAP: dict[str, int] = {
+    "1M": 2,
+    "1W": 3,
+    "1D": 3,
+    "4H": 5,
+    "1H": 5,
+    "15M": 3,
+    "3M": 3,
+}
+
+
+def resolve_swing_lookback_map(
+    swing_lookback: int | dict[str, int] | dict[CanonicalTimeframe, int] | None = None,
+    swing_lookback_map: dict[str, int] | dict[CanonicalTimeframe, int] | None = None,
+) -> dict[str, int]:
+    """Resolve a per-timeframe lookback map, keyed by canonical value string."""
+    resolved: dict[str, int] = dict(DEFAULT_SWING_LOOKBACK_MAP)
+    combined: int | dict[str, int] | dict[CanonicalTimeframe, int] | None = (
+        swing_lookback_map if swing_lookback_map is not None else swing_lookback
+    )
+    if combined is None:
+        combined = 5  # frozen EXP_001 baseline
+    if isinstance(combined, int):
+        if combined < 1:
+            raise ValueError("lookback must be at least one bar")
+        return {key: combined for key in resolved}
+    for key, value in dict(combined).items():
+        name = key.value if isinstance(key, CanonicalTimeframe) else str(key)
+        if name not in resolved:
+            raise ValueError(f"unknown timeframe in swing lookback map: {key!r}")
+        if int(value) < 1:
+            raise ValueError("lookback must be at least one bar")
+        resolved[name] = int(value)
+    return resolved
+
+
 @dataclass(frozen=True)
 class StructuralRange:
     low: Decimal
@@ -330,13 +370,10 @@ class _OnlineTimeframeProcessor:
         location = LocationState.UNKNOWN
         if selected_range is not None and selected_range.high > selected_range.low:
             ratio = (close - selected_range.low) / (selected_range.high - selected_range.low)
-            if ambiguous:
-                location = LocationState.AMBIGUOUS
-            else:
-                range_location = ratio
-                location = (LocationState.PREMIUM if ratio > Decimal("0.5")
-                            else LocationState.DISCOUNT if ratio < Decimal("0.5")
-                            else LocationState.EQUILIBRIUM)
+            range_location = ratio
+            location = (LocationState.PREMIUM if ratio > Decimal("0.5")
+                        else LocationState.DISCOUNT if ratio < Decimal("0.5")
+                        else LocationState.EQUILIBRIUM)
 
         key_levels = self._key_levels(close_time)
         self._refresh_zone_cache()
@@ -651,13 +688,19 @@ class UniversalTimeframeStateEngine:
         symbol: str,
         base_timeframe: Timeframe | timedelta | str = Timeframe.M1,
         max_history_bars: int = 100_000,
-        swing_lookback: int = 5,
+        swing_lookback: int | dict[str, int] | dict[CanonicalTimeframe, int] = 5,
+        swing_lookback_map: dict[str, int] | dict[CanonicalTimeframe, int] | None = None,
     ) -> None:
         self.symbol = symbol.upper().replace("/", "").replace("_", "").replace("-", "")
         self.base_timeframe = base_timeframe
         self.source_interval = parse_source_interval(base_timeframe)
         self.max_history_bars = max_history_bars
-        self.swing_lookback = swing_lookback
+        # Backward compatible: single int broadcasts (EXP_001 frozen).
+        # A map enables EXP_002 scale-aware calibration.
+        self.swing_lookback_map = resolve_swing_lookback_map(
+            swing_lookback, swing_lookback_map
+        )
+        self.swing_lookback = max(self.swing_lookback_map.values())
         self._processors: dict[CanonicalTimeframe, _OnlineTimeframeProcessor] = {}
         self._groups: dict[CanonicalTimeframe, tuple[datetime, list[dict[str, Any]]]] = {}
         self._states: dict[str, CanonicalTimeframeState] = {}
@@ -667,7 +710,9 @@ class UniversalTimeframeStateEngine:
 
     def _reset_processors(self) -> None:
         self._processors = {
-            tf: _OnlineTimeframeProcessor(self.symbol, tf, self.swing_lookback)
+            tf: _OnlineTimeframeProcessor(
+                self.symbol, tf, self.swing_lookback_map[tf.value]
+            )
             for tf in CANONICAL_LADDER if target_is_available(tf, self.source_interval)
         }
 
@@ -677,6 +722,7 @@ class UniversalTimeframeStateEngine:
 
     def update(self, bar: pl.DataFrame | dict[str, Any]) -> dict[str, CanonicalTimeframeState]:
         """Consume one completed source bar; partial higher bars are not exposed."""
+
         if isinstance(bar, pl.DataFrame):
             if bar.is_empty() or bar.height != 1:
                 raise ValueError("bar must contain exactly one row")
