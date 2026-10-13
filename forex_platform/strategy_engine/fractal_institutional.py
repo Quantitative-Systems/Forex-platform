@@ -1,4 +1,4 @@
-"""Research-first institutional structure strategy on the shared fractal ladder.
+﻿"""Research-first institutional structure strategy on the shared fractal ladder.
 
 The strategy consumes completed source bars (M1 or aggregated M3) and shares
 one causal state engine across all five timeframe sets. After HTF/MTF
@@ -166,7 +166,7 @@ class InstitutionalFractalStrategy(BaseStrategy):
         self.count_orders_dispatched = 0
         # IS-only diagnostic telemetry (EXP_002): net expected R:R sampled at
         # every _build_entry evaluation, before the frozen 4R floor applies.
-        # Additive only — does not change dispatch behaviour.
+        # Additive only ΓÇö does not change dispatch behaviour.
         self.rr_samples: list[float] = []
         self.rr_samples_by_set: dict[str, list[float]] = {}
 
@@ -250,34 +250,26 @@ class InstitutionalFractalStrategy(BaseStrategy):
 
         # Session liquidity time filter (upgrade D)
         if self.session_filter_enabled:
-            # Only allow trading during high-liquidity sessions:
-            # London Open: 07:00 UTC to 11:00 UTC
-            # London/NY Overlap: 12:30 UTC to 16:30 UTC
-            # Blackout: Asian session & rollover (20:30 UTC to 06:30 UTC)
+            # Allowed window: 06:30 UTC to 17:00 UTC
+            # Blackout: 20:30 UTC to 06:30 UTC (next day)
             hour = event.timestamp.hour
             minute = event.timestamp.minute
-            # Convert to minutes since midnight for easier comparison
             time_in_minutes = hour * 60 + minute
             
-            # London session: 07:00 (420) to 11:00 (660)
-            london_start = 7 * 60  # 420
-            london_end = 11 * 60   # 660
+            # Allowed start 06:30 = 6*60+30 = 390
+            # Allowed end   17:00 = 17*60 = 1020
+            allowed_start = 6 * 60 + 30  # 390
+            allowed_end   = 17 * 60      # 1020
             
-            # NY/London overlap: 12:30 (750) to 16:30 (990)
-            overlap_start = 12 * 60 + 30  # 750
-            overlap_end = 16 * 60 + 30    # 990
-            
-            # Asian session/rollover blackout: 20:30 (1230) to 06:30 (390) next day
+            # Blackout start 20:30 = 20*60+30 = 1230
+            # Blackout end   06:30 = 6*60+30 = 390 (next day)
             blackout_start = 20 * 60 + 30  # 1230
-            blackout_end = 6 * 60 + 30     # 390 (next day)
+            blackout_end   = 6 * 60 + 30   # 390
             
-            # Check if current time is in allowed sessions
-            is_london_session = london_start <= time_in_minutes <= london_end
-            is_overlap_session = overlap_start <= time_in_minutes <= overlap_end
-            # For blackout, it crosses midnight, so we check if it's NOT in blackout
-            is_blackout = (time_in_minutes >= blackout_start) or (time_in_minutes <= blackout_end)
-            
-            if not (is_london_session or is_overlap_session) or is_blackout:
+            # Check if current time is within allowed window (06:30-17:00)
+            # Note: blackout is the complement of allowed window within 24h.
+            in_allowed = allowed_start <= time_in_minutes <= allowed_end
+            if not in_allowed:
                 self.last_decision[symbol] = "SESSION_FILTER"
                 self.count_rejected_by_spread_news += 1
                 return []
