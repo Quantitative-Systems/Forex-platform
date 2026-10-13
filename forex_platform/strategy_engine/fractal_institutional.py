@@ -472,49 +472,45 @@ class InstitutionalFractalStrategy(BaseStrategy):
         mtf: CanonicalTimeframeState,
     ) -> Optional[tuple[str, int, datetime]]:
         """
-        HTF trend defines the bias. MTF setup is VALID if price is in the HTF
-        corrective zone (Discount for longs, Premium for shorts) and has NOT
-        invalidated the HTF structure. We do NOT require MTF to trend in the
-        HTF direction; the MTF is the corrective/pullback leg.
-
-        CONTINUATION ONLY: Long in HTF Discount, Short in HTF Premium.
-        Target is the HTF External Weak Extreme (Weak High / Weak Low).
+        Fractal Phase-Based Setup:
+        1. Identify HTF Trend.
+        2. Determine Phase (Continuation vs Pullback) based on HTF Range Location.
+        3. Determine Bias based on Phase.
+        4. Validate MTF Alignment with that Bias.
         """
         htf_trend = htf.structural_trend
         if htf_trend not in (-1, 1) or htf.range_location is None:
             return None
 
-        # CONTINUATION ONLY: bullish HTF + Discount = long; bearish HTF + Premium = short
-        if htf_trend > 0 and htf.location != "DISCOUNT":
+        # Phase Determination
+        # Trend Bullish + Discount (<= 0.5) -> Continuation (Bullish)
+        # Trend Bullish + Premium (> 0.5)  -> Pullback (Bearish)
+        # Trend Bearish + Premium (>= 0.5) -> Continuation (Bearish)
+        # Trend Bearish + Discount (< 0.5) -> Pullback (Bullish)
+        
+        if htf_trend > 0: # BULLISH
+            if htf.range_location <= Decimal("0.5"):
+                phase = "CONTINUATION"
+                direction = 1
+            else:
+                phase = "PULLBACK"
+                direction = -1
+        else: # BEARISH
+            if htf.range_location >= Decimal("0.5"):
+                phase = "CONTINUATION"
+                direction = -1
+            else:
+                phase = "PULLBACK"
+                direction = 1
+
+        # Validate MTF alignment: price must be in the corrective zone relative to the lauch direction
+        if not self._location_matches(mtf, direction, pullback=(phase == "PULLBACK")):
             return None
-        if htf_trend < 0 and htf.location != "PREMIUM":
-            return None
 
-        direction = int(htf_trend)
-
-        # Check MTF alignment: price must be in the HTF corrective zone
-        # and NOT have invalidated the HTF structure
-        if not self._location_matches(mtf, direction, pullback=True):
-            return None
-
-        # Check HTF invalidation: price must not have closed beyond HTF Protected Swing
-        invalidation = htf.invalidation_condition
-        if invalidation is not None:
-            # If HTF has an invalidation condition, check if MTF price has triggered it
-            # For long: invalidation is "closed price below X" - if MTF low < X, invalidated
-            # For short: invalidation is "closed price above X" - if MTF high > X, invalidated
-            pass  # Invalidation check is handled by _location_matches on HTF
-
-        # Check if MTF price has tested an active HTF Key Zone (OB, FVG, Equilibrium)
-        # Temporarily disabled to increase frequency
-        # if not self._mtf_tested_htf_zone(mtf, htf, direction):
-        #     return None
-
-        # MTF alignment is confirmed. Setup persists for setup_persistence_bars bars.
-        # Use the latest MTF bar timestamp as the setup confirmation time.
+        # Setup persists for setup_persistence_bars bars.
         setup_time = mtf.timestamp
 
-        return "CONTINUATION", direction, setup_time
+        return phase, direction, setup_time
 
     def _mtf_tested_htf_zone(
         self,
@@ -772,11 +768,11 @@ class InstitutionalFractalStrategy(BaseStrategy):
             # For shorts: OTE zone is between ote_low and ote_high (price retreats UP from impulse low)
             if direction > 0:
                 # Long: mitigation fill if price retreats into OTE zone from above
-                # Using 61.8% level (ote_high) for better RR
-                mitigation_entry_price = ote_high
+                # Using 38.2% level (ote_low) for higher fill probability
+                mitigation_entry_price = ote_low
             else:
-                # Short: mitigation fill if price retreats into OTE zone from below (using ote_high)
-                mitigation_entry_price = ote_high
+                # Short: mitigation fill if price retreats into OTE zone from below (using ote_low)
+                mitigation_entry_price = ote_low
         
         # Use mitigation entry price if available, otherwise use current price
         entry_price = mitigation_entry_price if mitigation_entry_price is not None else ltf.current_price
@@ -1017,29 +1013,30 @@ class InstitutionalFractalStrategy(BaseStrategy):
         expected_phase: str,
     ) -> Optional[Decimal]:
         """
-        CONTINUATION ONLY: Target the HTF External Weak Extreme.
-        - Long: Weak High (the weaker of the two external highs that defined the range)
-        - Short: Weak Low (the weaker of the two external lows that defined the range)
+        Phase-aware Targets:
+        - CONTINUATION: Target the HTF External Weak Extreme.
+        - PULLBACK: Target the HTF Equilibrium or opposite structural anchor.
         """
-        # Only CONTINUATION phase is valid
-        if expected_phase != "CONTINUATION":
-            return None
-
         wanted_swing = "high" if direction > 0 else "low"
 
-        # Find HTF External Weak Extremes from key_levels
-        # Weak extremes are marked with weak=True in key_levels
-        weak_extremes = [
-            level.price for level in htf.key_levels
-            if level.swing_type == wanted_swing and level.weak
-            and ((direction > 0 and level.price > entry) or (direction < 0 and level.price < entry))
-        ]
-
-        if weak_extremes:
-            # Target the nearest weak extreme beyond entry
-            return min(weak_extremes) if direction > 0 else max(weak_extremes)
-
-        # Fallback: if no weak levels marked, use structural range boundary
+        if expected_phase == "CONTINUATION":
+            # Target the HTF External Weak Extreme
+            weak_extremes = [
+                level.price for level in htf.key_levels
+                if level.swing_type == wanted_swing and level.weak
+                and ((direction > 0 and level.price > entry) or (direction < 0 and level.price < entry))
+            ]
+            if weak_extremes:
+                return min(weak_extremes) if direction > 0 else max(weak_extremes)
+        
+        elif expected_phase == "PULLBACK":
+            # For pullbacks, target the HTF Equilibrium or the opposite external boundary
+            if htf.structural_range is not None:
+                eq = htf.structural_range.equilibrium
+                if (direction > 0 and eq > entry) or (direction < 0 and eq < entry):
+                    return eq
+                
+        # Fallback: use structural range boundary
         if htf.structural_range is not None:
             boundary = htf.structural_range.high if direction > 0 else htf.structural_range.low
             if (direction > 0 and boundary > entry) or (direction < 0 and boundary < entry):
