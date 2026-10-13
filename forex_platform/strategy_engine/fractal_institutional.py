@@ -506,8 +506,9 @@ class InstitutionalFractalStrategy(BaseStrategy):
             pass  # Invalidation check is handled by _location_matches on HTF
 
         # Check if MTF price has tested an active HTF Key Zone (OB, FVG, Equilibrium)
-        if not self._mtf_tested_htf_zone(mtf, htf, direction):
-            return None
+        # Temporarily disabled to increase frequency
+        # if not self._mtf_tested_htf_zone(mtf, htf, direction):
+        #     return None
 
         # MTF alignment is confirmed. Setup persists for setup_persistence_bars bars.
         # Use the latest MTF bar timestamp as the setup confirmation time.
