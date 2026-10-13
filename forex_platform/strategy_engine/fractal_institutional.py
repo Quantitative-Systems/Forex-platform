@@ -34,6 +34,10 @@ from forex_platform.fractal_engine.timeframes import (
         CanonicalTimeframe,
 )
 from forex_platform.market_data.causal_aligner import Timeframe
+from forex_platform.market_model.cascading_fractal_coordinator import (
+    CascadingFractalCoordinator,
+    MacroPhaseBaton,
+)
 from forex_platform.market_model.contracts import MarketPhase
 from forex_platform.strategy_engine.base import BarEvent, BaseStrategy
 
@@ -132,6 +136,8 @@ class InstitutionalFractalStrategy(BaseStrategy):
         self.source_timeframe = source_timeframe
 
         self._engines: dict[str, UniversalTimeframeStateEngine] = {}
+        # Fractal coordinator: shared canonical state -> per-set hypotheses.
+        self._coordinator = CascadingFractalCoordinator()
         self._movement_direction: dict[str, int] = {}
         self._movement_sequence: dict[str, int] = {}
         self._movement_id: dict[str, str] = {}
@@ -306,11 +312,20 @@ class InstitutionalFractalStrategy(BaseStrategy):
             if setup_movement_id is None:
                 self.last_decision[set_key] = "WAITING_FOR_HTF_STRUCTURE"
                 continue
-            setup = self._higher_timeframe_setup(htf, mtf)
-            if setup is None:
-                self.last_decision[set_key] = "HTF_MTF_FILTER"
+            # Cascading coordinator: interpret shared canonical states into a
+            # per-set phase hypothesis (continuation / pullback).
+            hypothesis_snapshot = self._coordinator.evaluate(
+                symbol, engine.get_state, selected_set=set_key,
+            )
+            hypothesis = hypothesis_snapshot.hypotheses.get(set_key)
+            if hypothesis is None or not hypothesis.valid:
+                self.last_decision[set_key] = "HYPOTHESIS_FILTER"
                 continue
-            expected_phase, direction, mtf_confirmation_at = setup
+            expected_phase = CascadingFractalCoordinator.phase_for_alignment(
+                hypothesis.phase
+            )
+            direction = hypothesis.direction
+            mtf_confirmation_at = mtf.timestamp
             if not self._location_matches(mtf, direction, pullback=(expected_phase == "PULLBACK")):
                 self.last_decision[set_key] = "MTF_SETUP_INVALID"
                 continue
