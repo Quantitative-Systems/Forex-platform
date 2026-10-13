@@ -74,7 +74,7 @@ class InstitutionalFractalStrategy(BaseStrategy):
         minimum_net_reward_risk: Decimal | str | float = Decimal("4.0"),
         minimum_stop_pips: Decimal | str | float = Decimal("5"),
         maximum_stop_pips: Decimal | str | float = Decimal("50"),
-        maximum_entry_spread_pips: Decimal | str | float = Decimal("2.5"),
+        maximum_entry_spread_pips: Decimal | str | float = Decimal("3.0"),
         commission_per_lot_round_turn: Decimal | str | float = Decimal("7"),
         slippage_buffer_pips: Decimal | str | float = Decimal("0.2"),
         atr_expansion_slippage_factor: Decimal | str | float = Decimal("0.1"),
@@ -83,7 +83,7 @@ class InstitutionalFractalStrategy(BaseStrategy):
         lot_step: Decimal | str | float = Decimal("0.01"),
         swing_lookback: int | dict[str, int] = 3,
         swing_lookback_map: dict[str, int] | None = None,
-        setup_persistence_bars: int = 8,  # MTF alignment persistence window
+        setup_persistence_bars: int = 4,  # MTF alignment persistence window
         session_filter: bool = True,
         selected_set: Optional[str] = None,
         source_timeframe: Timeframe = Timeframe.M1,
@@ -575,10 +575,10 @@ class InstitutionalFractalStrategy(BaseStrategy):
             return False
         if direction > 0:
             # Long: must be in Discount or Equilibrium (not Premium)
-            return state.range_location <= Decimal("0.60")
+            return state.range_location <= Decimal("0.70")
         else:
             # Short: must be in Premium or Equilibrium (not Discount)
-            return state.range_location >= Decimal("0.40")
+            return state.range_location >= Decimal("0.30")
 
     def _calculate_atr_pips(
         self,
@@ -772,11 +772,11 @@ class InstitutionalFractalStrategy(BaseStrategy):
             # For shorts: OTE zone is between ote_low and ote_high (price retreats UP from impulse low)
             if direction > 0:
                 # Long: mitigation fill if price retreats into OTE zone from above
-                # We'll use the midpoint as the limit price, but accept fills across the zone
-                mitigation_entry_price = (ote_low + ote_high) / Decimal("2")
+                # Using 38.2% level (ote_low) for higher fill probability
+                mitigation_entry_price = ote_low
             else:
-                # Short: mitigation fill if price retreats into OTE zone from below
-                mitigation_entry_price = (ote_low + ote_high) / Decimal("2")
+                # Short: mitigation fill if price retreats into OTE zone from below (using ote_low)
+                mitigation_entry_price = ote_low
         
         # Use mitigation entry price if available, otherwise use current price
         entry_price = mitigation_entry_price if mitigation_entry_price is not None else ltf.current_price
