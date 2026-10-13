@@ -71,7 +71,7 @@ class InstitutionalFractalStrategy(BaseStrategy):
         account_currency: str = "USD",
         quote_to_account_rates: Optional[Mapping[str, Decimal | str | float]] = None,
         risk_fraction: Decimal | str | float = Decimal("0.01"),
-        minimum_net_reward_risk: Decimal | str | float = Decimal("2.0"),
+        minimum_net_reward_risk: Decimal | str | float = Decimal("4.0"),
         minimum_stop_pips: Decimal | str | float = Decimal("5"),
         maximum_stop_pips: Decimal | str | float = Decimal("50"),
         maximum_entry_spread_pips: Decimal | str | float = Decimal("2.5"),
