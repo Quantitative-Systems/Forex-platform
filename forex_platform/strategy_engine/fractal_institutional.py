@@ -772,11 +772,11 @@ class InstitutionalFractalStrategy(BaseStrategy):
             # For shorts: OTE zone is between ote_low and ote_high (price retreats UP from impulse low)
             if direction > 0:
                 # Long: mitigation fill if price retreats into OTE zone from above
-                # Using 38.2% level (ote_low) for higher fill probability
-                mitigation_entry_price = ote_low
+                # Using 61.8% level (ote_high) for better RR
+                mitigation_entry_price = ote_high
             else:
-                # Short: mitigation fill if price retreats into OTE zone from below (using ote_low)
-                mitigation_entry_price = ote_low
+                # Short: mitigation fill if price retreats into OTE zone from below (using ote_high)
+                mitigation_entry_price = ote_high
         
         # Use mitigation entry price if available, otherwise use current price
         entry_price = mitigation_entry_price if mitigation_entry_price is not None else ltf.current_price
