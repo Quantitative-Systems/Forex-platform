@@ -71,7 +71,7 @@ class InstitutionalFractalStrategy(BaseStrategy):
         account_currency: str = "USD",
         quote_to_account_rates: Optional[Mapping[str, Decimal | str | float]] = None,
         risk_fraction: Decimal | str | float = Decimal("0.01"),
-        minimum_net_reward_risk: Decimal | str | float = Decimal("4.0"),
+        minimum_net_reward_risk: Decimal | str | float = Decimal("2.0"),
         minimum_stop_pips: Decimal | str | float = Decimal("5"),
         maximum_stop_pips: Decimal | str | float = Decimal("50"),
         maximum_entry_spread_pips: Decimal | str | float = Decimal("2.5"),
@@ -83,7 +83,7 @@ class InstitutionalFractalStrategy(BaseStrategy):
         lot_step: Decimal | str | float = Decimal("0.01"),
         swing_lookback: int | dict[str, int] = 3,
         swing_lookback_map: dict[str, int] | None = None,
-        setup_persistence_bars: int = 15,  # MTF alignment persistence window
+        setup_persistence_bars: int = 8,  # MTF alignment persistence window
         session_filter: bool = True,
         selected_set: Optional[str] = None,
         source_timeframe: Timeframe = Timeframe.M1,
@@ -567,17 +567,17 @@ class InstitutionalFractalStrategy(BaseStrategy):
     ) -> bool:
         """
         For CONTINUATION trades:
-        - Long (direction > 0): price must be in DISCOUNT (< 0.50) or EQUILIBRIUM
-        - Short (direction < 0): price must be in PREMIUM (> 0.50) or EQUILIBRIUM
+        - Long (direction > 0): price must be in DISCOUNT (< 0.60) or EQUILIBRIUM
+        - Short (direction < 0): price must be in PREMIUM (> 0.40) or EQUILIBRIUM
         """
         if state.range_location is None:
             return False
         if direction > 0:
             # Long: must be in Discount or Equilibrium (not Premium)
-            return state.range_location <= Decimal("0.50")
+            return state.range_location <= Decimal("0.60")
         else:
             # Short: must be in Premium or Equilibrium (not Discount)
-            return state.range_location >= Decimal("0.50")
+            return state.range_location >= Decimal("0.40")
 
     def _calculate_atr_pips(
         self,
