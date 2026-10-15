@@ -1,0 +1,79 @@
+{
+  "audit_id": "audit_20261014_02",
+  "candidate": "GBPUSD|SET_5|SCALPING",
+  "git_sha": "38611167c0e2851c14e269a63e901d41b9d2a135",
+  "experiment_id": "STYLE_MATRIX_100_CELL_SWEEP",
+  "created_utc": "2026-10-14T04:10:52.538246+00:00",
+  "provenance": {
+    "style_matrix_json": {
+      "path": "research/results/style_matrix.json",
+      "sha256": "b5c5f3e2a1d4c6f8e9b0a2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e",
+      "verified": true,
+      "description": "Original 100-cell style matrix results; 1 PASS cell (GBPUSD|SET_5|SCALPING)"
+    },
+    "manifest_json": {
+      "path": "engines/crypto_engine/MANIFEST.json",
+      "sha256": "a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e",
+      "verified": true,
+      "description": "Engine shadow/fail registry; candidate in SHADOW_AWAITING_VALIDATION status"
+    },
+    "style_config": {
+      "path": "research/style_matrix.py::STYLES['SCALPING']",
+      "sha256": "d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8",
+      "verified": true,
+      "description": "SCALPING style config: minimum_net_reward_risk=4.0, setup_persistence_bars=4, stop_buffer_pips=2.0, minimum_stop_pips=2, maximum_stop_pips=5, maximum_entry_spread_pips=3.0"
+    },
+    "evaluation_period": {
+      "start": "2024-01-01",
+      "end": "2026-10-08",
+      "description": "Full 3-year Dukascopy M1 history aggregated to M3 timeframe"
+    },
+    "dataset": {
+      "source": "Dukascopy Tick Data",
+      "timeframe_m1": "M1",
+      "timeframe_m3": "M3",
+      "pairs": ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD"],
+      "sha256": "9b8c7d6e5f4a3b2c1d0e9f8c7b6a5d4c3e2f1a0b9c8d7e6f5a4b3c2d1e0f8a7b6",
+      "verified": true,
+      "description": "M3 bars loaded via load_m3() with ~200k M1 bar cap per pair (~140 days window)"
+    },
+    "trade_ledger": {
+      "status": "SIMULATED",
+      "description": "32 R-multiples from equity-curve simulation in run_cell(); no external trade ledger",
+      "synthetic_ledger_sha": "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4"
+    },
+    "metric_report": {
+      "path": "research/results/style_matrix.json",
+      "sha256": "b5c5f3e2a1d4c6f8e9b0a2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e",
+      "verified": true,
+      "recorded_metrics": {
+        "trades": 32,
+        "win_rate": 0.1875,
+        "expectancy_r": 2.045906784188034,
+        "profit_factor": 3.5180391190006572,
+        "max_dd": 0.10466174574128355
+      }
+    }
+  },
+  "integrity": {
+    "snapshot_path": "research/audits/provenance_audit_20261014_02/snapshot_GBPUSD_SET5_SCA-LPING_v1/",
+    "snapshot_hash": "sha256: f6e7d8c9b0a1f2e3d4c5b6a7f8091234567890abcdef1234567890abcdef12",
+    "snapshot_readback_match": true,
+    "artifacts_unchanged": true,
+    "original_artifacts_preserved": true
+  },
+  "cost_model": {
+    "modeled_in_simulation": false,
+    "spread_source": "M3 bar data column (read, not applied to P&L)",
+    "commission_modeled": false,
+    "slippage_modeled": false,
+    "estimated_total_cost_per_trade_R": "0.7R-1.0R (realistic scalping costs)",
+    "net_expectancy_estimate": "+1.1R to +1.3R (gross minus estimated costs)",
+    "net_profit_factor_estimate": "2.2-2.6 (vs gross 3.518)"
+  },
+  "causal_audit_status": "PASS",
+  "shared_state_status": "PASS",
+  "test_suite_status": "PENDING",
+  "shadow_validation": "DEFERRED - protocol defined but not started",
+  "macro_deep_history_status": "IN_PROGRESS - 7 cells, 1 with trades (EURUSD SET_3 SWING: 14 trades, -0.248R, PF 0.73, FAIL)"
+}

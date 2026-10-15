@@ -1,0 +1,10 @@
+{
+  "trades": 32,
+  "win_rate": 0.1875,
+  "mean_r": 2.045906784188034,
+  "expectancy_r": 2.045906784188034,
+  "profit_factor": 3.5180391190006572,
+  "max_dd": 0.10466174574128355,
+  "basis": "GROSS simulated R-multiples, no transaction costs modeled",
+  "simulation_code": "research/style_matrix.py::run_cell()"
+}

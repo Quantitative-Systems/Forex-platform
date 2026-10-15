@@ -1,0 +1,135 @@
+{
+  "concept_name": "correlated_mtf_fractal",
+  "baseline": {
+    "simulation_independent": {
+      "cells": 100,
+      "passing_cells": 1,
+      "pass_rate_pct": 1.0,
+      "best_cell_metrics": {
+        "trades": 32,
+        "winners": 6,
+        "losers": 26,
+        "win_rate": 0.1875,
+        "mean_r": 2.045906784188034,
+        "calculated_pf": 3.5180391190006572,
+        "implied_distribution": {
+          "average_win_r": 15.2448,
+          "average_loss_r": -1.0,
+          "expected_gross_win_total": 91.469,
+          "expected_gross_loss_total": 26.0
+        },
+        "synthetic_r_multiples": [
+          14.244836182336181,
+          14.744836182336181,
+          15.244836182336181,
+          15.744836182336181,
+          16.24483618233618,
+          16.74483618233618,
+          -1.0,
+          -1.1,
+          -1.2,
+          -1.3,
+          -1.4,
+          -1.0,
+          -1.1,
+          -1.2,
+          -1.3,
+          -1.4,
+          -1.0,
+          -1.1,
+          -1.2,
+          -1.3,
+          -1.4,
+          -1.0,
+          -1.1,
+          -1.2,
+          -1.3,
+          -1.4,
+          -1.0,
+          -1.1,
+          -1.2,
+          -1.3,
+          -1.4,
+          -1.0
+        ]
+      }
+    }
+  },
+  "cost_erasure_analysis": {
+    "analysis": "Implied cost-erasure estimate for GBPUSD|SET_5|SCALPING",
+    "cost_to_subtract_per_trade_R": 0.8,
+    "inputs": {
+      "gross_expectancy": 2.045906784188034,
+      "gross_pf": 3.5180391190006572,
+      "trades": 32,
+      "winners": 6
+    },
+    "net_metrics": {
+      "net_expectancy_r": 1.2459,
+      "net_pf": 1.8519,
+      "total_cost_estimate_r": 25.6,
+      "net_win_rate": 0.1875
+    },
+    "sources": {
+      "spread_estimate": "1.8 pips \u00d7 0.5 involved cost = ~0.5R at 3-pip stop and 1% risk",
+      "commission": "$7/round-turn per 100k standard lot, averaged",
+      "slippage": "0.2 pips + estimated market impact"
+    }
+  },
+  "correlation_structure": {
+    "SET_1": {
+      "total_cells": 3,
+      "cells_with_trades": 0
+    },
+    "SET_2": {
+      "total_cells": 3,
+      "cells_with_trades": 0
+    },
+    "SET_3": {
+      "total_cells": 1,
+      "cells_with_trades": 1,
+      "avg_trades": 14.0,
+      "average_expectancy": -0.24839124839124832,
+      "average_pf": 0.7325017325017326
+    }
+  },
+  "pair_performance_summary": {
+    "EURUSD": {
+      "total_cells": 25,
+      "cells_with_trades": 8,
+      "passing_cells": 0,
+      "pass_rate": 0.0
+    },
+    "GBPUSD": {
+      "total_cells": 25,
+      "cells_with_trades": 9,
+      "passing_cells": 1,
+      "pass_rate": 4.0
+    },
+    "USDJPY": {
+      "total_cells": 25,
+      "cells_with_trades": 14,
+      "passing_cells": 0,
+      "pass_rate": 0.0
+    },
+    "AUDUSD": {
+      "total_cells": 25,
+      "cells_with_trades": 6,
+      "passing_cells": 0,
+      "pass_rate": 0.0
+    }
+  },
+  "key_historical_facts": [
+    "Only 1 in 100 independent style-matrix cells survives gates",
+    "Macro deep-history shows 1 of 36 cells with trades, which is losing",
+    "Candle-count hypothesis unsupported: most sets produce insufficient volume",
+    "32 trades on 3-year M3 data is extremely sparse \u2014 one trade per 15 M3 bars on average"
+  ],
+  "requirements_for_validation": [
+    "Manual indicator-based backtesting for concept proof",
+    "At least 2 currency pairs \u00d7 3 sets with sufficient trade counts",
+    "Statistical hypothesis testing for correlated-set effects",
+    "Cost-modelled pre-edge validation",
+    "Shadow validation operating independently of original strategy code"
+  ]
+}

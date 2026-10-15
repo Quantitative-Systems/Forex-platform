@@ -1,0 +1,12 @@
+{
+  "temporal_causality": "PASS",
+  "shared_canonical_state": "PASS",
+  "trade_execution_risk": "PASS (gross, costs not modeled)",
+  "overall": "PASS",
+  "key_findings": [
+    "No look-ahead bias in exit logic",
+    "One canonical state per timeframe, no duplicates",
+    "1% risk, 1:4 RR gating enforced",
+    "Spread/commission/slippage not modeled (gross metrics)"
+  ]
+}

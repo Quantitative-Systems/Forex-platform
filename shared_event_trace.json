@@ -1,0 +1,62 @@
+{
+  "audit_id": "audit_20261014_02",
+  "trace": {
+    "event_id": "DAILY_ZONE_GBPUSD_20240615",
+    "pair": "GBPUSD",
+    "timeframe": "D1",
+    "creation_timestamp": "2024-06-15T17:00:00Z",
+    "availability_timestamp": "2024-06-15T17:00:00Z",
+    
+    "canonical_state": {
+      "structural_bias": "neutral",
+      "key_zone": {
+        "price_low": 1.2650,
+        "price_high": 1.2850,
+        "zone_type": "value_region"
+      },
+      "confidence": 0.85
+    },
+    
+    "consuming_sets": {
+      "SET_1": {
+        "interpretation": "structural bias continuation",
+        "stop_buffer": 2.0,
+        "max_stop": 5.0,
+        "persistence_bars": 4,
+        "event_role": "bias_reference"
+      },
+      "SET_2": {
+        "interpretation": "structural bias pullback",
+        "stop_buffer": 2.0,
+        "max_stop": 5.0,
+        "persistence_bars": 4,
+        "event_role": "bias_reference"
+      },
+      "SET_3": {
+        "interpretation": "structural bias reversion",
+        "stop_buffer": 2.0,
+        "max_stop": 5.0,
+        "persistence_bars": 4,
+        "event_role": "bias_reference"
+      }
+    },
+    
+    "context_specific_interpretations": {
+      "SET_1": "Zone respected as primary structural reference; entries aligned with dominant trend bias.",
+      "SET_2": "Zone used for pullback entry; stricter stop validation applied.",
+      "SET_3": "Zone used for mean-reversion; wider target envelope due to longer expected holding period."
+    },
+    
+    "duplicate_event_check": {
+      "total_created": 1,
+      "duplicate_count": 0,
+      "verified": true,
+      "method": "CascadingFractalCoordinator computes one canonical state per timeframe; each set consumes the same event ID independently."
+    }
+  },
+  "test_reference": {
+    "test_name": "test_canonical_state_sharing",
+    "script": "research/audits/provenance_audit_20261014_02/test_canonical_sharing.py",
+    "result": "PASS — one event_id shared across 3 sets, zero duplicates"
+  }
+}

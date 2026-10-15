@@ -1,0 +1,20 @@
+{
+  "pair": "GBPUSD",
+  "set_key": "SET_5",
+  "style": "SCALPING",
+  "git_sha": "38611167c0e2851c14e269a63e901d41b9d2a135",
+  "created_utc": "2026-10-14T04:10:52.538246+00:00",
+  "style_config": {
+    "minimum_net_reward_risk": 4.0,
+    "setup_persistence_bars": 4,
+    "stop_buffer_pips": 2.0,
+    "minimum_stop_pips": 2,
+    "maximum_stop_pips": 5,
+    "maximum_entry_spread_pips": 3.0
+  },
+  "risk_fraction": 0.01,
+  "account_equity": 100000,
+  "session_filter": true,
+  "source_timeframe": "M3",
+  "selected_set": "SET_5"
+}

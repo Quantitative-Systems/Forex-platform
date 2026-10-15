@@ -1,0 +1,26 @@
+{
+  "snapshot_dir": "research/audits/provenance_audit_20261014_02/snapshot_GBPUSD_SET5_SCA-LPING_v1",
+  "created_utc": "2026-10-14T09:06:47.194718Z",
+  "config": {
+    "path": "config.json",
+    "sha256": "58570e72402691d12da1f78648dc2db69f066d72ee33abb3c156dd53c49ab12a"
+  },
+  "dataset": {
+    "path": "dataset_manifest.json",
+    "sha256": "2825135552c579850072128c6fee6fc4b2e95d45499c17ca05c925449aef0440"
+  },
+  "metrics": {
+    "path": "metrics_recalculation.json",
+    "sha256": "6700f47a0948c0bc197e8c4651f79a1bd3ddabfba7413bc4051990c6aaa97c72"
+  },
+  "trade_ledger": {
+    "path": "trade_ledger_synthetic.json",
+    "sha256": "b3c6ade26489d397895eb1ebe5bac917d1d2476f860d072c26e1e7d71efa21bc"
+  },
+  "causal_summary": {
+    "path": "causal_audit_summary.json",
+    "sha256": "77e38d4151301c7131944b35bb394f4548a55e9f876c42c31f4a18100cf155f1"
+  },
+  "snapshot_hash_total": "3157679f961757d9065f5decf89f3ba124ae110c17fb9dcf84e9e5ce4b013f9a",
+  "readback_verification": {}
+}

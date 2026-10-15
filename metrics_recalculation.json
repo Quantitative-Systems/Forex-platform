@@ -1,0 +1,61 @@
+{
+  "audit_id": "audit_20261014_02",
+  "candidate": "GBPUSD|SET_5|SCALPING",
+  "metrics_recalculation": {
+    "basis": "GROSS simulated R-multiples, no transaction costs modeled",
+    "simulation_code": "research/style_matrix.py::run_cell()",
+    "basis_note": "The simulation generates order intents, simulates fills at limit prices, and tracks R-multiples from entry to exit. Spread data exists in bar data but is NOT applied to P&L or R calculation.",
+    
+    "original_reported_metrics": {
+      "trades": 32,
+      "win_rate": 0.1875,
+      "mean_r": 2.045906784188034,
+      "expectancy_r": 2.045906784188034,
+      "profit_factor": 3.5180391190006572,
+      "max_dd": 0.10466174574128355
+    },
+    
+    "independently_recalculated": {
+      "method": "Re-ran style_matrix.py run_cell() from original codepath with GBPUSD/SET_5/SCALPING config",
+      "verified_against_original": true,
+      "recalculated_metrics": {
+        "trades": 32,
+        "win_rate": 0.1875,
+        "mean_r": 2.045906784188034,
+        "expectancy_r": 2.045906784188034,
+        "profit_factor": 3.5180391190006572,
+        "max_dd": 0.10466174574128355
+      },
+      "status": "MATCH - recalculated values exactly match original reported values"
+    },
+    
+    "trade_distribution": {
+      "total_trades": 32,
+      "winners": 6,
+      "losers": 26,
+      "win_rate": "6/32 = 18.75%",
+      "average_win": 15.24R,
+      "average_loss": 1.00R,
+      "win_loss_ratio": 15.24,
+      "distribution_insight": "Small number of very large winners (avg 15.24R) with many small losers (avg 1.00R). Consistent with 1:4 minimum RR: losses cut at 1R, winners run far beyond 4R minimum."
+    },
+    
+    "cost_model_disclosure": {
+      "spread_modeled": false,
+      "commission_modeled": false,
+      "slippage_modeled": false,
+      "cost_commentary": "The simulation makes NO explicit provision for spread, commission, or slippage. The M3 bar data includes a 'spread' column that is read and passed to BarEvent but never applied to P&L calculations or R-multiples. All reported metrics are GROSS of transaction costs.",
+      "estimated_realistic_costs_per_trade": {
+        "spread": "~0.6R (1.8 pips avg on M3, 3-pip stop at 1% risk)",
+        "commission": "~0.07R ($7/round-turn per 100k notional)",
+        "slippage": "~0.1R (0.2 pips + ATR expansion)",
+        "total_estimated": "~0.7R-1.0R per trade"
+      },
+      "net_metrics_estimate": {
+        "expectancy_r_estimate": "+1.1R to +1.3R (gross 2.046R minus ~0.8R estimated costs)",
+        "profit_factor_estimate": "2.2-2.6 (gross 3.518 minus cost drag)",
+        "max_dd_estimate": "~12-15% (simulated 10.47% plus cost drag on equity)"
+      }
+    }
+  }
+}

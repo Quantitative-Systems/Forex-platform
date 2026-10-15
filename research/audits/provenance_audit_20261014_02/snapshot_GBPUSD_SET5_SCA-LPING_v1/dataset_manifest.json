@@ -1,0 +1,15 @@
+{
+  "source": "Dukascopy Tick Data",
+  "timeframe_m1": "M1",
+  "timeframe_m3": "M3",
+  "pairs": [
+    "EURUSD",
+    "GBPUSD",
+    "USDJPY",
+    "AUDUSD"
+  ],
+  "evaluation_start": "2024-01-01",
+  "evaluation_end": "2026-10-08",
+  "loaded_via": "load_m3(cache_dir, max_m1_bars=200000)",
+  "description": "M3 bars aggregated from M1; ~200k M1 bar cap per pair"
+}
