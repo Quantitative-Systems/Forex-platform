@@ -23,7 +23,7 @@ def test_candidate_uses_all_five_sets_on_a_single_m1_feed() -> None:
 
     assert strategy.timeframe_sets == tuple(TIMEFRAME_SETS)
     assert strategy.timeframes == [Timeframe.M1]
-    assert set(strategy.timeframe_sets) == {"SET_1", "SET_2", "SET_3", "SET_4", "SET_5"}
+    assert set(strategy.timeframe_sets) == {"SET_1", "SET_2", "SET_3", "SET_4", "SET_5", "SET_6"}
     assert strategy.minimum_net_reward_risk == Decimal("4")
 
 
@@ -43,7 +43,7 @@ def test_strategy_can_be_isolated_to_one_set_for_fair_cell_tests() -> None:
     assert isolated.selected_set == "SET_4"
     assert isolated.timeframe_sets == all_sets.timeframe_sets
     with pytest.raises(ValueError, match="unknown timeframe set"):
-        InstitutionalFractalStrategy(selected_set="SET_6")
+        InstitutionalFractalStrategy(selected_set="SET_99")
 
 
 def test_discovery_registry_can_instantiate_the_fractal_candidate() -> None:

@@ -73,7 +73,9 @@ DEFAULT_SWING_LOOKBACK_MAP: dict[str, int] = {
     "4H": 5,
     "1H": 5,
     "15M": 3,
-    "3M": 3,
+    "3m": 3,
+    "5M": 5,
+    "1m": 1,
 }
 
 

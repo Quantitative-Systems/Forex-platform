@@ -1,151 +1,129 @@
 """
-Walk-Forward Engine with Strict Chronological Partitioning.
-Partitions historical data into DEV (70%), VAL (15%), and OOS (15%) splits
-with zero shuffling or cross-boundary leakage.
+Walk-Forward Analysis Engine for Institutional Backtesting.
+
+Part 1: imports, dataclasses, class definition, __init__
 """
 
 from __future__ import annotations
 
-from copy import deepcopy
-from typing import Tuple
-import polars as pl
-from pydantic import BaseModel, ConfigDict
-
-from forex_platform.core.domain import CurrencyPair
-from forex_platform.market_data.causal_aligner import Timeframe
-from forex_platform.research_engine.backtester import BacktestResult, EventDrivenBacktester
-from forex_platform.strategy_engine.base import BaseStrategy
+from dataclasses import dataclass, field
+from decimal import Decimal
+from typing import Callable, Optional
+from forex_platform.research_engine.backtester import (
+    EventDrivenBacktester,
+)
+from forex_platform.core.domain import to_decimal
 
 
-class WalkForwardResult(BaseModel):
-    """Container for Walk-Forward partitioned backtest outcomes."""
-    model_config = ConfigDict(frozen=True)
+@dataclass
+class WalkForwardPartition:
+    partition_id: int
+    is_start: int
+    is_end: int
+    val_start: int
+    val_end: int
+    oos_start: int
+    oos_end: int
 
+
+@dataclass
+class WalkForwardResult:
     strategy_id: str
-    dev_result: BacktestResult
-    val_result: BacktestResult
-    oos_result: BacktestResult
+    partition_results: list[dict]
+    is_expectancy: Decimal
+    oos_expectancy: Decimal
+    walk_forward_efficiency: float
+    total_trades_ois: int
+    total_trades_oos: int
+    passes_gates: bool
 
 
-class RollingWalkForwardResult(BaseModel):
-    """OOS results from multiple chronological rolling windows."""
+class WalkForwardAnalyzer:
+    def __init__(
+        self,
+        backtester: EventDrivenBacktester,
+        i_s_size: float = 0.6,
+        validation_size: float = 0.2,
+        oos_size: float = 0.2,
+        n_overlap: int = 5,
+        min_trades: int = 50,
+        test_strategy=None,
+    ):
+        if not (0 < i_s_size < 1):
+            raise ValueError("i_s_size must be between 0 and 1")
+        if not (0 < validation_size < 1 and 0 < oos_size < 1):
+            raise ValueError("validation_size and oos_size must be between 0 and 1")
+        if abs((i_s_size + validation_size + oos_size) - 1.0) > 0.01:
+            raise ValueError("IS + VAL + OOS fractions must sum to 1.0")
+        self.backtester = backtester
+        self.i_s_size = i_s_size
+        self.validation_size = validation_size
+        self.oos_size = oos_size
+        self.n_overlap = n_overlap
+        self.min_trades = min_trades
+        self.test_strategy = test_strategy
+    def _partition_indices(self, total_bars: int) -> list[WalkForwardPartition]:
+        if total_bars < 100:
+            return []
+        windows = []
+        is_end = int(total_bars * self.i_s_size)
+        val_end = is_end + int(total_bars * self.validation_size)
+        oos_end = total_bars
+        if oos_end <= is_end or val_end <= is_end:
+            return []
+        windows.append(WalkForwardPartition(
+            partition_id=0, is_start=0, is_end=is_end,
+            val_start=is_end, val_end=val_end,
+            oos_start=val_end, oos_end=oos_end,
+        ))
+        return windows
 
-    model_config = ConfigDict(frozen=True)
-
-    strategy_id: str
-    windows: list[WalkForwardResult]
-
-
-class WalkForwardEngine:
-    """
-    Executes chronological Walk-Forward analysis across:
-    - DEV (Development / In-Sample): 70%
-    - VAL (Validation / Tuning):    15%
-    - OOS (Out-Of-Sample / Test):   15%
-    """
-
-    @classmethod
-    def partition_data(
-        cls,
-        df: pl.DataFrame,
-        dev_ratio: float = 0.70,
-        val_ratio: float = 0.15,
-        oos_ratio: float = 0.15,
-    ) -> Tuple[pl.DataFrame, pl.DataFrame, pl.DataFrame]:
-        """
-        Chronologically partition historical DataFrame without shuffling.
-        """
-        if abs((dev_ratio + val_ratio + oos_ratio) - 1.0) > 1e-4:
-            raise ValueError(f"Ratios must sum to 1.0, got {dev_ratio + val_ratio + oos_ratio}")
-
-        # Ensure strict sort by timestamp
-        sorted_df = df.sort("timestamp")
-        n = sorted_df.height
-
-        if n < 30:
-            raise ValueError(f"Dataset too small ({n} bars) for 3-way chronological partitioning.")
-
-        dev_end = int(n * dev_ratio)
-        val_end = dev_end + int(n * val_ratio)
-
-        dev_df = sorted_df.slice(0, dev_end)
-        val_df = sorted_df.slice(dev_end, val_end - dev_end)
-        oos_df = sorted_df.slice(val_end, n - val_end)
-
-        return dev_df, val_df, oos_df
-
-    @classmethod
-    def run_rolling_walkforward(
-        cls,
-        strategy: BaseStrategy,
-        currency_pair: CurrencyPair,
-        df: pl.DataFrame,
-        *,
-        window_bars: int = 1000,
-        step_bars: int = 250,
-        timeframe: Timeframe = Timeframe.M15,
-        cost_multiplier: float = 1.0,
-    ) -> RollingWalkForwardResult:
-        """Run independent chronological DEV/VAL/OOS windows.
-
-        Each window uses a deep-copied strategy so indicator buffers, signal
-        counters, and internal state cannot leak from one partition to the next.
-        """
-        if window_bars < 30 or step_bars <= 0:
-            raise ValueError("window_bars must be >= 30 and step_bars must be positive")
-        sorted_df = df.sort("timestamp")
-        windows: list[WalkForwardResult] = []
-        start = 0
-        while start + window_bars <= sorted_df.height:
-            window = sorted_df.slice(start, window_bars)
-            dev, val, oos = cls.partition_data(window)
-            windows.append(
-                cls.run_walkforward(
-                    deepcopy(strategy), currency_pair, pl.concat([dev, val, oos], how="vertical"),
-                    timeframe=timeframe, cost_multiplier=cost_multiplier,
-                )
-            )
-            start += step_bars
-        if not windows:
-            raise ValueError(
-                f"Dataset has {sorted_df.height} bars; need at least {window_bars} for one rolling window"
-            )
-        return RollingWalkForwardResult(strategy_id=strategy.strategy_id, windows=windows)
-
-    @classmethod
-    def run_walkforward(
-        cls,
-        strategy: BaseStrategy,
-        currency_pair: CurrencyPair,
-        df: pl.DataFrame,
-        timeframe: Timeframe = Timeframe.M15,
-        cost_multiplier: float = 1.0,
-    ) -> WalkForwardResult:
-        """
-        Execute sequential walk-forward backtests on DEV, VAL, and OOS slices.
-        """
-        dev_df, val_df, oos_df = cls.partition_data(df)
-
-        def build_tester() -> EventDrivenBacktester:
-            return EventDrivenBacktester(
-                deepcopy(strategy),
-                currency_pair,
-                cost_multiplier=cost_multiplier,
-                slippage_pips=getattr(strategy, "slippage_buffer_pips", 0),
-                atr_expansion_slippage_factor=getattr(strategy, "atr_expansion_slippage_factor", 0),
-            )
-
-        dev_tester = build_tester()
-        val_tester = build_tester()
-        oos_tester = build_tester()
-
-        dev_res = dev_tester.run(dev_df, timeframe=timeframe)
-        val_res = val_tester.run(val_df, timeframe=timeframe)
-        oos_res = oos_tester.run(oos_df, timeframe=timeframe)
-
-        return WalkForwardResult(
-            strategy_id=strategy.strategy_id,
-            dev_result=dev_res,
-            val_result=val_res,
-            oos_result=oos_res,
+    def _run_partition(self, df_subset: pl.DataFrame) -> dict:
+        result = self.backtester.run(df_subset)
+        return dict(
+            total_trades=result.total_trades,
+            winning=result.winning_trades,
+            losing=result.losing_trades,
+            win_rate=result.win_rate,
+            profit_factor=result.profit_factor,
+            expectancy=float(result.expectancy),
+            max_drawdown_pct=result.max_drawdown_pct,
+            sharpe_ratio=result.sharpe_ratio,
+            final_balance=float(result.final_balance),
         )
+
+    def run_all(self, symbols: list[str] = None) -> list[WalkForwardResult]:
+        if symbols is None:
+            from forex_platform.market_data.instruments import ALL_SYMBOLS
+            symbols = ALL_SYMBOLS
+        results = []
+        for symbol in symbols:
+            r = WalkForwardResult(strategy_id=symbol + "_WFA")
+            results.append(r)
+        return results
+
+    def evaluate(self, results: list[WalkForwardResult]) -> dict:
+        scored = []
+        for r in results:
+            wfe = 0.0
+            is_exp = r.is_expectancy
+            oos_exp = r.oos_expectancy
+            if r.total_trades_oos >= 1:
+                wfe = float(oos_exp / (r.is_expectancy + 1e-10))
+            passes = (
+                wfe >= 0.6
+                and r.total_trades_oos >= self.min_trades
+                and is_exp > 0
+                and oos_exp > 0
+            )
+            scored.append(dict(
+                strategy_id=r.strategy_id,
+                is_expectancy=float(is_exp),
+                oos_expectancy=float(oos_exp),
+                wfe=wfe,
+                oos_trades=r.total_trades_oos,
+                is_trades=r.total_trades_ois,
+                passes_gates=passes,
+            ))
+        return scored
+

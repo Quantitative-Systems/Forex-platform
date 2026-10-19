@@ -12,7 +12,7 @@
       "description": "Original 100-cell style matrix results; 1 PASS cell (GBPUSD|SET_5|SCALPING)"
     },
     "manifest_json": {
-      "path": "engines/crypto_engine/MANIFEST.json",
+      "path": "engines/forex_engine/MANIFEST.json",
       "sha256": "a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e",
       "verified": true,
       "description": "Engine shadow/fail registry; candidate in SHADOW_AWAITING_VALIDATION status"

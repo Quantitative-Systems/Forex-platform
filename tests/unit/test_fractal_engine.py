@@ -57,15 +57,15 @@ def make_bars(count: int, start: datetime | None = None) -> pl.DataFrame:
     return pl.DataFrame(rows)
 
 
-def test_trade_matrix_requires_100_trades_for_each_of_20_real_data_cells() -> None:
+def test_trade_matrix_requires_100_trades_for_each_of_24_real_data_cells() -> None:
     symbols = ("EURUSD", "GBPUSD", "USDJPY", "AUDUSD")
     audits = {symbol: {"reason": "no qualifying real M1 history"} for symbol in symbols}
 
     matrix = run_set_trade_matrix(symbols, {}, audits)
 
-    assert matrix["family_size"] == 20
+    assert matrix["family_size"] == 24
     assert matrix["cells_tested"] == 0
-    assert len(matrix["cells"]) == 20
+    assert len(matrix["cells"]) == 24
     assert {cell["required_minimum_trades"] for cell in matrix["cells"]} == {100}
     assert {cell["status"] for cell in matrix["cells"]} == {"NOT_RUN_INSUFFICIENT_REAL_DATA"}
 
@@ -119,10 +119,10 @@ def make_state(
 
 
 def test_frozen_ladder_and_set_windows_are_exact() -> None:
-    assert [tf.value for tf in CANONICAL_LADDER] == ["1M", "1W", "1D", "4H", "1H", "15M", "3M"]
+    assert [tf.value for tf in CANONICAL_LADDER] == ["1M", "1W", "1D", "4H", "1H", "15M", "5M", "3m", "1m"]
     assert [[tf.value for tf in values] for values in TIMEFRAME_SETS.values()] == [
         ["1M", "1W", "1D"], ["1W", "1D", "4H"], ["1D", "4H", "1H"],
-        ["4H", "1H", "15M"], ["1H", "15M", "3M"],
+        ["4H", "1H", "15M"], ["1H", "15M", "5M"], ["15M", "5M", "1m"],
     ]
 
 
@@ -132,7 +132,7 @@ def test_aggregation_emits_only_closed_target_candles() -> None:
     assert h1.height == 1
     assert h1["timestamp"][0] == datetime(2024, 1, 1, 1, tzinfo=timezone.utc)
     assert h1["source_bar_count"][0] == 4
-    assert aggregate_bars(bars, "3M", Timeframe.M15).is_empty()
+    assert aggregate_bars(bars, "3m", Timeframe.M15).is_empty()
 
 
 def test_state_engine_uses_one_causal_state_history_and_set5_needs_m1() -> None:

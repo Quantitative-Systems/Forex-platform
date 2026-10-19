@@ -1,0 +1,18 @@
+2026-10-17T14:28:02.487788+00:00 START 2024-01-01T00:00:00+00:00 -> 2026-10-18T00:00:00+00:00 pairs=['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD']
+EURUSD: fetching Dukascopy BID M1 from 2024-01-01T00:00:00+00:00 to 2026-10-18T00:00:00+00:00
+EURUSD: BID rows=1040265; fetching ASK
+EURUSD: wrote 1,040,265 aligned BID/ASK M1 bars to data\cache\dukascopy\EURUSD_M1.parquet
+2026-10-17T14:35:15.931094+00:00 OK EURUSD rows_written=23299325B data\cache\dukascopy\EURUSD_M1.parquet
+GBPUSD: fetching Dukascopy BID M1 from 2024-01-01T00:00:00+00:00 to 2026-10-18T00:00:00+00:00
+GBPUSD: BID rows=1038726; fetching ASK
+GBPUSD: wrote 1,038,726 aligned BID/ASK M1 bars to data\cache\dukascopy\GBPUSD_M1.parquet
+2026-10-17T14:40:43.066252+00:00 OK GBPUSD rows_written=24068544B data\cache\dukascopy\GBPUSD_M1.parquet
+USDJPY: fetching Dukascopy BID M1 from 2024-01-01T00:00:00+00:00 to 2026-10-18T00:00:00+00:00
+USDJPY: BID rows=1040448; fetching ASK
+USDJPY: wrote 1,040,448 aligned BID/ASK M1 bars to data\cache\dukascopy\USDJPY_M1.parquet
+2026-10-17T14:47:26.587154+00:00 OK USDJPY rows_written=24301725B data\cache\dukascopy\USDJPY_M1.parquet
+AUDUSD: fetching Dukascopy BID M1 from 2024-01-01T00:00:00+00:00 to 2026-10-18T00:00:00+00:00
+AUDUSD: BID rows=1037965; fetching ASK
+AUDUSD: wrote 1,037,965 aligned BID/ASK M1 bars to data\cache\dukascopy\AUDUSD_M1.parquet
+2026-10-17T14:51:37.876181+00:00 OK AUDUSD rows_written=21950445B data\cache\dukascopy\AUDUSD_M1.parquet
+2026-10-17T14:51:37.876181+00:00 DONE failures=[]

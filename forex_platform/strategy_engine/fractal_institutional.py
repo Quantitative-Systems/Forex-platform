@@ -127,7 +127,7 @@ class InstitutionalFractalStrategy(BaseStrategy):
         self.swing_lookback_map = (
             dict(swing_lookback_map) if swing_lookback_map is not None
             else (dict(swing_lookback) if isinstance(swing_lookback, dict) else {
-                "1M": 5, "1W": 5, "1D": 5, "4H": 5, "1H": 5, "15M": 3, "3M": 3
+                "1M": 5, "1W": 5, "1D": 5, "4H": 5, "1H": 5, "15M": 3, "3m": 3, "5M": 5, "1m": 1
             })
         )
         self.setup_persistence_bars = setup_persistence_bars
@@ -184,7 +184,7 @@ class InstitutionalFractalStrategy(BaseStrategy):
             raise ValueError("minimum_net_reward_risk must be >= 1.0")
         if self.maximum_lots <= 0 or self.lot_step <= 0:
             raise ValueError("maximum_lots and lot_step must be positive")
-        if tuple(TIMEFRAME_SETS) != ("SET_1", "SET_2", "SET_3", "SET_4", "SET_5"):
+        if tuple(TIMEFRAME_SETS) != ("SET_1", "SET_2", "SET_3", "SET_4", "SET_5", "SET_6"):
             raise RuntimeError("canonical timeframe set definitions changed unexpectedly")
 
     @property

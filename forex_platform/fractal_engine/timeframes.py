@@ -22,7 +22,9 @@ class CanonicalTimeframe(str, Enum):
     H4 = "4H"
     H1 = "1H"
     M15 = "15M"
-    M3 = "3M"
+    M5 = "5M"
+    M3 = "3m"
+    M1 = "1m"
 
 
 CANONICAL_LADDER: tuple[CanonicalTimeframe, ...] = tuple(CanonicalTimeframe)
@@ -32,7 +34,8 @@ TIMEFRAME_SETS: dict[str, tuple[CanonicalTimeframe, CanonicalTimeframe, Canonica
     "SET_2": (CanonicalTimeframe.WEEK, CanonicalTimeframe.DAY, CanonicalTimeframe.H4),
     "SET_3": (CanonicalTimeframe.DAY, CanonicalTimeframe.H4, CanonicalTimeframe.H1),
     "SET_4": (CanonicalTimeframe.H4, CanonicalTimeframe.H1, CanonicalTimeframe.M15),
-    "SET_5": (CanonicalTimeframe.H1, CanonicalTimeframe.M15, CanonicalTimeframe.M3),
+    "SET_5": (CanonicalTimeframe.H1, CanonicalTimeframe.M15, CanonicalTimeframe.M5),
+    "SET_6": (CanonicalTimeframe.M15, CanonicalTimeframe.M5, CanonicalTimeframe.M1),
 }
 
 ADJACENT_PAIRS: tuple[tuple[CanonicalTimeframe, CanonicalTimeframe], ...] = tuple(
@@ -78,6 +81,8 @@ def target_is_available(
     target = CanonicalTimeframe(target)
     source = parse_source_interval(source_interval)
     fixed_minutes = {
+        CanonicalTimeframe.M1: 1,
+        CanonicalTimeframe.M5: 5,
         CanonicalTimeframe.M3: 3,
         CanonicalTimeframe.M15: 15,
         CanonicalTimeframe.H1: 60,
@@ -104,6 +109,10 @@ def timeframe_bucket_start(
     if target == CanonicalTimeframe.DAY:
         return ts.replace(hour=0, minute=0, second=0, microsecond=0)
     minutes = {
+        CanonicalTimeframe.M1: 1,
+        CanonicalTimeframe.M5: 5,
+        CanonicalTimeframe.M3: 3,
+        CanonicalTimeframe.M15: 15,
         CanonicalTimeframe.H4: 240,
         CanonicalTimeframe.H1: 60,
         CanonicalTimeframe.M15: 15,
@@ -130,7 +139,9 @@ def timeframe_bucket_end(
         CanonicalTimeframe.H4: 240,
         CanonicalTimeframe.H1: 60,
         CanonicalTimeframe.M15: 15,
+        CanonicalTimeframe.M5: 5,
         CanonicalTimeframe.M3: 3,
+        CanonicalTimeframe.M1: 1,
     }
     return bucket_start + timedelta(minutes=fixed_minutes[target])
 

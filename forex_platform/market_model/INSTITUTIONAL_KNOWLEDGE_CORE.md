@@ -106,11 +106,10 @@ identical and inviolable:
 - **Spread sentinel:** no entries when spread > 1.8 × rolling average;
   hard freeze around 5 PM EST rollover.
 - **News sentinel:** no entries ±15 min around Tier-1 macro events
-  (NFP, CPI, FOMC, and asset equivalents). For crypto, exchange-status
-  and funding-event guardrails substitute for economic calendars.
-- **Asset universality:** the doctrine applies to FX, gold, indices, and
-  crypto. Asset-adapter layers translate mechanics (sessions, rollover,
-  funding, settlement); the primitives are identical.
+  (NFP, CPI, FOMC, and asset equivalents).
+- **Asset universality:** the doctrine applies to FX, gold, and indices.
+  Asset-adapter layers translate mechanics (sessions, rollover,
+  settlement); the primitives are identical.
 
 ---
 
