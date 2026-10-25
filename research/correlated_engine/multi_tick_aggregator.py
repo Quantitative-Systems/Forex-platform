@@ -61,8 +61,9 @@ class MultiTickAggregator:
 
         # Floor to timeframe boundary
         minutes = spec.minutes
+        boundary_ns = minutes * 60 * 1_000_000_000  # minutes to nanoseconds
         m1_df = m1_df.with_columns([
-            (pl.col("timestamp").dt.epoch("1m") // (minutes * 60_000_000) * (minutes * 60_000_000)).alias("tf_boundary")
+            (pl.col("timestamp").dt.epoch("ns") // boundary_ns * boundary_ns).alias("tf_boundary")
         ])
 
         # Aggregate
@@ -93,8 +94,10 @@ class MultiTickAggregator:
     def validate_causal_integrity(self, pair: str, timeframes: Dict[str, pl.DataFrame]) -> bool:
         """Verify no look-ahead across all timeframes."""
         for tf_name, df in timeframes.items():
-            if not self.aligner.validate_no_lookahead(df):
-                print(f"[AGGREGATOR] CAUSAL VIOLATION: {pair} {tf_name}")
+            try:
+                CausalAligner.verify_causal_invariant(df, base_ts_col="timestamp", htf_close_col="close_time")
+            except Exception as e:
+                print(f"[AGGREGATOR] CAUSAL VIOLATION: {pair} {tf_name} - {e}")
                 return False
         return True
 
@@ -120,7 +123,7 @@ def main():
     for name, df in tfs.items():
         out_file = out_dir / f"{args.pair}_{name}.parquet"
         df.write_parquet(out_file)
-        print(f"  {name}: {len(df)} bars → {out_file}")
+        print(f"  {name}: {len(df)} bars -> {out_file}")
 
 
 if __name__ == "__main__":
