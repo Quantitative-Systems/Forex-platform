@@ -129,31 +129,46 @@ class HistoricalECNFetcher:
 
     @classmethod
     def _parse_histdata_csv(cls, path: Path, delimiter: str) -> pl.DataFrame:
-        """
-        Parses HistData headerless export.
-        Format: 'YYYYMMDD HHMMSS;open;high;low;close;volume'
-        """
-        raw_df = pl.read_csv(path, separator=delimiter, has_header=False, infer_schema=False)
-        ts_series = raw_df.select(
-            pl.col("column_1").str.to_datetime(format="%Y%m%d %H%M%S", time_zone="UTC")
-        )["column_1"]
+        """Parse headerless HistData rows without lossy CSV schema inference."""
+        timestamps: list[datetime] = []
+        opens: list[float] = []
+        highs: list[float] = []
+        lows: list[float] = []
+        closes: list[float] = []
+        volumes: list[float] = []
 
-        n = raw_df.height
-        vol_series = (
-            raw_df["column_6"].cast(pl.Float64)
-            if raw_df.width > 5
-            else pl.Series("volume", [100.0] * n, dtype=pl.Float64)
-        )
-        spread_series = pl.Series("spread", [1.0] * n, dtype=pl.Float64)
+        with open(path, "r", encoding="utf-8-sig", errors="strict", newline="") as handle:
+            reader = csv.reader(handle, delimiter=delimiter)
+            for line_number, row in enumerate(reader, start=1):
+                if not row or all(not field.strip() for field in row):
+                    continue
+                if len(row) < 5:
+                    raise ValueError(
+                        f"HistData row {line_number} has {len(row)} fields; expected timestamp and OHLC"
+                    )
+                try:
+                    stamp = datetime.strptime(row[0].strip(), "%Y%m%d %H%M%S").replace(tzinfo=timezone.utc)
+                    open_, high_, low_, close_ = (float(row[index].strip()) for index in range(1, 5))
+                    volume = float(row[5].strip()) if len(row) > 5 and row[5].strip() else 100.0
+                except (ValueError, IndexError) as exc:
+                    raise ValueError(f"Invalid HistData row {line_number}: {row!r}") from exc
+                timestamps.append(stamp)
+                opens.append(open_)
+                highs.append(high_)
+                lows.append(low_)
+                closes.append(close_)
+                volumes.append(volume)
 
+        if not timestamps:
+            raise ValueError("HistData file contains no data rows")
         df = pl.DataFrame({
-            "timestamp": ts_series,
-            "open": raw_df["column_2"].cast(pl.Float64),
-            "high": raw_df["column_3"].cast(pl.Float64),
-            "low": raw_df["column_4"].cast(pl.Float64),
-            "close": raw_df["column_5"].cast(pl.Float64),
-            "volume": vol_series,
-            "spread": spread_series,
+            "timestamp": pl.Series("timestamp", timestamps, dtype=pl.Datetime("us", "UTC")),
+            "open": pl.Series("open", opens, dtype=pl.Float64),
+            "high": pl.Series("high", highs, dtype=pl.Float64),
+            "low": pl.Series("low", lows, dtype=pl.Float64),
+            "close": pl.Series("close", closes, dtype=pl.Float64),
+            "volume": pl.Series("volume", volumes, dtype=pl.Float64),
+            "spread": pl.Series("spread", [1.0] * len(timestamps), dtype=pl.Float64),
         })
         return MarketDataLoader.normalize_and_validate(df)
 
