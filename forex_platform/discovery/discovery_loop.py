@@ -33,6 +33,7 @@ from forex_platform.strategy_engine.scalping import AsianRangeFadeScalper
 from forex_platform.strategy_engine.session_breakout import LondonSessionBreakout
 from forex_platform.strategy_engine.stat_arb import TriangularStatisticalArbitrage
 from forex_platform.strategy_engine.trend_continuation import TrendContinuationStrategy
+from forex_platform.strategy_engine.supertrend_stochastic import SuperTrendStochasticStructuralStrategy
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +111,7 @@ class ContinuousDiscoveryLoop:
         "AsianRangeFadeScalper": AsianRangeFadeScalper,
         "LondonSessionBreakout": LondonSessionBreakout,
         "TrendContinuationStrategy": TrendContinuationStrategy,
+        "SuperTrendStochasticStructuralStrategy": SuperTrendStochasticStructuralStrategy,
         "InstitutionalFractalStrategy": InstitutionalFractalStrategy,
         "MacroCarryStrategy": MacroCarryStrategy,
         "TriangularStatisticalArbitrage": TriangularStatisticalArbitrage,
