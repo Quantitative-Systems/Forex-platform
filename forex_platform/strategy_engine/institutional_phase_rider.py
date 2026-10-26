@@ -549,7 +549,6 @@ class InstitutionalPhaseRider(BaseStrategy):
                 return min(candidates, key=lambda z: z.price_low)
         
         return None
-return None
     
     def _calculate_levels(
         self,
