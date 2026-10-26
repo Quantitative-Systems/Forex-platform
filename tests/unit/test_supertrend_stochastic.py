@@ -98,3 +98,54 @@ def test_candidate_is_registered_with_automated_discovery():
     strategy = loop.instantiate_strategy(candidate)
     assert isinstance(strategy, SuperTrendStochasticStructuralStrategy)
     assert strategy.symbols == ["GBPUSD"]
+
+
+def test_valid_causal_context_emits_intent_only_when_indicator_trigger_fires(monkeypatch):
+    strategy = SuperTrendStochasticStructuralStrategy()
+    context = {
+        "htf_trend": "UP", "mtf_trend": "UP", "structure_fresh": True,
+        "mtf_zone_low": "1.0790", "mtf_zone_high": "1.0810",
+        "ltf_swing_low": "1.0790", "htf_target": "1.0850",
+    }
+
+    def stable_supertrend(bars, *args):
+        return [(1, Decimal("1.0790")) for _ in bars]
+
+    def controlled_stochastic(bars):
+        k = [Decimal("30") for _ in bars]
+        d = [Decimal("25") for _ in bars]
+        if len(bars) >= 70:
+            k[-2], k[-1] = Decimal("20"), Decimal("30")
+        return k, d
+
+    monkeypatch.setattr(strategy, "supertrend_series", stable_supertrend)
+    monkeypatch.setattr(strategy, "stochastic_series", controlled_stochastic)
+    result = []
+    for i in range(69):
+        result = strategy.on_bar(bar(i, "1.0800", context=context))
+    assert result == []
+    result = strategy.on_bar(bar(69, "1.0800", context=context))
+    assert len(result) == 1
+    assert result[0].side.value == "BUY"
+    assert result[0].stop_loss == Decimal("1.07900")
+    assert result[0].take_profit == Decimal("1.08500")
+
+
+def test_rejects_target_below_minimum_net_four_r(monkeypatch):
+    strategy = SuperTrendStochasticStructuralStrategy()
+    context = {
+        "htf_trend": "UP", "mtf_trend": "UP", "structure_fresh": True,
+        "mtf_zone_low": "1.0790", "mtf_zone_high": "1.0810",
+        "ltf_swing_low": "1.0790", "htf_target": "1.0830",
+    }
+    monkeypatch.setattr(strategy, "supertrend_series", lambda bars, *args: [(1, Decimal("1.0790")) for _ in bars])
+    def controlled_stochastic(bars):
+        k = [Decimal("30") for _ in bars]
+        d = [Decimal("25") for _ in bars]
+        if len(bars) >= 70:
+            k[-2], k[-1] = Decimal("20"), Decimal("30")
+        return k, d
+    monkeypatch.setattr(strategy, "stochastic_series", controlled_stochastic)
+    for i in range(70):
+        result = strategy.on_bar(bar(i, "1.0800", context=context))
+    assert result == []
