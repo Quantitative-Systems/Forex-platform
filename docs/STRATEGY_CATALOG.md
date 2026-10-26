@@ -14,6 +14,14 @@ The candidate requires HTF and MTF trend agreement, a fresh/unmitigated MTF zone
 
 **Context generation:** when no pre-aligned context is supplied, the candidate derives HTF/MTF state from the existing shared causal state engine (closed H1 and M15 states) and derives the LTF invalidation from confirmed M5 pivots. It only considers active MTF zones that are no more than four hours old and overlap the completed entry candle, plus a weak HTF key level beyond entry. Missing structure or target context fails closed. A caller-provided `htf_data` context is accepted only as an explicit integration override and must itself be causally aligned.
 
+**Reproducible baseline command:**
+
+```bash
+python research/supertrend_stochastic_baseline.py --cache-dir data/cache --minimum-years 2
+```
+
+The runner requires an existing `GBPUSD_M1.parquet` cache with `REAL_VENDOR` or `BROKER_EXPORT` provenance metadata, downsamples completed M5 bars, runs the candidate through the existing walk-forward/discovery gates, and writes `research/results/supertrend_stochastic_gbpusd_m5_baseline.json`. It does not download data, connect to a broker, or automatically promote the candidate. Missing, synthetic, unknown-provenance, or too-short data is a hard stop.
+
 **Next gates:** automated unit/compile CI, causal-context integration tests, realistic bid/ask cost modelling, historical baseline, untouched OOS and walk-forward tests, stress tests, then shadow/paper validation only if all predeclared gates pass. Do not infer an edge from unit tests or from the 4R entry filter.
 
 ## Fractal HTF/MTF/LTF candidate
