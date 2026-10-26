@@ -6,6 +6,8 @@ import pytest
 from forex_platform.market_data.causal_aligner import Timeframe
 from forex_platform.strategy_engine.base import BarEvent
 from forex_platform.strategy_engine.supertrend_stochastic import SuperTrendStochasticStructuralStrategy
+from forex_platform.discovery.discovery_loop import CandidateHypothesis, ContinuousDiscoveryLoop
+
 
 
 def bar(i: int, close: str, *, low: str | None = None, high: str | None = None, context=None) -> BarEvent:
@@ -83,3 +85,16 @@ def test_invalid_zone_fails_closed():
     for i in range(70):
         result = strategy.on_bar(bar(i, f"{1.0800 + (i % 9) * 0.0001:.4f}", context=context))
     assert result == []
+
+
+def test_candidate_is_registered_with_automated_discovery():
+    loop = ContinuousDiscoveryLoop()
+    candidate = CandidateHypothesis(
+        candidate_id="supertrend-stoch-gbp-m5",
+        strategy_name="SuperTrendStochasticStructuralStrategy",
+        symbol="GBPUSD",
+        timeframe=Timeframe.M5,
+    )
+    strategy = loop.instantiate_strategy(candidate)
+    assert isinstance(strategy, SuperTrendStochasticStructuralStrategy)
+    assert strategy.symbols == ["GBPUSD"]
