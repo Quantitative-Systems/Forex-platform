@@ -726,24 +726,39 @@ class InstitutionalPhaseRider(BaseStrategy):
         )
     
     def _check_ltf_entry(self, symbol: str, event: BarEvent, setup: TradeSetup) -> Optional[OrderIntent]:
+        """Emit a limit intent only when price retests the selected LTF zone."""
         ltf_history = self.get_history(symbol)
         if not ltf_history:
             return None
-        
+
         current_price = event.close
-        
-        if self.use_adaptive_params:
-            regime_params = self.adaptive_engine.get_params(setup.regime)
-        else:
-            regime_params = self.adaptive_engine.regime_params[MarketRegime.UNKNOWN]
-        
-        if setup.direction == OrderSide.BUY:
-            if current_price <= setup.ltf_entry_zone.price_high and current_price >= setup.ltf_entry_zone.price_low:
-                if event.close >= setup.ltf_entry_zone.price_low:
-                    pair = CurrencyPair.from_symbol(symbol)
-today = event.timestamp.date().isoformat()
-        self._daily_trade_count[today] = self._daily_trade_count.get(today, 0) + 1
-    
+        zone = setup.ltf_entry_zone
+        if not zone.price_low <= current_price <= zone.price_high:
+            return None
+
+        regime_params = (
+            self.adaptive_engine.get_params(setup.regime)
+            if self.use_adaptive_params
+            else self.adaptive_engine.regime_params[MarketRegime.UNKNOWN]
+        )
+        pair = CurrencyPair.from_symbol(symbol)
+        lots = setup.confidence * regime_params["position_size_mult"]
+        if lots <= 0:
+            return None
+        side_label = "BUY" if setup.direction == OrderSide.BUY else "SELL"
+        return self.create_intent(
+            symbol=symbol,
+            side=setup.direction,
+            order_type=OrderType.LIMIT,
+            lot_size=LotSize.from_lots(lots),
+            timestamp=event.timestamp,
+            limit_price=pair.round_price(current_price),
+            stop_loss=setup.ltf_stop_loss,
+            take_profit=setup.htf_take_profit,
+            urgency=UrgencyLevel.MEDIUM,
+            client_tag=f"PHASE_RIDER_{setup.mtf_setup_type}_{side_label}",
+        )
+
     def _manage_active_trades(self, symbol: str, event: BarEvent, state: MarketState) -> List[OrderIntent]:
         intents = []
         
