@@ -1,6 +1,7 @@
 """Research-only SuperTrend/Stochastic candidate with structural HTF/MTF gates."""
 from __future__ import annotations
 
+from datetime import timedelta
 from decimal import Decimal
 from typing import Any, Optional
 
@@ -9,6 +10,7 @@ from forex_platform.core.domain import (
 )
 from forex_platform.market_data.causal_aligner import Timeframe
 from forex_platform.strategy_engine.base import BarEvent, BaseStrategy
+from forex_platform.fractal_engine.state_engine import UniversalTimeframeStateEngine
 
 
 class SuperTrendStochasticStructuralStrategy(BaseStrategy):
@@ -91,6 +93,7 @@ class SuperTrendStochasticStructuralStrategy(BaseStrategy):
         self.max_spread_pips = Decimal(str(max_spread_pips))
         self._max_history = max_history_bars
         self._last_intent_bar: dict[str, tuple[object, Decimal]] = {}
+        self._state_engines: dict[str, UniversalTimeframeStateEngine] = {}
 
     @staticmethod
     def _true_ranges(bars: list[BarEvent]) -> list[Optional[Decimal]]:
@@ -176,11 +179,99 @@ class SuperTrendStochasticStructuralStrategy(BaseStrategy):
         except Exception:
             return None
 
+    @staticmethod
+    def _latest_confirmed_ltf_swing(history: list[BarEvent], swing_type: str, lookback: int = 2) -> Optional[Decimal]:
+        """Find the newest uniquely confirmed pivot using only completed bars."""
+        if len(history) < lookback * 2 + 1:
+            return None
+        for index in range(len(history) - lookback - 1, lookback - 1, -1):
+            pivot = history[index]
+            window = history[index - lookback:index + lookback + 1]
+            value = pivot.low if swing_type == "low" else pivot.high
+            peers = [bar.low if swing_type == "low" else bar.high
+                     for offset, bar in enumerate(window) if offset != lookback]
+            if all(value < peer for peer in peers):
+                return value
+        return None
+
+    def _build_context(
+        self, event: BarEvent, history: list[BarEvent], engine: UniversalTimeframeStateEngine
+    ) -> dict[str, Any]:
+        """Build an entry context from already-closed H1/M15 states and confirmed M5 pivots.
+
+        A caller may supply an already causally-aligned context in htf_data.
+        Otherwise this method derives the context from the shared state engine.
+        """
+        supplied = event.htf_data
+        required = {
+            "htf_trend", "mtf_trend", "structure_fresh", "mtf_zone_low",
+            "mtf_zone_high", "htf_target",
+        }
+        if required.issubset(supplied.keys()):
+            return dict(supplied)
+
+        htf, mtf = engine.get_state("1H"), engine.get_state("15M")
+        if htf is None or mtf is None or not htf.state_valid or not mtf.state_valid:
+            return {}
+        if htf.structural_trend not in (-1, 1) or mtf.structural_trend != htf.structural_trend:
+            return {}
+        trend = "UP" if htf.structural_trend > 0 else "DOWN"
+        decision_time = event.timestamp + self.timeframe.duration
+
+        # Only active MTF zones created by closed bars, still fresh, and touched
+        # by the current completed entry candle are eligible.
+        eligible_zones = []
+        for zone in mtf.zones:
+            age = decision_time - zone.timestamp_end
+            if timedelta(0) <= age <= timedelta(hours=4) and zone.price_low <= event.high and zone.price_high >= event.low:
+                eligible_zones.append(zone)
+        if not eligible_zones:
+            return {}
+        zone = max(eligible_zones, key=lambda item: item.timestamp_end)
+
+        if trend == "UP":
+            stops = self._latest_confirmed_ltf_swing(history, "low")
+            targets = [level.price for level in htf.key_levels
+                       if level.weak and str(level.swing_type).lower() in ("high", "swingtype.high")
+                       and level.price > event.close]
+            if stops is None or not targets:
+                return {}
+            stop, target = stops, min(targets)
+        else:
+            stops = self._latest_confirmed_ltf_swing(history, "high")
+            targets = [level.price for level in htf.key_levels
+                       if level.weak and str(level.swing_type).lower() in ("low", "swingtype.low")
+                       and level.price < event.close]
+            if stops is None or not targets:
+                return {}
+            stop, target = stops, max(targets)
+
+        return {
+            "htf_trend": trend,
+            "mtf_trend": trend,
+            "structure_fresh": True,
+            "mtf_zone_low": str(zone.price_low),
+            "mtf_zone_high": str(zone.price_high),
+            "ltf_swing_low" if trend == "UP" else "ltf_swing_high": str(stop),
+            "htf_target": str(target),
+        }
+
     def on_bar(self, event: BarEvent) -> list:
         if event.timeframe != self.timeframe:
             raise ValueError(f"strategy requires completed {self.timeframe.value} bars")
         self.update_history(event)
         history = self.get_history(event.symbol)
+        symbol = event.symbol.upper().replace("/", "").replace("_", "").replace("-", "")
+        engine = self._state_engines.setdefault(
+            symbol,
+            UniversalTimeframeStateEngine(symbol, base_timeframe=self.timeframe, max_history_bars=100_000),
+        )
+        engine.update({
+            "timestamp": event.timestamp,
+            "open": float(event.open), "high": float(event.high),
+            "low": float(event.low), "close": float(event.close),
+            "volume": float(event.volume), "spread": float(event.spread),
+        })
         warmup = max(self.supertrend_atr_period + 2,
                      self.stochastic_period + self.stochastic_k_smoothing + self.stochastic_d_smoothing)
         if len(history) < warmup:
@@ -188,7 +279,9 @@ class SuperTrendStochasticStructuralStrategy(BaseStrategy):
         pair = CurrencyPair.from_symbol(event.symbol)
         if event.spread < 0 or event.spread > self.max_spread_pips:
             return []
-        context = event.htf_data
+        context = self._build_context(event, history, engine)
+        if not context:
+            return []
         trend = context.get("htf_trend")
         if trend not in ("UP", "DOWN") or context.get("mtf_trend") != trend:
             return []
