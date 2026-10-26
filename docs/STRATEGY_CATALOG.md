@@ -2,6 +2,20 @@
 
 The repository contains strategy families for comparative research. A strategy's label or implementation does not imply profitability. Every candidate must use eligible data and pass the shared validation gates before it can be promoted to forward paper trading.
 
+## SuperTrend/Stochastic structural continuation candidate
+
+**Component:** `forex_platform/strategy_engine/supertrend_stochastic.py`
+
+**Status:** newly implemented research candidate; not backtested, qualified, or paper-traded. It is not authorized for live execution.
+
+**Initial research cell:** GBPUSD, M5 entry bars, with closed HTF/MTF context supplied by the causal aligner. Parameters are frozen for the first baseline: SuperTrend ATR period 6 and multiplier 5; Stochastic %K lookback 25, %K smoothing 5, %D smoothing 3; oversold/overbought thresholds 25/75; minimum estimated net reward-to-risk 4.0.
+
+The candidate requires HTF and MTF trend agreement, a fresh/unmitigated MTF zone intersecting the entry bar, a confirmed opposing LTF swing for invalidation, and an HTF structural target. A long requires an upward SuperTrend direction and a stochastic cross back above 25 with %K above %D; a short mirrors this below 75. Missing structure, invalid zones, excessive spread, invalid stop/target geometry, or estimated net R:R below 4.0 fail closed. The strategy emits intents only and relies on the existing downstream risk firewall and paper-only deployment gates.
+
+**Critical integration dependency:** the platform's causal context publisher must provide `htf_trend`, `mtf_trend`, `structure_fresh`, `mtf_zone_low`, `mtf_zone_high`, `ltf_swing_low` or `ltf_swing_high`, and `htf_target` on each entry bar. Without this context, the candidate intentionally emits no trades. The current addition does not claim that these fields are already wired end-to-end.
+
+**Next gates:** automated unit/compile CI, causal-context integration tests, realistic bid/ask cost modelling, historical baseline, untouched OOS and walk-forward tests, stress tests, then shadow/paper validation only if all predeclared gates pass. Do not infer an edge from unit tests or from the 4R entry filter.
+
 ## Fractal HTF/MTF/LTF candidate
 
 **Component:** `forex_platform/strategy_engine/fractal_institutional.py`
