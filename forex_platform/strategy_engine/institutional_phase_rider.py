@@ -549,7 +549,6 @@ class InstitutionalPhaseRider(BaseStrategy):
                 return min(candidates, key=lambda z: z.price_low)
         
         return None
-return None
     
     def _calculate_levels(
         self,
@@ -626,9 +625,17 @@ return None
         min_rr = regime_params["min_rr"]
         actual_rr = abs(tp - entry) / risk
         if actual_rr < min_rr:
-            if direction == OrderSide.BUY:
-return True
-    
+            raise ValueError("HTF structural target fails minimum reward-to-risk")
+
+        if direction == OrderSide.BUY:
+            mtf_swing_lows = [s for s in mtf.swings if s.swing_type == SwingType.LOW]
+            trail = mtf_swing_lows[-1].price if mtf_swing_lows else entry - risk
+        else:
+            mtf_swing_highs = [s for s in mtf.swings if s.swing_type == SwingType.HIGH]
+            trail = mtf_swing_highs[-1].price if mtf_swing_highs else entry + risk
+
+        return pair.round_price(entry), pair.round_price(sl), pair.round_price(tp), pair.round_price(trail)
+
     def on_bar(self, event: BarEvent) -> List[OrderIntent]:
         self.update_history(event)
         symbol = event.symbol
@@ -655,20 +662,7 @@ return True
                     del self._pending_setups[symbol]
         
         return intents
-                tp = entry + risk * min_rr
-            else:
-                tp = entry - risk * min_rr
-        
-        if direction == OrderSide.BUY:
-            mtf_swing_lows = [s for s in mtf.swings if s.swing_type == SwingType.LOW]
-            if mtf_swing_lows:
-                trail = mtf_swing_lows[-1].price
-            else:
-                trail = entry + risk * Decimal("1")
-        else:
-            mtf_swing_highs = [s for s in mtf.swings if s.swing_type == SwingType.HIGH]
-return intents
-    
+
     def _find_new_setup(self, symbol: str, event: BarEvent, state: MarketState) -> Optional[TradeSetup]:
         htf_bias, htf_confidence = self._get_htf_bias(state)
         if htf_bias == 0 or htf_confidence < Decimal("0.5"):
@@ -732,24 +726,39 @@ return intents
         )
     
     def _check_ltf_entry(self, symbol: str, event: BarEvent, setup: TradeSetup) -> Optional[OrderIntent]:
+        """Emit a limit intent only when price retests the selected LTF zone."""
         ltf_history = self.get_history(symbol)
         if not ltf_history:
             return None
-        
+
         current_price = event.close
-        
-        if self.use_adaptive_params:
-            regime_params = self.adaptive_engine.get_params(setup.regime)
-        else:
-            regime_params = self.adaptive_engine.regime_params[MarketRegime.UNKNOWN]
-        
-        if setup.direction == OrderSide.BUY:
-            if current_price <= setup.ltf_entry_zone.price_high and current_price >= setup.ltf_entry_zone.price_low:
-                if event.close >= setup.ltf_entry_zone.price_low:
-                    pair = CurrencyPair.from_symbol(symbol)
-today = event.timestamp.date().isoformat()
-        self._daily_trade_count[today] = self._daily_trade_count.get(today, 0) + 1
-    
+        zone = setup.ltf_entry_zone
+        if not zone.price_low <= current_price <= zone.price_high:
+            return None
+
+        regime_params = (
+            self.adaptive_engine.get_params(setup.regime)
+            if self.use_adaptive_params
+            else self.adaptive_engine.regime_params[MarketRegime.UNKNOWN]
+        )
+        pair = CurrencyPair.from_symbol(symbol)
+        lots = setup.confidence * regime_params["position_size_mult"]
+        if lots <= 0:
+            return None
+        side_label = "BUY" if setup.direction == OrderSide.BUY else "SELL"
+        return self.create_intent(
+            symbol=symbol,
+            side=setup.direction,
+            order_type=OrderType.LIMIT,
+            lot_size=LotSize.from_lots(lots),
+            timestamp=event.timestamp,
+            limit_price=pair.round_price(current_price),
+            stop_loss=setup.ltf_stop_loss,
+            take_profit=setup.htf_take_profit,
+            urgency=UrgencyLevel.MEDIUM,
+            client_tag=f"PHASE_RIDER_{setup.mtf_setup_type}_{side_label}",
+        )
+
     def _manage_active_trades(self, symbol: str, event: BarEvent, state: MarketState) -> List[OrderIntent]:
         intents = []
         
@@ -871,40 +880,6 @@ today = event.timestamp.date().isoformat()
         }
 
 
-__all__ = ["InstitutionalPhaseRider", "TradeSetup", "ActiveTrade", "TradeState", "MarketRegime"]
-                    lot_size = LotSize.from_lots(float(setup.confidence * regime_params["position_size_mult"]))
-                    return self.create_intent(
-                        symbol=symbol,
-                        side=OrderSide.BUY,
-                        order_type=OrderType.LIMIT,
-                        lot_size=lot_size,
-                        timestamp=event.timestamp,
-                        limit_price=pair.round_price(current_price),
-                        stop_loss=setup.ltf_stop_loss,
-                        take_profit=setup.htf_take_profit,
-                        urgency=UrgencyLevel.MEDIUM,
-                        client_tag=f"PHASE_RIDER_{setup.mtf_setup_type}_BUY",
-                    )
-        else:
-            if current_price >= setup.ltf_entry_zone.price_low and current_price <= setup.ltf_entry_zone.price_high:
-                if event.close <= setup.ltf_entry_zone.price_high:
-                    pair = CurrencyPair.from_symbol(symbol)
-                    lot_size = LotSize.from_lots(float(setup.confidence * regime_params["position_size_mult"]))
-                    return self.create_intent(
-                        symbol=symbol,
-                        side=OrderSide.SELL,
-                        order_type=OrderType.LIMIT,
-                        lot_size=lot_size,
-                        timestamp=event.timestamp,
-                        limit_price=pair.round_price(current_price),
-                        stop_loss=setup.ltf_stop_loss,
-                        take_profit=setup.htf_take_profit,
-                        urgency=UrgencyLevel.MEDIUM,
-                        client_tag=f"PHASE_RIDER_{setup.mtf_setup_type}_SELL",
-                    )
-        
-        return None
-    
     def _activate_trade(self, symbol: str, setup: TradeSetup, event: BarEvent, intent: OrderIntent):
         trade_id = f"{setup.symbol}_{setup.direction.value}_{int(event.timestamp.timestamp())}"
         
@@ -920,13 +895,7 @@ __all__ = ["InstitutionalPhaseRider", "TradeSetup", "ActiveTrade", "TradeState",
         
         today = event.timestamp.date().isoformat()
         self._daily_trade_count[today] = self._daily_trade_count.get(today, 0) + 1
-            if mtf_swing_highs:
-                trail = mtf_swing_highs[-1].price
-            else:
-                trail = entry - risk * Decimal("1")
-        
-        return pair.round_price(entry), pair.round_price(sl), pair.round_price(tp), pair.round_price(trail)
-    
+
     def _check_session_filter(self, timestamp: datetime) -> bool:
         if not self.session_filter_enabled:
             return True
@@ -954,3 +923,5 @@ __all__ = ["InstitutionalPhaseRider", "TradeSetup", "ActiveTrade", "TradeState",
             return False
         
         return True
+
+__all__ = ["InstitutionalPhaseRider", "TradeSetup", "ActiveTrade", "TradeState", "MarketRegime"]
