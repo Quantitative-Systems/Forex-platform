@@ -133,7 +133,7 @@ class HistoricalECNFetcher:
         Parses HistData headerless export.
         Format: 'YYYYMMDD HHMMSS;open;high;low;close;volume'
         """
-        raw_df = pl.read_csv(path, separator=delimiter, has_header=False)
+        raw_df = pl.read_csv(path, separator=delimiter, has_header=False, infer_schema=False)
         ts_series = raw_df.select(
             pl.col("column_1").str.to_datetime(format="%Y%m%d %H%M%S", time_zone="UTC")
         )["column_1"]
