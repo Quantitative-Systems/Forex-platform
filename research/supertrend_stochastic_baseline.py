@@ -7,13 +7,11 @@ from __future__ import annotations
 
 import argparse
 import json
-from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
 import polars as pl
 
-from forex_platform.core.domain import CurrencyPair
 from forex_platform.discovery.discovery_loop import CandidateHypothesis, ContinuousDiscoveryLoop
 from forex_platform.market_data.causal_aligner import CausalAligner, Timeframe
 from forex_platform.market_data.historical_fetcher import HistoricalECNFetcher
@@ -26,7 +24,7 @@ def load_real_m5_history(
     cache_dir: Path,
     *,
     minimum_years: float = 2.0,
-) -> tuple[pl.DataFrame, DataProvenance, str, float]:
+) -> tuple[pl.DataFrame, DataProvenance, str, float, int]:
     """Load cached M1 data, verify provenance, and downsample only completed M5 bars."""
     m1_path = HistoricalECNFetcher.get_cache_path(symbol, Timeframe.M1, cache_dir)
     if not m1_path.exists():
@@ -57,7 +55,7 @@ def load_real_m5_history(
     ).sort("timestamp")
     if m5.is_empty():
         raise ValueError(f"{symbol} produced no completed M5 bars")
-    return m5, provenance, source, years
+    return m5, provenance, source, years, m1.height
 
 
 def run_baseline(
@@ -67,7 +65,7 @@ def run_baseline(
     minimum_years: float = 2.0,
 ) -> dict[str, Any]:
     symbol = "GBPUSD"
-    bars, provenance, source, years = load_real_m5_history(
+    bars, provenance, source, years, source_bars = load_real_m5_history(
         symbol, cache_dir, minimum_years=minimum_years
     )
     candidate = CandidateHypothesis(
@@ -91,7 +89,7 @@ def run_baseline(
             "provenance": provenance.value,
             "source": source,
             "source_timeframe": Timeframe.M1.value,
-            "source_bars": int(HistoricalECNFetcher.get_cache_path(symbol, Timeframe.M1, cache_dir).exists()),
+            "source_bars": source_bars,
             "m5_bars": bars.height,
             "years": round(years, 4),
             "start": str(bars["timestamp"][0]),
