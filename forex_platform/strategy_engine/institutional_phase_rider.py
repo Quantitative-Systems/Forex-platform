@@ -625,9 +625,17 @@ class InstitutionalPhaseRider(BaseStrategy):
         min_rr = regime_params["min_rr"]
         actual_rr = abs(tp - entry) / risk
         if actual_rr < min_rr:
-            if direction == OrderSide.BUY:
-return True
-    
+            raise ValueError("HTF structural target fails minimum reward-to-risk")
+
+        if direction == OrderSide.BUY:
+            mtf_swing_lows = [s for s in mtf.swings if s.swing_type == SwingType.LOW]
+            trail = mtf_swing_lows[-1].price if mtf_swing_lows else entry - risk
+        else:
+            mtf_swing_highs = [s for s in mtf.swings if s.swing_type == SwingType.HIGH]
+            trail = mtf_swing_highs[-1].price if mtf_swing_highs else entry + risk
+
+        return pair.round_price(entry), pair.round_price(sl), pair.round_price(tp), pair.round_price(trail)
+
     def on_bar(self, event: BarEvent) -> List[OrderIntent]:
         self.update_history(event)
         symbol = event.symbol
@@ -654,20 +662,7 @@ return True
                     del self._pending_setups[symbol]
         
         return intents
-                tp = entry + risk * min_rr
-            else:
-                tp = entry - risk * min_rr
-        
-        if direction == OrderSide.BUY:
-            mtf_swing_lows = [s for s in mtf.swings if s.swing_type == SwingType.LOW]
-            if mtf_swing_lows:
-                trail = mtf_swing_lows[-1].price
-            else:
-                trail = entry + risk * Decimal("1")
-        else:
-            mtf_swing_highs = [s for s in mtf.swings if s.swing_type == SwingType.HIGH]
-return intents
-    
+
     def _find_new_setup(self, symbol: str, event: BarEvent, state: MarketState) -> Optional[TradeSetup]:
         htf_bias, htf_confidence = self._get_htf_bias(state)
         if htf_bias == 0 or htf_confidence < Decimal("0.5"):
@@ -919,13 +914,7 @@ __all__ = ["InstitutionalPhaseRider", "TradeSetup", "ActiveTrade", "TradeState",
         
         today = event.timestamp.date().isoformat()
         self._daily_trade_count[today] = self._daily_trade_count.get(today, 0) + 1
-            if mtf_swing_highs:
-                trail = mtf_swing_highs[-1].price
-            else:
-                trail = entry - risk * Decimal("1")
-        
-        return pair.round_price(entry), pair.round_price(sl), pair.round_price(tp), pair.round_price(trail)
-    
+
     def _check_session_filter(self, timestamp: datetime) -> bool:
         if not self.session_filter_enabled:
             return True
