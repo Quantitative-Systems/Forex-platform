@@ -880,40 +880,6 @@ class InstitutionalPhaseRider(BaseStrategy):
         }
 
 
-__all__ = ["InstitutionalPhaseRider", "TradeSetup", "ActiveTrade", "TradeState", "MarketRegime"]
-                    lot_size = LotSize.from_lots(float(setup.confidence * regime_params["position_size_mult"]))
-                    return self.create_intent(
-                        symbol=symbol,
-                        side=OrderSide.BUY,
-                        order_type=OrderType.LIMIT,
-                        lot_size=lot_size,
-                        timestamp=event.timestamp,
-                        limit_price=pair.round_price(current_price),
-                        stop_loss=setup.ltf_stop_loss,
-                        take_profit=setup.htf_take_profit,
-                        urgency=UrgencyLevel.MEDIUM,
-                        client_tag=f"PHASE_RIDER_{setup.mtf_setup_type}_BUY",
-                    )
-        else:
-            if current_price >= setup.ltf_entry_zone.price_low and current_price <= setup.ltf_entry_zone.price_high:
-                if event.close <= setup.ltf_entry_zone.price_high:
-                    pair = CurrencyPair.from_symbol(symbol)
-                    lot_size = LotSize.from_lots(float(setup.confidence * regime_params["position_size_mult"]))
-                    return self.create_intent(
-                        symbol=symbol,
-                        side=OrderSide.SELL,
-                        order_type=OrderType.LIMIT,
-                        lot_size=lot_size,
-                        timestamp=event.timestamp,
-                        limit_price=pair.round_price(current_price),
-                        stop_loss=setup.ltf_stop_loss,
-                        take_profit=setup.htf_take_profit,
-                        urgency=UrgencyLevel.MEDIUM,
-                        client_tag=f"PHASE_RIDER_{setup.mtf_setup_type}_SELL",
-                    )
-        
-        return None
-    
     def _activate_trade(self, symbol: str, setup: TradeSetup, event: BarEvent, intent: OrderIntent):
         trade_id = f"{setup.symbol}_{setup.direction.value}_{int(event.timestamp.timestamp())}"
         
@@ -957,3 +923,5 @@ __all__ = ["InstitutionalPhaseRider", "TradeSetup", "ActiveTrade", "TradeState",
             return False
         
         return True
+
+__all__ = ["InstitutionalPhaseRider", "TradeSetup", "ActiveTrade", "TradeState", "MarketRegime"]
