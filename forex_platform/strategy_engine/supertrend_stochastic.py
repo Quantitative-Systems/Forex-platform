@@ -213,10 +213,15 @@ class SuperTrendStochasticStructuralStrategy(BaseStrategy):
         htf, mtf = engine.get_state("1H"), engine.get_state("15M")
         if htf is None or mtf is None or not htf.state_valid or not mtf.state_valid:
             return {}
+        decision_time = event.timestamp + self.timeframe.duration
+        # Fail closed on stale structural snapshots after feed gaps or restarts.
+        if decision_time - htf.timestamp > timedelta(hours=2):
+            return {}
+        if decision_time - mtf.timestamp > timedelta(minutes=30):
+            return {}
         if htf.structural_trend not in (-1, 1) or mtf.structural_trend != htf.structural_trend:
             return {}
         trend = "UP" if htf.structural_trend > 0 else "DOWN"
-        decision_time = event.timestamp + self.timeframe.duration
 
         # Only active MTF zones created by closed bars, still fresh, and touched
         # by the current completed entry candle are eligible.
