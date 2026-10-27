@@ -507,6 +507,10 @@ class ConcordFractalStrategy(BaseStrategy):
             return Decimal("1")
         if pair.base_currency == self.account_currency:
             return Decimal("1") / price if price > 0 else None
+        if pair.quote_currency == "JPY":
+            if pair.base_currency == "USD":
+                return Decimal("1") / price if price > 0 else None
+            return Decimal("1") / price if price > 0 else None
         return self.quote_to_account_rates.get(pair.quote_currency)
 
     @property

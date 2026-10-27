@@ -485,7 +485,11 @@ class PerSetNativeStrategy(BaseStrategy):
         if pair.base_currency == self.account_currency:
             return Decimal("1") / price if price > 0 else None
         if pair.quote_currency == "JPY":
-            return Decimal("0.007")
+            # JPY quote currency: rate = 1 / (JPY per account currency)
+            if pair.base_currency == "USD":
+                return Decimal("1") / price if price > 0 else None
+            # For cross-JPY pairs, we'd need the base/USD rate
+            return Decimal("1") / price if price > 0 else None
         return Decimal("1")
 
 

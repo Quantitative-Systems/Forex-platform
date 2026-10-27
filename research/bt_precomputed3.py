@@ -113,6 +113,9 @@ class PrecomputedPerSetStrategy(BaseStrategy):
         self._setup: Optional[bool] = None
         self._active_trade: Optional[Dict] = None
         
+        # Track previous HTF trend for detecting trend changes
+        self._prev_htf_trend: Optional[int] = None
+        
         # Telemetry
         self.count_total_bars = 0
         self.count_htf_bias_active = 0
@@ -171,6 +174,14 @@ class PrecomputedPerSetStrategy(BaseStrategy):
         lat = row.get("ltf_atr", 0.0)
         lpz = row.get("ltf_pz", 0.0)
         
+        # Detect HTF trend change
+        htf_trend = 1 if hph in (Phase.TB, Phase.CB, Phase.PB) else (-1 if hph in (Phase.TRB, Phase.CRB, Phase.PRB) else 0)
+        if self._prev_htf_trend is not None and htf_trend != self._prev_htf_trend and htf_trend != 0:
+            # HTF trend changed - reset bias and setup
+            self._bias = None
+            self._setup = None
+        self._prev_htf_trend = htf_trend
+        
         if lat is None or lat <= 0:
             return []
         
@@ -222,9 +233,7 @@ class PrecomputedPerSetStrategy(BaseStrategy):
             self.count_orders_dispatched += 1
             return [intent]
         else:
-            # Entry rejected - reset state to allow new setup
-            self._bias = None
-            self._setup = None
+            # Entry rejected - but don't reset bias/setup
             return []
 
     def _check_ltf_trigger(self, lph: int, lpz: float) -> Optional[str]:
@@ -405,7 +414,15 @@ class PrecomputedPerSetStrategy(BaseStrategy):
         if pair.base_currency == "USD":
             return Decimal("1") / price if price > 0 else None
         if pair.quote_currency == "JPY":
-            return Decimal("0.007")
+            # JPY quote currency: rate = 1 / (JPY per account currency)
+            # For USD account with JPY pair (e.g., USDJPY), rate = 1 / price
+            # For EURJPY in USD account, rate = EURUSD / price
+            # We need the quote currency to USD rate
+            if pair.base_currency == "USD":
+                return Decimal("1") / price if price > 0 else None
+            # For cross-JPY pairs, we'd need the base/USD rate
+            # For now, approximate with 1/price for USDJPY
+            return Decimal("1") / price if price > 0 else None
         return Decimal("1")
 
 
