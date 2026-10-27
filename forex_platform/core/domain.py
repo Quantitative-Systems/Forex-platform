@@ -430,11 +430,12 @@ class Position(BaseModel):
 
         self.unrealized_pnl = units_dec * price_diff * rate
 
-    def apply_fill(self, fill: Fill) -> None:
+    def apply_fill(self, fill: Fill, quote_to_account_rate: Decimal | float | str = Decimal("1.0")) -> None:
         """Apply an additional execution fill to this position."""
         if fill.symbol != self.symbol:
             raise ValueError(f"Fill symbol {fill.symbol} does not match position symbol {self.symbol}")
 
+        rate = to_decimal(quote_to_account_rate)
         self.total_commission += fill.commission
 
         if fill.side == self.side:
@@ -456,8 +457,10 @@ class Position(BaseModel):
             else:
                 trade_diff = self.average_entry_price - fill.fill_price
 
-            realized = closed_units_dec * trade_diff
-            self.realized_pnl += realized
+            # Realized PnL in quote currency, then convert to account currency (GROSS)
+            realized_quote = closed_units_dec * trade_diff
+            realized_account = realized_quote * rate
+            self.realized_pnl += realized_account
 
             remaining = self.units - closed_units
             self.units = remaining
@@ -474,7 +477,7 @@ class Position(BaseModel):
         closing_price: Decimal | float | str,
         quote_to_account_rate: Decimal | float | str = Decimal("1.0"),
     ) -> Decimal:
-        """Close position at given price and return final realized trade PnL."""
+        """Close position at given price and return final realized trade PnL (gross, in account currency)."""
         price = to_decimal(closing_price)
         rate = to_decimal(quote_to_account_rate)
         units_dec = Decimal(str(self.units))

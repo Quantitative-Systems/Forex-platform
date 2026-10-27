@@ -223,10 +223,14 @@ class OrderManagementSystem:
             self._open_positions[symbol] = pos
         else:
             pos = self._open_positions[symbol]
-            pos.apply_fill(fill)
+            # Get quote_to_account_rate from latest quotes
+            clean_sym = symbol.upper().replace("/", "").replace("_", "").replace("-", "")
+            quote_rate = self._latest_quotes.get(clean_sym, (Decimal("0"), Decimal("0"), Decimal("1")))[2]
+            pos.apply_fill(fill, quote_to_account_rate=quote_rate)
             if not pos.is_open:
-                # Position was closed
-                self.balance += pos.realized_pnl
+                # Position was closed - update balance with NET realized PnL (gross - commission)
+                net_realized_pnl = pos.realized_pnl - pos.total_commission
+                self.balance += net_realized_pnl
                 self._closed_positions.append(pos)
                 del self._open_positions[symbol]
 
