@@ -70,11 +70,13 @@ class ForwardPaperTradingDaemon:
         now = event.timestamp if event.timestamp.tzinfo else event.timestamp.replace(tzinfo=timezone.utc)
         clean_sym = event.symbol.upper().replace("/", "").replace("_", "")
 
-        # 1. Update live quotes in OMS
+        # 1. Update live quotes in OMS with proper quote-to-account conversion rate
+        quote_rate = self.pair.quote_to_account_rate(telemetry.bid, account_currency="USD")
         self.oms.update_quotes(
             symbol=clean_sym,
             bid=telemetry.bid,
             ask=telemetry.ask,
+            quote_to_account_rate=quote_rate,
         )
 
         # 2. Check 21:00 UTC rollover swap

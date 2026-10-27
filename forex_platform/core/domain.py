@@ -143,6 +143,35 @@ class CurrencyPair(BaseModel):
         quant = Decimal("10") ** -decimal_places
         return p.quantize(quant, rounding=ROUND_HALF_UP)
 
+    def quote_to_account_rate(self, price: Decimal | float | str, account_currency: str = "USD") -> Decimal:
+        """
+        Calculate the conversion rate from quote currency to account currency.
+        
+        For USD-denominated accounts:
+        - XXX/USD pairs: 1 quote currency = 1 USD (rate = 1)
+        - USD/XXX pairs: 1 quote currency = 1/price USD (rate = 1/price)
+        - JPY crosses (XXX/JPY): 1 JPY = 1/price USD (rate = 1/price)
+        - Cross pairs: need cross rate, simplified to 1/price for XXX/JPY
+        """
+        p = to_decimal(price)
+        if p <= 0:
+            return Decimal("1.0")
+        
+        if self.quote_currency == account_currency:
+            # XXX/USD: quote is already account currency
+            return Decimal("1.0")
+        
+        if self.base_currency == account_currency:
+            # USD/XXX: 1 quote = 1/base_price USD
+            return Decimal("1.0") / p
+        
+        if self.quote_currency == "JPY":
+            # XXX/JPY: 1 JPY = 1/price USD (since price is in JPY per base unit)
+            return Decimal("1.0") / p
+        
+        # Other crosses: default to 1/price as approximation
+        return Decimal("1.0") / p
+
 
 class LotSize(BaseModel):
     """
@@ -477,7 +506,13 @@ class Position(BaseModel):
         closing_price: Decimal | float | str,
         quote_to_account_rate: Decimal | float | str = Decimal("1.0"),
     ) -> Decimal:
-        """Close position at given price and return final realized trade PnL (gross, in account currency)."""
+        """Close position at given price and return final realized trade PnL (gross, in account currency).
+        
+        If the position was already closed via an exit fill (apply_fill), the PnL
+        was already captured there. This method only finalizes position state.
+        If the position is still open (e.g., manual close), the closing PnL is
+        added to realized_pnl.
+        """
         price = to_decimal(closing_price)
         rate = to_decimal(quote_to_account_rate)
         units_dec = Decimal(str(self.units))
@@ -488,7 +523,11 @@ class Position(BaseModel):
             diff = self.average_entry_price - price
 
         closing_pnl = units_dec * diff * rate
-        self.realized_pnl += closing_pnl
+        
+        # Only add to realized_pnl if position wasn't already closed via fill
+        if self.is_open:
+            self.realized_pnl += closing_pnl
+        
         self.unrealized_pnl = Decimal("0.0")
         self.units = 0
         self.is_open = False

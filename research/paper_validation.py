@@ -34,7 +34,7 @@ from forex_platform.risk_engine.kill_switches import HierarchicalKillSwitch
 from forex_platform.strategy_engine.base import BarEvent
 
 # Import our strategy
-from research.bt_precomputed3 import PrecomputedPerSetStrategy, run_backtest
+from research.bt_precomputed_paper import PrecomputedPerSetStrategyPaper as PrecomputedPerSetStrategy, run_backtest
 
 # Concord combinations
 CONCORD_COMBINATIONS = [
