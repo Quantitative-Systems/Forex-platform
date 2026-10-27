@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-10-08T08:55:26.611037+00:00",
+  "generated_at_utc": "2026-10-14T03:00:01.195304+00:00",
   "overall_verdict": "FALSIFIED",
   "campaign": "Unified 7-timeframe fractal structural rider; cross-set arbitration enabled",
   "timeframe_ladder": [
@@ -175,8 +175,8 @@
     }
   },
   "cross_set_deduplication": {
-    "raw_signals": 2,
-    "unique_physical_movements": 2,
+    "raw_signals": 1146,
+    "unique_physical_movements": 1146,
     "multi_set_overlaps": 0,
     "dropped_conflicting_signals": 0
   },
@@ -201,6 +201,7 @@
       "expectancy_r_oos": null,
       "expectancy_r_full": null,
       "profit_factor_full": null,
+      "profit_factor_no_losses": false,
       "max_drawdown_pct_full_set_attributed": null,
       "wfe_oos_over_is_annualized_return": null,
       "annualized_return_is": 0.0,
@@ -234,6 +235,7 @@
       "expectancy_r_oos": null,
       "expectancy_r_full": null,
       "profit_factor_full": null,
+      "profit_factor_no_losses": false,
       "max_drawdown_pct_full_set_attributed": null,
       "wfe_oos_over_is_annualized_return": null,
       "annualized_return_is": 0.0,
@@ -251,27 +253,28 @@
       "symbol": "EURUSD",
       "set": "SET_3",
       "status": "REJECTED",
-      "trades": 0,
+      "trades": 14,
       "trade_counts": {
-        "is": 0,
-        "validation": 0,
-        "oos": 0,
-        "full": 0,
-        "cost_stress_full": 0
+        "is": 8,
+        "validation": 4,
+        "oos": 2,
+        "full": 14,
+        "cost_stress_full": 14
       },
-      "win_rate": null,
-      "average_winner_r_is": null,
-      "average_loser_r_is": null,
-      "expectancy_r_is": null,
-      "expectancy_r_validation": null,
-      "expectancy_r_oos": null,
-      "expectancy_r_full": null,
-      "profit_factor_full": null,
-      "max_drawdown_pct_full_set_attributed": null,
+      "win_rate": 0.14285714285714285,
+      "average_winner_r_is": 1.0707070707070707,
+      "average_loser_r_is": -1.1608102639714264,
+      "expectancy_r_is": -0.8818705971366143,
+      "expectancy_r_validation": -0.860517026090824,
+      "expectancy_r_oos": 0.9793322734499205,
+      "expectancy_r_full": -0.609883452468312,
+      "profit_factor_full": 0.13789050621575805,
+      "profit_factor_no_losses": false,
+      "max_drawdown_pct_full_set_attributed": 10.188758220342875,
       "wfe_oos_over_is_annualized_return": null,
-      "annualized_return_is": 0.0,
-      "annualized_return_oos": 0.0,
-      "expectancy_r_cost_stress_full": null,
+      "annualized_return_is": -0.042011826393022034,
+      "annualized_return_oos": 0.03567350223732313,
+      "expectancy_r_cost_stress_full": -0.627838641554505,
       "gates": {
         "A": "FAIL",
         "B": "FAIL",
@@ -284,27 +287,28 @@
       "symbol": "EURUSD",
       "set": "SET_4",
       "status": "REJECTED",
-      "trades": 0,
+      "trades": 67,
       "trade_counts": {
-        "is": 0,
-        "validation": 0,
-        "oos": 0,
-        "full": 0,
-        "cost_stress_full": 0
+        "is": 38,
+        "validation": 20,
+        "oos": 9,
+        "full": 67,
+        "cost_stress_full": 66
       },
-      "win_rate": null,
-      "average_winner_r_is": null,
-      "average_loser_r_is": null,
-      "expectancy_r_is": null,
-      "expectancy_r_validation": null,
-      "expectancy_r_oos": null,
-      "expectancy_r_full": null,
-      "profit_factor_full": null,
-      "max_drawdown_pct_full_set_attributed": null,
+      "win_rate": 0.05970149253731343,
+      "average_winner_r_is": 5.549794868630535,
+      "average_loser_r_is": -1.1025620639010365,
+      "expectancy_r_is": -0.5773759902801231,
+      "expectancy_r_validation": 0.16988128771137126,
+      "expectancy_r_oos": -1.2915660596571579,
+      "expectancy_r_full": -0.4502500957213682,
+      "profit_factor_full": 0.45903414456242847,
+      "profit_factor_no_losses": false,
+      "max_drawdown_pct_full_set_attributed": 32.17933795832659,
       "wfe_oos_over_is_annualized_return": null,
-      "annualized_return_is": 0.0,
-      "annualized_return_oos": 0.0,
-      "expectancy_r_cost_stress_full": null,
+      "annualized_return_is": -0.12936269086311813,
+      "annualized_return_oos": -0.19089961616321183,
+      "expectancy_r_cost_stress_full": -0.5697005820091486,
       "gates": {
         "A": "FAIL",
         "B": "FAIL",
@@ -317,29 +321,30 @@
       "symbol": "EURUSD",
       "set": "SET_5",
       "status": "REJECTED",
-      "trades": 1,
+      "trades": 177,
       "trade_counts": {
-        "is": 1,
-        "validation": 0,
-        "oos": 0,
-        "full": 1,
-        "cost_stress_full": 1
+        "is": 114,
+        "validation": 43,
+        "oos": 20,
+        "full": 177,
+        "cost_stress_full": 162
       },
-      "win_rate": 0.0,
-      "average_winner_r_is": 0.0,
-      "average_loser_r_is": -1.1063707235159925,
-      "expectancy_r_is": -1.1063707235159925,
-      "expectancy_r_validation": null,
-      "expectancy_r_oos": null,
-      "expectancy_r_full": -1.1063707235159925,
-      "profit_factor_full": 0.0,
-      "max_drawdown_pct_full_set_attributed": 1.1063707235159925,
+      "win_rate": 0.06779661016949153,
+      "average_winner_r_is": 5.7094344466508815,
+      "average_loser_r_is": -1.1900475200397527,
+      "expectancy_r_is": -0.6453515753010184,
+      "expectancy_r_validation": -0.8925897289360144,
+      "expectancy_r_oos": -0.26564664471988475,
+      "expectancy_r_full": -0.6625105696212565,
+      "profit_factor_full": 0.3252371215472667,
+      "profit_factor_no_losses": false,
+      "max_drawdown_pct_full_set_attributed": 72.08225645774546,
       "wfe_oos_over_is_annualized_return": null,
-      "annualized_return_is": -0.0066950076503540235,
-      "annualized_return_oos": 0.0,
-      "expectancy_r_cost_stress_full": -1.1162790697674418,
+      "annualized_return_is": -0.3722107736528044,
+      "annualized_return_oos": -0.09695403754807008,
+      "expectancy_r_cost_stress_full": -0.7267111691016264,
       "gates": {
-        "A": "FAIL",
+        "A": "PASS",
         "B": "FAIL",
         "C": "FAIL",
         "D": "FAIL"
@@ -366,6 +371,7 @@
       "expectancy_r_oos": null,
       "expectancy_r_full": null,
       "profit_factor_full": null,
+      "profit_factor_no_losses": false,
       "max_drawdown_pct_full_set_attributed": null,
       "wfe_oos_over_is_annualized_return": null,
       "annualized_return_is": 0.0,
@@ -399,6 +405,7 @@
       "expectancy_r_oos": null,
       "expectancy_r_full": null,
       "profit_factor_full": null,
+      "profit_factor_no_losses": false,
       "max_drawdown_pct_full_set_attributed": null,
       "wfe_oos_over_is_annualized_return": null,
       "annualized_return_is": 0.0,
@@ -416,27 +423,28 @@
       "symbol": "GBPUSD",
       "set": "SET_3",
       "status": "REJECTED",
-      "trades": 0,
+      "trades": 15,
       "trade_counts": {
-        "is": 0,
-        "validation": 0,
-        "oos": 0,
-        "full": 0,
-        "cost_stress_full": 0
+        "is": 11,
+        "validation": 2,
+        "oos": 2,
+        "full": 15,
+        "cost_stress_full": 15
       },
-      "win_rate": null,
-      "average_winner_r_is": null,
-      "average_loser_r_is": null,
-      "expectancy_r_is": null,
-      "expectancy_r_validation": null,
-      "expectancy_r_oos": null,
-      "expectancy_r_full": null,
-      "profit_factor_full": null,
-      "max_drawdown_pct_full_set_attributed": null,
+      "win_rate": 0.06666666666666667,
+      "average_winner_r_is": 0.010309278350515464,
+      "average_loser_r_is": -0.8995121348229501,
+      "expectancy_r_is": -0.816801097261726,
+      "expectancy_r_validation": -1.1283886496798008,
+      "expectancy_r_oos": -1.1800950374409398,
+      "expectancy_r_full": -0.9067852962746978,
+      "profit_factor_full": 0.0012022940350735344,
+      "profit_factor_no_losses": false,
+      "max_drawdown_pct_full_set_attributed": 12.781043369250945,
       "wfe_oos_over_is_annualized_return": null,
-      "annualized_return_is": 0.0,
-      "annualized_return_oos": 0.0,
-      "expectancy_r_cost_stress_full": null,
+      "annualized_return_is": -0.0530611972678503,
+      "annualized_return_oos": -0.04208301805793335,
+      "expectancy_r_cost_stress_full": -1.062866800527669,
       "gates": {
         "A": "FAIL",
         "B": "FAIL",
@@ -449,27 +457,28 @@
       "symbol": "GBPUSD",
       "set": "SET_4",
       "status": "REJECTED",
-      "trades": 0,
+      "trades": 41,
       "trade_counts": {
-        "is": 0,
-        "validation": 0,
-        "oos": 0,
-        "full": 0,
-        "cost_stress_full": 0
+        "is": 22,
+        "validation": 9,
+        "oos": 10,
+        "full": 41,
+        "cost_stress_full": 40
       },
-      "win_rate": null,
-      "average_winner_r_is": null,
-      "average_loser_r_is": null,
-      "expectancy_r_is": null,
-      "expectancy_r_validation": null,
-      "expectancy_r_oos": null,
-      "expectancy_r_full": null,
-      "profit_factor_full": null,
-      "max_drawdown_pct_full_set_attributed": null,
+      "win_rate": 0.04878048780487805,
+      "average_winner_r_is": 0.5945945945945946,
+      "average_loser_r_is": -1.2089518579687162,
+      "expectancy_r_is": -1.1269724737612927,
+      "expectancy_r_validation": -1.185480204319376,
+      "expectancy_r_oos": -0.1409639509001142,
+      "expectancy_r_full": -0.8993257505030237,
+      "profit_factor_full": 0.17145325520347235,
+      "profit_factor_no_losses": false,
+      "max_drawdown_pct_full_set_attributed": 34.164566476648815,
       "wfe_oos_over_is_annualized_return": null,
-      "annualized_return_is": 0.0,
-      "annualized_return_oos": 0.0,
-      "expectancy_r_cost_stress_full": null,
+      "annualized_return_is": -0.1402435260820606,
+      "annualized_return_oos": -0.029093216428881963,
+      "expectancy_r_cost_stress_full": -1.1391598256032174,
       "gates": {
         "A": "FAIL",
         "B": "FAIL",
@@ -482,29 +491,30 @@
       "symbol": "GBPUSD",
       "set": "SET_5",
       "status": "REJECTED",
-      "trades": 0,
+      "trades": 168,
       "trade_counts": {
-        "is": 0,
-        "validation": 0,
-        "oos": 0,
-        "full": 0,
-        "cost_stress_full": 0
+        "is": 93,
+        "validation": 53,
+        "oos": 22,
+        "full": 168,
+        "cost_stress_full": 146
       },
-      "win_rate": null,
-      "average_winner_r_is": null,
-      "average_loser_r_is": null,
-      "expectancy_r_is": null,
-      "expectancy_r_validation": null,
-      "expectancy_r_oos": null,
-      "expectancy_r_full": null,
-      "profit_factor_full": null,
-      "max_drawdown_pct_full_set_attributed": null,
+      "win_rate": 0.06547619047619048,
+      "average_winner_r_is": 8.214469482107992,
+      "average_loser_r_is": -1.0946151207697934,
+      "expectancy_r_is": -0.39393133345641174,
+      "expectancy_r_validation": -1.078439444160606,
+      "expectancy_r_oos": 0.9875919897788997,
+      "expectancy_r_full": -0.42896357605251556,
+      "profit_factor_full": 0.563517303291923,
+      "profit_factor_no_losses": false,
+      "max_drawdown_pct_full_set_attributed": 69.06218352938373,
       "wfe_oos_over_is_annualized_return": null,
-      "annualized_return_is": 0.0,
-      "annualized_return_oos": 0.0,
-      "expectancy_r_cost_stress_full": null,
+      "annualized_return_is": -0.21421077588524162,
+      "annualized_return_oos": 0.3992756065926666,
+      "expectancy_r_cost_stress_full": -1.001051330476333,
       "gates": {
-        "A": "FAIL",
+        "A": "PASS",
         "B": "FAIL",
         "C": "FAIL",
         "D": "FAIL"
@@ -531,6 +541,7 @@
       "expectancy_r_oos": null,
       "expectancy_r_full": null,
       "profit_factor_full": null,
+      "profit_factor_no_losses": false,
       "max_drawdown_pct_full_set_attributed": null,
       "wfe_oos_over_is_annualized_return": null,
       "annualized_return_is": 0.0,
@@ -564,6 +575,7 @@
       "expectancy_r_oos": null,
       "expectancy_r_full": null,
       "profit_factor_full": null,
+      "profit_factor_no_losses": false,
       "max_drawdown_pct_full_set_attributed": null,
       "wfe_oos_over_is_annualized_return": null,
       "annualized_return_is": 0.0,
@@ -581,101 +593,103 @@
       "symbol": "USDJPY",
       "set": "SET_3",
       "status": "REJECTED",
-      "trades": 0,
+      "trades": 5,
       "trade_counts": {
-        "is": 0,
+        "is": 4,
         "validation": 0,
-        "oos": 0,
-        "full": 0,
-        "cost_stress_full": 0
+        "oos": 1,
+        "full": 5,
+        "cost_stress_full": 5
       },
-      "win_rate": null,
-      "average_winner_r_is": null,
-      "average_loser_r_is": null,
-      "expectancy_r_is": null,
+      "win_rate": 0.4,
+      "average_winner_r_is": 25.60671017922011,
+      "average_loser_r_is": -1.0969232270609999,
+      "expectancy_r_is": 5.578985124509277,
       "expectancy_r_validation": null,
-      "expectancy_r_oos": null,
-      "expectancy_r_full": null,
-      "profit_factor_full": null,
-      "max_drawdown_pct_full_set_attributed": null,
-      "wfe_oos_over_is_annualized_return": null,
-      "annualized_return_is": 0.0,
-      "annualized_return_oos": 0.0,
-      "expectancy_r_cost_stress_full": null,
+      "expectancy_r_oos": 0.03543543973936326,
+      "expectancy_r_full": 4.470275187555294,
+      "profit_factor_full": 11.896066288873957,
+      "profit_factor_no_losses": false,
+      "max_drawdown_pct_full_set_attributed": 3.254820411200454,
+      "wfe_oos_over_is_annualized_return": 0.005138887142211839,
+      "annualized_return_is": 0.12485552940593969,
+      "annualized_return_oos": 0.0006416184746982356,
+      "expectancy_r_cost_stress_full": 4.304743098317749,
       "gates": {
         "A": "FAIL",
-        "B": "FAIL",
-        "C": "FAIL",
-        "D": "FAIL"
-      },
-      "deduplication": "unified all-set run; signal assigned to highest net R:R set"
-    },
-    {
-      "symbol": "USDJPY",
-      "set": "SET_4",
-      "status": "REJECTED",
-      "trades": 0,
-      "trade_counts": {
-        "is": 0,
-        "validation": 0,
-        "oos": 0,
-        "full": 0,
-        "cost_stress_full": 0
-      },
-      "win_rate": null,
-      "average_winner_r_is": null,
-      "average_loser_r_is": null,
-      "expectancy_r_is": null,
-      "expectancy_r_validation": null,
-      "expectancy_r_oos": null,
-      "expectancy_r_full": null,
-      "profit_factor_full": null,
-      "max_drawdown_pct_full_set_attributed": null,
-      "wfe_oos_over_is_annualized_return": null,
-      "annualized_return_is": 0.0,
-      "annualized_return_oos": 0.0,
-      "expectancy_r_cost_stress_full": null,
-      "gates": {
-        "A": "FAIL",
-        "B": "FAIL",
-        "C": "FAIL",
-        "D": "FAIL"
-      },
-      "deduplication": "unified all-set run; signal assigned to highest net R:R set"
-    },
-    {
-      "symbol": "USDJPY",
-      "set": "SET_5",
-      "status": "REJECTED",
-      "trades": 1,
-      "trade_counts": {
-        "is": 1,
-        "validation": 0,
-        "oos": 0,
-        "full": 1,
-        "cost_stress_full": 1
-      },
-      "win_rate": 1.0,
-      "average_winner_r_is": 1.8906430660556253,
-      "average_loser_r_is": 0.0,
-      "expectancy_r_is": 1.8906430660556253,
-      "expectancy_r_validation": null,
-      "expectancy_r_oos": null,
-      "expectancy_r_full": 1.8906430660556253,
-      "profit_factor_full": null,
-      "max_drawdown_pct_full_set_attributed": 0.0,
-      "wfe_oos_over_is_annualized_return": 0.0,
-      "annualized_return_is": 0.01137103646845139,
-      "annualized_return_oos": 0.0,
-      "expectancy_r_cost_stress_full": 1.7597491730256756,
-      "gates": {
-        "A": "FAIL",
-        "B": "FAIL",
+        "B": "PASS",
         "C": "FAIL",
         "D": "PASS"
       },
-      "deduplication": "unified all-set run; signal assigned to highest net R:R set",
-      "profit_factor_no_losses": true
+      "deduplication": "unified all-set run; signal assigned to highest net R:R set"
+    },
+    {
+      "symbol": "USDJPY",
+      "set": "SET_4",
+      "status": "REJECTED",
+      "trades": 26,
+      "trade_counts": {
+        "is": 12,
+        "validation": 8,
+        "oos": 6,
+        "full": 26,
+        "cost_stress_full": 26
+      },
+      "win_rate": 0.15384615384615385,
+      "average_winner_r_is": 4.535485462829877,
+      "average_loser_r_is": -1.6100219796491826,
+      "expectancy_r_is": -0.07364511902941766,
+      "expectancy_r_validation": -0.9774453491364705,
+      "expectancy_r_oos": -0.9406922610669848,
+      "expectancy_r_full": -0.5518252995325649,
+      "profit_factor_full": 0.6181346010383161,
+      "profit_factor_no_losses": false,
+      "max_drawdown_pct_full_set_attributed": 20.283031869904566,
+      "wfe_oos_over_is_annualized_return": null,
+      "annualized_return_is": -0.009450889059398837,
+      "annualized_return_oos": -0.09764407231950656,
+      "expectancy_r_cost_stress_full": -0.49110900104733435,
+      "gates": {
+        "A": "FAIL",
+        "B": "FAIL",
+        "C": "FAIL",
+        "D": "FAIL"
+      },
+      "deduplication": "unified all-set run; signal assigned to highest net R:R set"
+    },
+    {
+      "symbol": "USDJPY",
+      "set": "SET_5",
+      "status": "REJECTED",
+      "trades": 118,
+      "trade_counts": {
+        "is": 63,
+        "validation": 23,
+        "oos": 32,
+        "full": 118,
+        "cost_stress_full": 108
+      },
+      "win_rate": 0.09322033898305085,
+      "average_winner_r_is": 7.022250423924454,
+      "average_loser_r_is": -1.150393395065327,
+      "expectancy_r_is": -0.11259735455868794,
+      "expectancy_r_validation": -1.0964906626530195,
+      "expectancy_r_oos": -1.015511159927137,
+      "expectancy_r_full": -0.5492311499651286,
+      "profit_factor_full": 0.5631124011616927,
+      "profit_factor_no_losses": false,
+      "max_drawdown_pct_full_set_attributed": 49.85377515406025,
+      "wfe_oos_over_is_annualized_return": null,
+      "annualized_return_is": -0.0580681369911723,
+      "annualized_return_oos": -0.4507625878319319,
+      "expectancy_r_cost_stress_full": -0.9854729492016235,
+      "gates": {
+        "A": "PASS",
+        "B": "FAIL",
+        "C": "FAIL",
+        "D": "FAIL"
+      },
+      "deduplication": "unified all-set run; signal assigned to highest net R:R set"
     },
     {
       "symbol": "AUDUSD",
@@ -697,6 +711,7 @@
       "expectancy_r_oos": null,
       "expectancy_r_full": null,
       "profit_factor_full": null,
+      "profit_factor_no_losses": false,
       "max_drawdown_pct_full_set_attributed": null,
       "wfe_oos_over_is_annualized_return": null,
       "annualized_return_is": 0.0,
@@ -730,6 +745,7 @@
       "expectancy_r_oos": null,
       "expectancy_r_full": null,
       "profit_factor_full": null,
+      "profit_factor_no_losses": false,
       "max_drawdown_pct_full_set_attributed": null,
       "wfe_oos_over_is_annualized_return": null,
       "annualized_return_is": 0.0,
@@ -747,27 +763,28 @@
       "symbol": "AUDUSD",
       "set": "SET_3",
       "status": "REJECTED",
-      "trades": 0,
+      "trades": 6,
       "trade_counts": {
-        "is": 0,
+        "is": 3,
         "validation": 0,
-        "oos": 0,
-        "full": 0,
-        "cost_stress_full": 0
+        "oos": 3,
+        "full": 6,
+        "cost_stress_full": 7
       },
-      "win_rate": null,
-      "average_winner_r_is": null,
-      "average_loser_r_is": null,
-      "expectancy_r_is": null,
+      "win_rate": 0.16666666666666666,
+      "average_winner_r_is": 0.05325321288057852,
+      "average_loser_r_is": -0.8602427272419289,
+      "expectancy_r_is": -0.5557440805344264,
       "expectancy_r_validation": null,
-      "expectancy_r_oos": null,
-      "expectancy_r_full": null,
-      "profit_factor_full": null,
-      "max_drawdown_pct_full_set_attributed": null,
+      "expectancy_r_oos": -1.3158583678109805,
+      "expectancy_r_full": -0.9358012241727036,
+      "profit_factor_full": 0.014712528782001898,
+      "profit_factor_no_losses": false,
+      "max_drawdown_pct_full_set_attributed": 5.500515863029354,
       "wfe_oos_over_is_annualized_return": null,
-      "annualized_return_is": 0.0,
-      "annualized_return_oos": 0.0,
-      "expectancy_r_cost_stress_full": null,
+      "annualized_return_is": -0.010065064410300528,
+      "annualized_return_oos": -0.06956646972026015,
+      "expectancy_r_cost_stress_full": -1.074036997965484,
       "gates": {
         "A": "FAIL",
         "B": "FAIL",
@@ -780,27 +797,28 @@
       "symbol": "AUDUSD",
       "set": "SET_4",
       "status": "REJECTED",
-      "trades": 0,
+      "trades": 46,
       "trade_counts": {
-        "is": 0,
-        "validation": 0,
-        "oos": 0,
-        "full": 0,
-        "cost_stress_full": 0
+        "is": 35,
+        "validation": 7,
+        "oos": 4,
+        "full": 46,
+        "cost_stress_full": 41
       },
-      "win_rate": null,
-      "average_winner_r_is": null,
-      "average_loser_r_is": null,
-      "expectancy_r_is": null,
-      "expectancy_r_validation": null,
-      "expectancy_r_oos": null,
-      "expectancy_r_full": null,
-      "profit_factor_full": null,
-      "max_drawdown_pct_full_set_attributed": null,
+      "win_rate": 0.021739130434782608,
+      "average_winner_r_is": 0.9906474501053307,
+      "average_loser_r_is": -1.083507588611297,
+      "expectancy_r_is": -1.0242460160765363,
+      "expectancy_r_validation": -1.1512955430618974,
+      "expectancy_r_oos": -1.2315715363827926,
+      "expectancy_r_full": -1.0616079458618093,
+      "profit_factor_full": 0.028472725639003035,
+      "profit_factor_no_losses": false,
+      "max_drawdown_pct_full_set_attributed": 38.83826396722658,
       "wfe_oos_over_is_annualized_return": null,
-      "annualized_return_is": 0.0,
-      "annualized_return_oos": 0.0,
-      "expectancy_r_cost_stress_full": null,
+      "annualized_return_is": -0.19576496259751786,
+      "annualized_return_oos": -0.0859474180225126,
+      "expectancy_r_cost_stress_full": -1.2621285507722662,
       "gates": {
         "A": "FAIL",
         "B": "FAIL",
@@ -813,29 +831,30 @@
       "symbol": "AUDUSD",
       "set": "SET_5",
       "status": "REJECTED",
-      "trades": 0,
+      "trades": 101,
       "trade_counts": {
-        "is": 0,
-        "validation": 0,
-        "oos": 0,
-        "full": 0,
-        "cost_stress_full": 0
+        "is": 62,
+        "validation": 30,
+        "oos": 9,
+        "full": 101,
+        "cost_stress_full": 71
       },
-      "win_rate": null,
-      "average_winner_r_is": null,
-      "average_loser_r_is": null,
-      "expectancy_r_is": null,
-      "expectancy_r_validation": null,
-      "expectancy_r_oos": null,
-      "expectancy_r_full": null,
-      "profit_factor_full": null,
-      "max_drawdown_pct_full_set_attributed": null,
+      "win_rate": 0.06930693069306931,
+      "average_winner_r_is": 2.9632085750845953,
+      "average_loser_r_is": -1.1580995920498838,
+      "expectancy_r_is": -0.8922087425573366,
+      "expectancy_r_validation": -0.8517720849067877,
+      "expectancy_r_oos": -0.10501965281035959,
+      "expectancy_r_full": -0.8100522916935816,
+      "profit_factor_full": 0.24915385433674075,
+      "profit_factor_no_losses": false,
+      "max_drawdown_pct_full_set_attributed": 57.47438211865064,
       "wfe_oos_over_is_annualized_return": null,
-      "annualized_return_is": 0.0,
-      "annualized_return_oos": 0.0,
-      "expectancy_r_cost_stress_full": null,
+      "annualized_return_is": -0.2873924969619749,
+      "annualized_return_oos": -0.02352572250570517,
+      "expectancy_r_cost_stress_full": -1.1358792013388714,
       "gates": {
-        "A": "FAIL",
+        "A": "PASS",
         "B": "FAIL",
         "C": "FAIL",
         "D": "FAIL"
@@ -844,45 +863,409 @@
     }
   ],
   "survivors": [],
-  "positive_oos_cells": [],
+  "positive_oos_cells": [
+    {
+      "symbol": "EURUSD",
+      "set": "SET_3",
+      "oos_expectancy_r": 0.9793322734499205
+    },
+    {
+      "symbol": "GBPUSD",
+      "set": "SET_5",
+      "oos_expectancy_r": 0.9875919897788997
+    },
+    {
+      "symbol": "USDJPY",
+      "set": "SET_3",
+      "oos_expectancy_r": 0.03543543973936326
+    }
+  ],
   "premium_discount_attribution": {
     "EURUSD": {
-      "SET_5:HTF": {
+      "SET_3:HTF": {
+        "PREMIUM": {
+          "trades": 8,
+          "expectancy_r": -0.35377395628326547
+        },
         "DISCOUNT": {
-          "trades": 1,
-          "expectancy_r": -1.1063707235159925
+          "trades": 6,
+          "expectancy_r": -0.951362780715041
+        }
+      },
+      "SET_3:MTF": {
+        "PREMIUM": {
+          "trades": 8,
+          "expectancy_r": -0.6238623401216493
+        },
+        "DISCOUNT": {
+          "trades": 6,
+          "expectancy_r": -0.5912449355971957
+        }
+      },
+      "SET_3:LTF": {
+        "PREMIUM": {
+          "trades": 6,
+          "expectancy_r": -0.6344602132540766
+        },
+        "DISCOUNT": {
+          "trades": 8,
+          "expectancy_r": -0.5914508818789886
+        }
+      },
+      "SET_4:HTF": {
+        "DISCOUNT": {
+          "trades": 37,
+          "expectancy_r": -1.0573537842268221
+        },
+        "PREMIUM": {
+          "trades": 30,
+          "expectancy_r": 0.2985111201020249
+        }
+      },
+      "SET_4:MTF": {
+        "PREMIUM": {
+          "trades": 31,
+          "expectancy_r": -0.9214645533236594
+        },
+        "DISCOUNT": {
+          "trades": 36,
+          "expectancy_r": -0.044482090563839644
+        }
+      },
+      "SET_4:LTF": {
+        "PREMIUM": {
+          "trades": 33,
+          "expectancy_r": -0.5201493213739624
+        },
+        "DISCOUNT": {
+          "trades": 34,
+          "expectancy_r": -0.38240672964679145
+        }
+      },
+      "SET_5:HTF": {
+        "PREMIUM": {
+          "trades": 90,
+          "expectancy_r": -0.41454736595341707
+        },
+        "DISCOUNT": {
+          "trades": 87,
+          "expectancy_r": -0.9190242285879869
         }
       },
       "SET_5:MTF": {
         "PREMIUM": {
-          "trades": 1,
-          "expectancy_r": -1.1063707235159925
+          "trades": 87,
+          "expectancy_r": -0.43440309232619295
+        },
+        "DISCOUNT": {
+          "trades": 88,
+          "expectancy_r": -0.8718970062636412
+        },
+        "EQUILIBRIUM": {
+          "trades": 2,
+          "expectancy_r": -1.3721826196915945
         }
       },
       "SET_5:LTF": {
+        "PREMIUM": {
+          "trades": 83,
+          "expectancy_r": -0.6303938126788305
+        },
+        "DISCOUNT": {
+          "trades": 93,
+          "expectancy_r": -0.6840887720343107
+        },
+        "EQUILIBRIUM": {
+          "trades": 1,
+          "expectancy_r": -1.3214285714285714
+        }
+      }
+    },
+    "GBPUSD": {
+      "SET_3:HTF": {
+        "PREMIUM": {
+          "trades": 14,
+          "expectancy_r": -0.8925761233051182
+        },
         "DISCOUNT": {
           "trades": 1,
-          "expectancy_r": -1.1063707235159925
+          "expectancy_r": -1.1057137178488128
+        }
+      },
+      "SET_3:MTF": {
+        "DISCOUNT": {
+          "trades": 7,
+          "expectancy_r": -0.9044421192698204
+        },
+        "PREMIUM": {
+          "trades": 8,
+          "expectancy_r": -0.9088355761539655
+        }
+      },
+      "SET_3:LTF": {
+        "PREMIUM": {
+          "trades": 11,
+          "expectancy_r": -0.8685882586278264
+        },
+        "DISCOUNT": {
+          "trades": 4,
+          "expectancy_r": -1.0118271498035942
+        }
+      },
+      "SET_4:HTF": {
+        "PREMIUM": {
+          "trades": 23,
+          "expectancy_r": -1.2485158892769823
+        },
+        "DISCOUNT": {
+          "trades": 18,
+          "expectancy_r": -0.45313835095852084
+        }
+      },
+      "SET_4:MTF": {
+        "PREMIUM": {
+          "trades": 21,
+          "expectancy_r": -1.2123265676276003
+        },
+        "DISCOUNT": {
+          "trades": 20,
+          "expectancy_r": -0.5706748925222181
+        }
+      },
+      "SET_4:LTF": {
+        "DISCOUNT": {
+          "trades": 25,
+          "expectancy_r": -0.7768427408663031
+        },
+        "PREMIUM": {
+          "trades": 16,
+          "expectancy_r": -1.0907054530603995
+        }
+      },
+      "SET_5:HTF": {
+        "PREMIUM": {
+          "trades": 82,
+          "expectancy_r": 0.16388632770982955
+        },
+        "DISCOUNT": {
+          "trades": 86,
+          "expectancy_r": -0.9942390656863794
+        }
+      },
+      "SET_5:MTF": {
+        "PREMIUM": {
+          "trades": 88,
+          "expectancy_r": -0.015425393737072524
+        },
+        "DISCOUNT": {
+          "trades": 78,
+          "expectancy_r": -0.8674073623861238
+        },
+        "EQUILIBRIUM": {
+          "trades": 2,
+          "expectancy_r": -1.5253359309212846
+        }
+      },
+      "SET_5:LTF": {
+        "PREMIUM": {
+          "trades": 82,
+          "expectancy_r": 0.15655949474272246
+        },
+        "DISCOUNT": {
+          "trades": 85,
+          "expectancy_r": -0.9938632324515485
+        },
+        "EQUILIBRIUM": {
+          "trades": 1,
+          "expectancy_r": -0.4253845873442355
         }
       }
     },
     "USDJPY": {
-      "SET_5:HTF": {
+      "SET_3:HTF": {
         "DISCOUNT": {
+          "trades": 5,
+          "expectancy_r": 4.470275187555294
+        }
+      },
+      "SET_3:MTF": {
+        "PREMIUM": {
+          "trades": 2,
+          "expectancy_r": -1.079615220223956
+        },
+        "DISCOUNT": {
+          "trades": 3,
+          "expectancy_r": 8.170202126074795
+        }
+      },
+      "SET_3:LTF": {
+        "DISCOUNT": {
+          "trades": 4,
+          "expectancy_r": 5.87072879462789
+        },
+        "PREMIUM": {
           "trades": 1,
-          "expectancy_r": 1.8906430660556253
+          "expectancy_r": -1.131539240735088
+        }
+      },
+      "SET_4:HTF": {
+        "DISCOUNT": {
+          "trades": 8,
+          "expectancy_r": 0.5292077381313532
+        },
+        "PREMIUM": {
+          "trades": 18,
+          "expectancy_r": -1.0322844273831953
+        }
+      },
+      "SET_4:MTF": {
+        "PREMIUM": {
+          "trades": 14,
+          "expectancy_r": -0.2698905294574959
+        },
+        "DISCOUNT": {
+          "trades": 12,
+          "expectancy_r": -0.8807491979534786
+        }
+      },
+      "SET_4:LTF": {
+        "DISCOUNT": {
+          "trades": 10,
+          "expectancy_r": 0.5778835028344427
+        },
+        "PREMIUM": {
+          "trades": 16,
+          "expectancy_r": -1.2578933010119446
+        }
+      },
+      "SET_5:HTF": {
+        "PREMIUM": {
+          "trades": 92,
+          "expectancy_r": -0.7579991685667347
+        },
+        "DISCOUNT": {
+          "trades": 26,
+          "expectancy_r": 0.1894864543174775
         }
       },
       "SET_5:MTF": {
+        "PREMIUM": {
+          "trades": 79,
+          "expectancy_r": -0.6018839299974523
+        },
         "DISCOUNT": {
+          "trades": 38,
+          "expectancy_r": -0.41111571258963375
+        },
+        "EQUILIBRIUM": {
           "trades": 1,
-          "expectancy_r": 1.8906430660556253
+          "expectancy_r": -1.6380481476803537
         }
       },
       "SET_5:LTF": {
         "PREMIUM": {
-          "trades": 1,
-          "expectancy_r": 1.8906430660556253
+          "trades": 76,
+          "expectancy_r": -0.6141109190653117
+        },
+        "DISCOUNT": {
+          "trades": 42,
+          "expectancy_r": -0.4318296630219403
+        }
+      }
+    },
+    "AUDUSD": {
+      "SET_3:HTF": {
+        "DISCOUNT": {
+          "trades": 4,
+          "expectancy_r": -1.1214243642093276
+        },
+        "PREMIUM": {
+          "trades": 2,
+          "expectancy_r": -0.5645549440994556
+        }
+      },
+      "SET_3:MTF": {
+        "DISCOUNT": {
+          "trades": 3,
+          "expectancy_r": -0.9434138506816111
+        },
+        "PREMIUM": {
+          "trades": 3,
+          "expectancy_r": -0.9281885976637959
+        }
+      },
+      "SET_3:LTF": {
+        "PREMIUM": {
+          "trades": 3,
+          "expectancy_r": -0.34565795356049006
+        },
+        "DISCOUNT": {
+          "trades": 3,
+          "expectancy_r": -1.525944494784917
+        }
+      },
+      "SET_4:HTF": {
+        "PREMIUM": {
+          "trades": 33,
+          "expectancy_r": -1.0332068081820394
+        },
+        "DISCOUNT": {
+          "trades": 13,
+          "expectancy_r": -1.1337031415104561
+        }
+      },
+      "SET_4:MTF": {
+        "PREMIUM": {
+          "trades": 29,
+          "expectancy_r": -0.9985117144000858
+        },
+        "DISCOUNT": {
+          "trades": 17,
+          "expectancy_r": -1.1692426936494553
+        }
+      },
+      "SET_4:LTF": {
+        "PREMIUM": {
+          "trades": 34,
+          "expectancy_r": -0.969312510622028
+        },
+        "DISCOUNT": {
+          "trades": 12,
+          "expectancy_r": -1.3231116790411896
+        }
+      },
+      "SET_5:HTF": {
+        "PREMIUM": {
+          "trades": 56,
+          "expectancy_r": -0.5990480884332249
+        },
+        "DISCOUNT": {
+          "trades": 45,
+          "expectancy_r": -1.0726353001953588
+        }
+      },
+      "SET_5:MTF": {
+        "PREMIUM": {
+          "trades": 63,
+          "expectancy_r": -0.6860562594085646
+        },
+        "DISCOUNT": {
+          "trades": 38,
+          "expectancy_r": -1.015624661008215
+        }
+      },
+      "SET_5:LTF": {
+        "PREMIUM": {
+          "trades": 57,
+          "expectancy_r": -0.6249607268912212
+        },
+        "DISCOUNT": {
+          "trades": 42,
+          "expectancy_r": -1.0365610686826432
+        },
+        "EQUILIBRIUM": {
+          "trades": 2,
+          "expectancy_r": -1.3284775717905566
         }
       }
     }
